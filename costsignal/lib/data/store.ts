@@ -1,6 +1,6 @@
 import type {
   ActualProjectCost, AdminUser, AnalyticsEvent, AuditLogEntry, City, ContractorQuoteSet, Country,
-  Dataset, EstimateRequest, Lead, Material, Metro, PriceIndexPoint, PriceIndexSeries,
+  Dataset, EstimateRequest, ExtractedQuoteRecord, Lead, Material, Metro, PriceIndexPoint, PriceIndexSeries,
   PricingFactor, PricingRecord, PricingSource, ProjectType, QuoteCheck, Service, State,
   StoreShape, ZipCode,
 } from "@/lib/types";
@@ -46,6 +46,7 @@ export interface DataStore {
   saveActualProjectCost(row: ActualProjectCost): Promise<void>;
   saveLead(row: Lead): Promise<void>;
   saveEvent(row: AnalyticsEvent): Promise<void>;
+  saveExtractedQuote(row: ExtractedQuoteRecord): Promise<void>;
 
   // -- admin accounts -------------------------------------------------------
   getAdminUserByEmail(email: string): Promise<AdminUser | null>;
@@ -60,6 +61,7 @@ export interface DataStore {
   listSubmissions(status?: ActualProjectCost["status"]): Promise<ActualProjectCost[]>;
   listLeads(limit?: number): Promise<Lead[]>;
   listEvents(limit?: number): Promise<AnalyticsEvent[]>;
+  listExtractedQuotes(limit?: number): Promise<ExtractedQuoteRecord[]>;
   listAuditLog(limit?: number): Promise<AuditLogEntry[]>;
 
   /** Patch one reference-data row and write an audit entry. */

@@ -2,7 +2,7 @@ import { Pool } from "pg";
 import type { DataStore, EditableCollection } from "./store";
 import type {
   ActualProjectCost, AdminUser, AnalyticsEvent, AuditLogEntry, City, ContractorQuoteSet, Country,
-  Dataset, EstimateRequest, Lead, Material, Metro, PriceIndexPoint, PriceIndexSeries,
+  Dataset, EstimateRequest, ExtractedQuoteRecord, Lead, Material, Metro, PriceIndexPoint, PriceIndexSeries,
   PricingFactor, PricingRecord, PricingSource, ProjectType, QuoteCheck, Service, State,
   ZipCode,
 } from "@/lib/types";
@@ -207,6 +207,20 @@ export class PostgresStore implements DataStore {
         r.phone ?? null, r.timeline, r.consentAt, r.status, r.createdAt]);
   }
 
+  async saveExtractedQuote(r: ExtractedQuoteRecord) {
+    await this.pool.query(
+      `INSERT INTO extracted_quotes
+       (id, session_id, service_id, zip, total_price, material_family, measured_squares,
+        roof_area_sqft, existing_layers, warranty_workmanship_years, warranty_material_years,
+        scope, line_item_count, red_flag_count, extraction_confidence, extractor_version, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
+      [r.id, r.sessionId, r.serviceId, r.zip ?? null, r.totalPrice ?? null, r.materialFamily,
+        r.measuredSquares ?? null, r.roofAreaSqft ?? null, r.existingLayers ?? null,
+        r.warrantyWorkmanshipYears ?? null, r.warrantyMaterialYears ?? null,
+        JSON.stringify(r.scope), r.lineItemCount, r.redFlagCount,
+        r.extractionConfidence, r.extractorVersion, r.createdAt]);
+  }
+
   async saveEvent(r: AnalyticsEvent) {
     await this.pool.query(
       `INSERT INTO analytics_events (id, session_id, event_name, properties, path, created_at)
@@ -264,6 +278,15 @@ export class PostgresStore implements DataStore {
     return this.q<AnalyticsEvent>(
       "SELECT * FROM analytics_events ORDER BY created_at DESC LIMIT $1", [limit]);
   }
+  async listExtractedQuotes(limit = 200) {
+    const rows = await this.q<ExtractedQuoteRecord>(
+      "SELECT * FROM extracted_quotes ORDER BY created_at DESC LIMIT $1", [limit]);
+    return rows.map((r) => num(r as never,
+      ["totalPrice", "measuredSquares", "roofAreaSqft", "existingLayers",
+        "warrantyWorkmanshipYears", "warrantyMaterialYears", "lineItemCount", "redFlagCount"],
+    ) as ExtractedQuoteRecord);
+  }
+
   listAuditLog(limit = 200) {
     return this.q<AuditLogEntry>("SELECT * FROM audit_log ORDER BY created_at DESC LIMIT $1", [limit]);
   }

@@ -7,6 +7,7 @@ import type { QuoteAssessment } from "@/lib/engine/quote";
 import type { VarianceExplanation } from "@/lib/engine/roofing/explain";
 import { roofingSteps } from "@/lib/engine/roofing/schema";
 import { StepFields } from "@/components/calculator/Fields";
+import { QuoteUpload } from "@/components/quote/QuoteUpload";
 import { PriceRangeBar } from "@/components/estimate/EstimateView";
 import { Badge, Button, Callout, Card, Field, inputClass } from "@/components/ui";
 import { sessionId, track } from "@/lib/analytics";
@@ -42,6 +43,7 @@ export function QuoteChecker({ materials, projectTypes, initialValues }: {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [uploadFlags, setUploadFlags] = useState<{ issue: string; quotedText: string }[]>([]);
   const resultRef = useRef<HTMLDivElement>(null);
   const started = useRef(false);
 
@@ -105,7 +107,23 @@ export function QuoteChecker({ materials, projectTypes, initialValues }: {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:items-start">
-      <Card className="p-6 lg:sticky lg:top-24">
+      <div className="space-y-4 lg:sticky lg:top-24">
+        <QuoteUpload
+          zip={/^\d{5}$/.test(String(values.zip ?? "")) ? String(values.zip) : undefined}
+          onExtracted={(e) => {
+            // Merge what the document actually stated; leave everything else
+            // at its default so the user can see what still needs answering.
+            setValues((v) => ({ ...v, ...e.projectInput }));
+            if (e.quoteRow.totalPrice != null) setQuotedPrice(String(e.quoteRow.totalPrice));
+            if (e.quoteRow.warrantyWorkmanshipYears != null) {
+              setValues((v) => ({ ...v, warranty: "extended-labor" }));
+            }
+            setUploadFlags(e.redFlags);
+            if (!started.current) { started.current = true; track("quote_check_started"); }
+          }}
+        />
+
+      <Card className="p-6">
         <h2 className="text-[18px] font-semibold tracking-[-0.02em] text-ink">Your quote</h2>
         <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
           Enter the contractor&rsquo;s total, then describe the project as
@@ -158,6 +176,7 @@ export function QuoteChecker({ materials, projectTypes, initialValues }: {
           </p>
         )}
       </Card>
+      </div>
 
       <div ref={resultRef} className="min-w-0 scroll-mt-28 space-y-5">
         {error && (
@@ -167,6 +186,16 @@ export function QuoteChecker({ materials, projectTypes, initialValues }: {
         )}
 
         {!result && !error && <QuoteEmptyState />}
+
+        {uploadFlags.length > 0 && (
+          <div className="space-y-2">
+            {uploadFlags.map((f) => (
+              <Callout key={f.issue} tone="danger" title={f.issue}>
+                Found in your quote: <span className="italic">&ldquo;{f.quotedText}&rdquo;</span>
+              </Callout>
+            ))}
+          </div>
+        )}
 
         {result && (
           <>

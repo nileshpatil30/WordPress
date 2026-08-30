@@ -43,6 +43,7 @@ export default function PrivacyPage() {
         <Table rows={[
           ["Estimate requests", "ZIP code, the project details you enter, the resulting range and confidence score, and an opaque session identifier.", "To show you an estimate, and in aggregate to work out which cities to add local data for next."],
           ["Quote checks", "The quoted amount you enter, the project details, and the verdict.", "To show the comparison, and in aggregate to measure how our modelled ranges compare with real market quotes."],
+          ["Uploaded contractor quotes", "The figures and scope read out of the document: total, line items, material, warranty, what is included or excluded. The file itself is never stored, and we do not record your contractor's name, licence number or your address.", "To fill in the comparison for you, and in aggregate to build a picture of real local quote pricing."],
           ["Contributed project costs", "ZIP code, amount paid, the month the work finished, and optional project characteristics.", "To improve the pricing model with real prices. Reviewed by a person before use, and only ever published combined with other projects."],
           ["Interest registrations", "Name, email, optional phone, ZIP code, timeline.", "So we can tell you if contractor matching becomes available in your area. Nothing else."],
           ["Analytics events", "Event name from a fixed allow-list, non-identifying properties, the page path, and the session identifier.", "To see which parts of the product get used and where people give up."],
@@ -53,6 +54,8 @@ export default function PrivacyPage() {
         <ul className="list-disc space-y-2 pl-5">
           <li>Your name, address, or your contractor&rsquo;s name on a contributed project cost. The form has no such fields.</li>
           <li>The exact date of a project. Contributions store the month only, because a precise date plus a ZIP code starts to identify a specific property.</li>
+          <li>The contractor&rsquo;s name, phone number, licence number, or your property address from an uploaded quote. The reader is instructed not to return them, and the data structure we store them into has no field for them.</li>
+          <li>The uploaded file itself. It is held in memory for the length of the request and then discarded.</li>
           <li>Anything from third-party advertising or tracking networks. There are none on this site.</li>
           <li>Free-text that looks like contact detail in analytics. The event endpoint strips anything resembling an email address or phone number before storing.</li>
         </ul>

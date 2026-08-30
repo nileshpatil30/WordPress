@@ -76,6 +76,8 @@ export const LIMITS = {
   geo: { limit: 120, windowMs: 60_000 },
   // Write endpoints that create moderation work or contain contact details are
   // limited per hour, not per minute.
+  // Each upload costs real money to process, so it is the tightest limit here.
+  extract: { limit: 10, windowMs: 60 * 60_000 },
   submissions: { limit: 5, windowMs: 60 * 60_000 },
   leads: { limit: 5, windowMs: 60 * 60_000 },
   partnerApi: { limit: 120, windowMs: 60_000 },

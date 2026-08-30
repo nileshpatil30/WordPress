@@ -333,6 +333,41 @@ stale) and `v_demand_gaps` (which ZIP to add next).
 
 ---
 
+## Quote upload (AI extraction)
+
+`POST /api/quote-extract` takes a PDF or a photo of a contractor's quote and
+returns structured data: total, line items, material and product name, warranty
+years, scope, exclusions, payment terms, and red flags. It then prefills the
+quote checker, so a homeowner holding a three-page PDF does not have to
+hand-transcribe nine scope checkboxes.
+
+```
+ANTHROPIC_API_KEY=sk-ant-...     # without it the route returns 503 and manual entry still works
+```
+
+Uses `client.messages.parse()` with a Zod schema (structured outputs), so the
+response is validated data rather than prose to repair. Roughly 3-5 cents per
+quote at current Opus pricing - against a roofing lead worth $90-150.
+
+Three design decisions that are not negotiable:
+
+- **The file is never stored.** It lives in memory for the length of the request.
+  Only the structured extraction is persisted.
+- **No contractor identity, no property address.** The prompt forbids returning
+  them *and* `extractedQuoteSchema` has no field to put them in, so a model that
+  ignored the instruction still could not leak them. A test asserts this.
+- **Scope is tri-state.** `included` / `excluded` / `not_stated`. A quote silent
+  on the permit is not the same as one that excludes it, and collapsing the two
+  would misrepresent the contractor. The comparison maths treats `not_stated` as
+  not covered, because silence is exactly what produces a change order.
+
+Red flags must quote the document - an offer to waive an insurance deductible,
+a demand for full payment up front, a claim that no permit is needed. The model
+is explicitly told that a high or low price is never a red flag.
+
+Uploads are rate limited to 10/hour per IP, capped at 15 MB, and the media type
+is sniffed from magic numbers rather than trusted from the browser.
+
 ## Deployment
 
 ```bash

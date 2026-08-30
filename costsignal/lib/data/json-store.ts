@@ -4,7 +4,7 @@ import { seedDataset } from "./seed";
 import type { DataStore, EditableCollection } from "./store";
 import type {
   ActualProjectCost, AdminUser, AnalyticsEvent, AuditLogEntry, City, ContractorQuoteSet, Country,
-  Dataset, EstimateRequest, Lead, Material, Metro, PriceIndexPoint, PriceIndexSeries,
+  Dataset, EstimateRequest, ExtractedQuoteRecord, Lead, Material, Metro, PriceIndexPoint, PriceIndexSeries,
   PricingFactor, PricingRecord, PricingSource, ProjectType, QuoteCheck, Service, State,
   StoreShape, ZipCode,
 } from "@/lib/types";
@@ -23,10 +23,11 @@ type Tombstones = Partial<Record<string, string[]>>;
 
 function emptyMutable(): Pick<StoreShape,
   "estimateRequests" | "quoteChecks" | "contractorQuoteSets" | "actualProjectCosts"
-  | "leads" | "analyticsEvents" | "auditLog" | "adminUsers"> {
+  | "leads" | "analyticsEvents" | "auditLog" | "adminUsers" | "extractedQuotes"> {
   return {
     estimateRequests: [], quoteChecks: [], contractorQuoteSets: [],
     actualProjectCosts: [], leads: [], analyticsEvents: [], auditLog: [], adminUsers: [],
+    extractedQuotes: [],
   };
 }
 
@@ -156,6 +157,9 @@ export class JsonStore implements DataStore {
   async saveQuoteSet(row: ContractorQuoteSet) { this.state.contractorQuoteSets.push(row); this.persist(); }
   async saveActualProjectCost(row: ActualProjectCost) { this.state.actualProjectCosts.push(row); this.persist(); }
   async saveLead(row: Lead) { this.state.leads.push(row); this.persist(); }
+  async saveExtractedQuote(row: ExtractedQuoteRecord) {
+    this.state.extractedQuotes.push(row); this.persist();
+  }
   async saveEvent(row: AnalyticsEvent) {
     this.state.analyticsEvents.push(row);
     // Keep the dev file from growing without bound.
@@ -194,6 +198,7 @@ export class JsonStore implements DataStore {
   }
   async listLeads(limit = 200) { return tail(this.state.leads, limit); }
   async listEvents(limit = 500) { return tail(this.state.analyticsEvents, limit); }
+  async listExtractedQuotes(limit = 200) { return tail(this.state.extractedQuotes, limit); }
   async listAuditLog(limit = 200) { return tail(this.state.auditLog, limit); }
 
   async updateRecord<K extends EditableCollection>(
@@ -259,7 +264,7 @@ const REFERENCE_KEYS = [
 
 const MUTABLE_KEYS = [
   "estimateRequests", "quoteChecks", "contractorQuoteSets", "actualProjectCosts",
-  "leads", "analyticsEvents", "auditLog", "adminUsers",
+  "leads", "analyticsEvents", "auditLog", "adminUsers", "extractedQuotes",
 ] as const;
 
 function pickMutable(raw: Partial<StoreShape>) {

@@ -321,6 +321,34 @@ export interface ContractorQuote {
   notes?: string;
 }
 
+/**
+ * A contractor quote a homeowner uploaded, after extraction.
+ *
+ * The uploaded file itself is never stored - only this structured result. The
+ * document contains the contractor's identity and often the property address,
+ * and we have no business keeping either.
+ */
+export interface ExtractedQuoteRecord {
+  id: string;
+  sessionId: string;
+  serviceId: string;
+  zip?: string;
+  totalPrice?: number;
+  materialFamily: string;
+  measuredSquares?: number;
+  roofAreaSqft?: number;
+  existingLayers?: number;
+  warrantyWorkmanshipYears?: number;
+  warrantyMaterialYears?: number;
+  /** Tri-state per scope key: included | excluded | not_stated. */
+  scope: Record<string, string>;
+  lineItemCount: number;
+  redFlagCount: number;
+  extractionConfidence: string;
+  extractorVersion: string;
+  createdAt: string;
+}
+
 export interface ActualProjectCost {
   id: string;
   serviceId: string;
@@ -415,6 +443,7 @@ export interface MutableCollections {
   analyticsEvents: AnalyticsEvent[];
   auditLog: AuditLogEntry[];
   adminUsers: AdminUser[];
+  extractedQuotes: ExtractedQuoteRecord[];
 }
 
 export type StoreShape = Dataset & MutableCollections;

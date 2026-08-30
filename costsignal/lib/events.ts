@@ -11,6 +11,7 @@
 export const EVENTS = [
   "calculator_started", "calculator_step_completed", "calculator_completed",
   "estimate_generated", "estimate_shared",
+  "quote_upload_started", "quote_upload_completed", "quote_upload_failed",
   "quote_check_started", "quote_check_completed",
   "quote_comparison_started", "quote_comparison_completed",
   "lead_form_started", "lead_form_completed",

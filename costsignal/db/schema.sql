@@ -297,6 +297,35 @@ CREATE TABLE IF NOT EXISTS contractor_quotes (
   notes                       TEXT
 );
 
+-- Contractor quotes uploaded by homeowners, after AI extraction.
+--
+-- The uploaded document is NEVER stored - only this structured result. The file
+-- carries the contractor's identity and usually the property address, and
+-- keeping either would break the promise made on /privacy. Extraction is
+-- likewise instructed not to return them.
+CREATE TABLE IF NOT EXISTS extracted_quotes (
+  id                          TEXT PRIMARY KEY,
+  session_id                  TEXT NOT NULL,
+  service_id                  TEXT NOT NULL REFERENCES services(id),
+  zip                         TEXT,
+  total_price                 NUMERIC(12,2),
+  material_family             TEXT NOT NULL,
+  measured_squares            NUMERIC(8,2),
+  roof_area_sqft              INTEGER,
+  existing_layers             INTEGER,
+  warranty_workmanship_years  INTEGER,
+  warranty_material_years     INTEGER,
+  -- Tri-state per key: included | excluded | not_stated. "Not stated" is not
+  -- the same as "excluded", and collapsing them misrepresents the contractor.
+  scope                       JSONB NOT NULL DEFAULT '{}'::jsonb,
+  line_item_count             INTEGER NOT NULL DEFAULT 0,
+  red_flag_count              INTEGER NOT NULL DEFAULT 0,
+  extraction_confidence       TEXT NOT NULL,
+  extractor_version           TEXT NOT NULL,
+  created_at                  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS extracted_quotes_zip ON extracted_quotes(zip, created_at DESC);
+
 -- What the homeowner actually paid. Voluntary, consented, moderated.
 CREATE TABLE IF NOT EXISTS actual_project_costs (
   id               TEXT PRIMARY KEY,
