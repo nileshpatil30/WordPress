@@ -1,0 +1,35 @@
+{
+  "name": "costsignal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CostSignal - US home project cost intelligence platform (Phase 1: roofing)",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:schema": "psql \"$DATABASE_URL\" -f db/schema.sql",
+    "db:seed": "tsx scripts/seed-postgres.ts"
+  },
+  "dependencies": {
+    "next": "^15.5.24",
+    "pg": "^8.23.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.4.0",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

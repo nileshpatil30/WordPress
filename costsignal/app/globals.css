@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   CostSignal design tokens.
+   A restrained, data-first palette: warm neutral ground, white cards, one deep
+   green accent, and semantic colours reserved for actual signal (caution on a
+   quote, positive on a match). Numbers are the loudest thing on the page.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-ink: #101614;
+  --color-ink-soft: #2C3733;
+  --color-muted: #5F6B66;
+  --color-faint: #8A948F;
+  --color-bg: #F6F5F2;
+  --color-surface: #FFFFFF;
+  --color-sunken: #F0EFEA;
+  --color-line: #E2E1DA;
+  --color-line-strong: #CFCEC5;
+
+  --color-accent: #0C6B58;
+  --color-accent-hover: #0A5747;
+  --color-accent-soft: #E7F0ED;
+  --color-accent-line: #B9D4CB;
+
+  --color-caution: #9A5714;
+  --color-caution-soft: #FBF1E4;
+  --color-danger: #9C2F2F;
+  --color-danger-soft: #FAECEA;
+  --color-positive: #1C7A50;
+  --color-positive-soft: #E8F3ED;
+
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  --radius-card: 14px;
+}
+
+:root { color-scheme: light; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv05" 1, "ss01" 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Figures must line up in columns. */
+.tnum { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+.display {
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  line-height: 0.98;
+}
+
+.prose-body p { margin-bottom: 0.85rem; }
+.prose-body p:last-child { margin-bottom: 0; }
+
+/* Focus ring that survives on both white cards and the sunken ground. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Wide tables scroll inside their own container, never the page. */
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }

@@ -1,0 +1,296 @@
+import type {
+  PriceIndexPoint, PriceIndexSeries, PricingFactor, PricingRecord, PricingSource,
+} from "@/lib/types";
+
+/** The period the shipped numbers describe, and when they were assembled. */
+export const SEED_EFFECTIVE_DATE = "2026-08-01";
+export const SEED_COLLECTED_DATE = "2026-08-15";
+
+/**
+ * IMPORTANT - read before shipping this to real users.
+ *
+ * Every price row below carries dataStatus: "sample". They are internally
+ * derived, order-of-magnitude figures used to make the product functional in
+ * development. They are NOT observed market prices and are not attributed to
+ * any third party.
+ *
+ * The sources listed as `isActive: false` are the ingestion roadmap: real,
+ * legally usable feeds to connect before launch. See DATA_SOURCES.md.
+ */
+export const pricingSources: PricingSource[] = [
+  {
+    id: "src-internal-model", name: "CostSignal internal model (sample data)",
+    sourceType: "internal_model", reliabilityWeight: 0.4, isActive: true,
+    lastReviewedAt: SEED_COLLECTED_DATE,
+    licenseNotes:
+      "Our own derivation. Shipped so the application is functional before real feeds are connected. Must not be presented to users as observed market pricing.",
+  },
+  {
+    id: "src-bls-oes", name: "BLS Occupational Employment and Wage Statistics",
+    url: "https://www.bls.gov/oes/", sourceType: "government",
+    reliabilityWeight: 0.92, isActive: false,
+    licenseNotes:
+      "US federal government work, generally in the public domain. Intended use: metro-level roofer wage data (SOC 47-2181) to derive the labour index. Not yet ingested.",
+  },
+  {
+    id: "src-bls-ppi", name: "BLS Producer Price Index - roofing materials",
+    url: "https://www.bls.gov/ppi/", sourceType: "government",
+    reliabilityWeight: 0.9, isActive: false,
+    licenseNotes:
+      "US federal government work, generally in the public domain. Intended use: material cost trend and the price history series. Not yet ingested.",
+  },
+  {
+    id: "src-census-permits", name: "US Census Building Permits Survey",
+    url: "https://www.census.gov/construction/bps/", sourceType: "government",
+    reliabilityWeight: 0.85, isActive: false,
+    licenseNotes:
+      "US federal government work, generally in the public domain. Intended use: construction activity as a demand proxy per metro. Not yet ingested.",
+  },
+  {
+    id: "src-municipal-permits", name: "Municipal permit fee schedules",
+    sourceType: "government", reliabilityWeight: 0.95, isActive: false,
+    licenseNotes:
+      "Published fee schedules from each authority having jurisdiction. Intended use: replacing our modelled permit allowance with the actual local schedule. Must be collected per jurisdiction and re-checked on their revision cycle.",
+  },
+  {
+    id: "src-osm", name: "OpenStreetMap", url: "https://www.openstreetmap.org/copyright",
+    sourceType: "open_data", reliabilityWeight: 0.7, isActive: false,
+    licenseNotes:
+      "Open Database Licence (ODbL). Commercial use is permitted with attribution, and share-alike obligations attach to derivative databases. Intended use: building footprints to pre-fill roof area. Legal review required before any derivative database is published.",
+  },
+  {
+    id: "src-first-party", name: "CostSignal homeowner submissions",
+    sourceType: "first_party", reliabilityWeight: 0.75, isActive: true,
+    licenseNotes:
+      "Voluntarily submitted by homeowners with explicit consent, moderated before use, and aggregated so no individual project is identifiable. This is the intended long-term backbone of the model.",
+  },
+  {
+    id: "src-contractor", name: "Contractor-submitted pricing",
+    sourceType: "contractor_submitted", reliabilityWeight: 0.6, isActive: false,
+    licenseNotes:
+      "Supplied by participating contractors under agreement. Carries obvious selection bias and must be weighted accordingly, never used as a sole source for a market.",
+  },
+  {
+    id: "src-licensed-costbook", name: "Commercial construction cost database (licensed)",
+    sourceType: "licensed", reliabilityWeight: 0.95, isActive: false,
+    licenseNotes:
+      "Commercial cost databases such as RSMeans require a paid licence. Do not scrape, redistribute or derive a competing database from them. Ingest only under an executed licence that permits derived estimates.",
+  },
+];
+
+const base = {
+  currency: "USD",
+  effectiveDate: SEED_EFFECTIVE_DATE,
+  collectedDate: SEED_COLLECTED_DATE,
+  sourceId: "src-internal-model",
+  dataStatus: "sample" as const,
+  serviceId: "svc-roofing",
+};
+
+// [materialSlug, low, median, high] - delivered material cost per roofing
+// square (100 sq ft of roof surface), excluding underlayment and accessories.
+const materialPerSquare: [string, number, number, number][] = [
+  ["asphalt-3tab", 105, 122, 145],
+  ["asphalt-architectural", 130, 158, 195],
+  ["impact-resistant-shingle", 180, 218, 265],
+  ["asphalt-premium", 205, 255, 320],
+  ["metal-exposed-fastener", 180, 240, 320],
+  ["metal-standing-seam", 350, 480, 700],
+  ["concrete-tile", 200, 285, 400],
+  ["clay-tile", 350, 520, 800],
+  ["synthetic-slate", 350, 470, 650],
+  ["natural-slate", 600, 850, 1250],
+  ["cedar-shake", 350, 470, 650],
+  ["tpo-membrane", 150, 195, 265],
+  ["modified-bitumen", 130, 168, 225],
+  ["spf-foam", 180, 235, 310],
+];
+
+// Component prices that do not vary by material.
+// [metricKey, unit, low, median, high, component, methodology]
+const componentRows: [string, string, number, number, number, PricingRecord["component"], string][] = [
+  ["underlayment.felt-15.per_square", "square", 14, 19, 26, "material", "Organic felt underlayment, material only."],
+  ["underlayment.synthetic.per_square", "square", 18, 25, 34, "material", "Synthetic underlayment, material only. The common default on new work."],
+  ["underlayment.peel-stick.per_square", "square", 55, 78, 110, "material", "Fully self-adhered membrane. Required in some jurisdictions and common as a secondary water barrier."],
+  ["accessories.per_square", "square", 32, 46, 65, "material", "Starter course, ridge cap, drip edge and fasteners as an allowance per square."],
+  ["flashing.standard.per_square", "square", 12, 18, 28, "material", "Step, valley and pipe-boot flashing on a conventional roof."],
+  ["flashing.full-replacement.per_square", "square", 26, 38, 55, "material", "Complete flashing replacement including counter-flashing and valley metal."],
+  ["ventilation.ridge-vent.per_lf", "linear_ft", 7, 10, 15, "material", "Continuous ridge vent, material and cut-in."],
+  ["ventilation.static.each", "each", 45, 68, 95, "material", "Static box or turbine vent, installed."],
+  ["ventilation.powered.each", "each", 320, 460, 650, "material", "Powered attic ventilator including electrical connection."],
+  ["penetration.skylight-flash.each", "each", 240, 380, 620, "addon", "Re-flashing an existing skylight during replacement. Replacing the unit itself costs considerably more."],
+  ["penetration.chimney-flash.each", "each", 350, 560, 900, "addon", "Chimney flashing rebuild including counter-flashing let into the masonry."],
+  ["deck.sheet-replacement.each", "each", 75, 98, 140, "material", "One 4x8 sheet of replacement sheathing, material and labour."],
+  ["equipment.dumpster-haul.each", "each", 380, 520, 700, "equipment", "Roll-off container delivery, haul and base handling for one container."],
+  ["disposal.tipping_per_ton", "ton", 48, 72, 110, "disposal", "Landfill or transfer-station tipping fee per ton of tear-off debris."],
+  ["labor.rate_per_hour", "hour", 48, 62, 82, "labor", "Fully burdened crew cost per hour before contractor overhead and profit. Not a retail billing rate."],
+  ["permit.flat_allowance", "each", 150, 320, 700, "permit", "Residential re-roof permit allowance. Actual fees are set per jurisdiction and vary widely."],
+  ["addon.gutter-replacement.per_lf", "linear_ft", 8, 12, 18, "addon", "Seamless aluminium gutter replacement, material and labour per linear foot."],
+  ["addon.solar-ready-conduit.each", "each", 350, 620, 950, "addon", "Roof penetrations and conduit provisions for a future solar installation, done while the roof is open."],
+];
+
+// City-level overrides. [cityId, laborRateMedian, permitMedian, tippingMedian]
+const cityOverrides: [string, number, number, number][] = [
+  ["city-phoenix", 58, 280, 62],
+  ["city-dallas", 56, 240, 58],
+  ["city-houston", 55, 260, 60],
+  ["city-austin", 61, 310, 66],
+  ["city-san-diego", 82, 480, 105],
+  ["city-los-angeles", 86, 520, 118],
+  ["city-las-vegas", 63, 300, 68],
+  ["city-tampa", 57, 340, 64],
+  ["city-orlando", 56, 300, 62],
+  ["city-miami", 64, 520, 92],
+];
+
+function rec(
+  id: string, metricKey: string, unit: string, low: number, median: number, high: number,
+  component: PricingRecord["component"], geoScopeType: PricingRecord["geoScopeType"],
+  geoScopeId: string, methodology: string, materialId?: string, confidence = 45,
+): PricingRecord {
+  return { ...base, id, metricKey, unit, lowPrice: low, medianPrice: median, highPrice: high,
+    component, geoScopeType, geoScopeId, methodology, materialId, confidenceScore: confidence };
+}
+
+export const pricingRecords: PricingRecord[] = [
+  ...materialPerSquare.map(([slug, low, med, high]) =>
+    rec(`pr-mat-${slug}`, "material.per_square", "square", low, med, high, "material",
+      "country", "us",
+      "Modelled national delivered material cost per square. Replace with distributor or manufacturer list pricing before launch.",
+      `mat-${slug}`)),
+
+  ...componentRows.map(([key, unit, low, med, high, component, methodology]) =>
+    rec(`pr-${key.replace(/[._]/g, "-")}`, key, unit, low, med, high, component, "country", "us", methodology)),
+
+  ...cityOverrides.flatMap(([cityId, labor, permit, tipping]) => [
+    rec(`pr-${cityId}-labor`, "labor.rate_per_hour", "hour",
+      Math.round(labor * 0.82), labor, Math.round(labor * 1.28), "labor", "city", cityId,
+      "Modelled from the national baseline scaled by a metro wage differential. Replace with BLS OEWS metro data for SOC 47-2181.", undefined, 50),
+    rec(`pr-${cityId}-permit`, "permit.flat_allowance", "each",
+      Math.round(permit * 0.6), permit, Math.round(permit * 1.9), "permit", "city", cityId,
+      "Modelled allowance. Replace with the published fee schedule from the authority having jurisdiction - these are knowable exactly and should not stay modelled.", undefined, 35),
+    rec(`pr-${cityId}-tipping`, "disposal.tipping_per_ton", "ton",
+      Math.round(tipping * 0.75), tipping, Math.round(tipping * 1.45), "disposal", "city", cityId,
+      "Modelled regional tipping fee. Replace with published transfer-station rates.", undefined, 40),
+  ]),
+];
+
+// ---------------------------------------------------------------------------
+// Factors - every multiplier the engine applies lives here, not in code.
+// ---------------------------------------------------------------------------
+function factor(
+  key: string, label: string, appliesTo: PricingFactor["appliesTo"], multiplier: number,
+  description: string, dataStatus: PricingFactor["dataStatus"] = "sample",
+): PricingFactor {
+  return {
+    id: `pf-${key.replace(/\./g, "-")}`, serviceId: "svc-roofing", factorKey: key, label,
+    appliesTo, multiplier, geoScopeType: "global", geoScopeId: "global", description,
+    dataStatus, sourceId: "src-internal-model", updatedAt: SEED_COLLECTED_DATE,
+  };
+}
+
+export const pricingFactors: PricingFactor[] = [
+  // Pitch area multipliers are exact geometry: sqrt(1 + (rise/12)^2). The roof
+  // surface of a pitched plane is always that much larger than its footprint.
+  factor("pitch.flat.area", "Flat / low slope (0:12-2:12) area factor", "all", 1.0,
+    "Roof surface equals footprint. Exact geometry, not an estimate.", "verified"),
+  factor("pitch.low.area", "Low slope (3:12-4:12) area factor", "all", 1.054,
+    "sqrt(1 + (3.5/12)^2). Exact geometry for a 3.5:12 representative pitch.", "verified"),
+  factor("pitch.moderate.area", "Moderate slope (5:12-7:12) area factor", "all", 1.118,
+    "sqrt(1 + (6/12)^2). Exact geometry for a 6:12 representative pitch.", "verified"),
+  factor("pitch.steep.area", "Steep slope (8:12-10:12) area factor", "all", 1.25,
+    "sqrt(1 + (9/12)^2). Exact geometry for a 9:12 representative pitch.", "verified"),
+  factor("pitch.very-steep.area", "Very steep (11:12+) area factor", "all", 1.414,
+    "sqrt(1 + (12/12)^2). Exact geometry for a 12:12 representative pitch.", "verified"),
+
+  factor("pitch.flat.labor", "Flat / low slope labour factor", "labor", 1.1,
+    "Low-slope work uses a different system and detailing, so hours per square rise even though area does not."),
+  factor("pitch.low.labor", "Low slope labour factor", "labor", 1.0, "Baseline walkable pitch."),
+  factor("pitch.moderate.labor", "Moderate slope labour factor", "labor", 1.05, "Still walkable; modest productivity loss."),
+  factor("pitch.steep.labor", "Steep slope labour factor", "labor", 1.28,
+    "Roof jacks, staging and fall protection are required and productivity drops sharply."),
+  factor("pitch.very-steep.labor", "Very steep labour factor", "labor", 1.5,
+    "Full staging required. This is the single largest labour driver on a residential roof."),
+
+  factor("stories.1.labor", "Single storey", "labor", 1.0, "Baseline. Ground-level material handling."),
+  factor("stories.2.labor", "Two storeys", "labor", 1.1, "Longer carries, more setup, higher fall exposure."),
+  factor("stories.3.labor", "Three or more storeys", "labor", 1.24, "Often needs a lift or conveyor; material handling dominates."),
+
+  factor("complexity.simple.labor", "Simple roofline", "labor", 1.0, "Gable or hip with two to four planes and no dormers."),
+  factor("complexity.moderate.labor", "Moderate roofline", "labor", 1.12, "Five to eight planes, some valleys, one or two dormers."),
+  factor("complexity.complex.labor", "Complex roofline", "labor", 1.28, "Nine or more planes, multiple valleys and dormers, significant flashing."),
+  factor("complexity.very-complex.labor", "Very complex roofline", "labor", 1.45, "Cut-up custom roof with turrets, many intersections and extensive detail work."),
+
+  factor("complexity.simple.waste", "Simple roofline waste factor", "material", 1.07, "Standard cutting waste on a simple roof."),
+  factor("complexity.moderate.waste", "Moderate roofline waste factor", "material", 1.1, "Valleys and hips increase offcut waste."),
+  factor("complexity.complex.waste", "Complex roofline waste factor", "material", 1.15, "Many intersections produce significantly more waste."),
+  factor("complexity.very-complex.waste", "Very complex waste factor", "material", 1.2, "Highly cut-up roofs routinely exceed 20 percent waste."),
+
+  factor("access.easy.labor", "Easy access", "labor", 1.0, "Driveway staging, container next to the house, clear perimeter."),
+  factor("access.moderate.labor", "Moderate access", "labor", 1.07, "Some carrying distance, partial obstruction, restricted container placement."),
+  factor("access.difficult.labor", "Difficult access", "labor", 1.18, "Hillside, narrow street, no on-site staging, or heavy tree cover."),
+
+  factor("tearoff.hours_per_square_per_layer", "Tear-off labour", "labor", 0.85,
+    "Base crew hours to strip one layer from one square. Scaled by the existing material's weight in the engine."),
+
+  factor("labor.detail_hours_per_square", "Detail and dry-in labour", "labor", 0.35,
+    "Crew hours per square for underlayment, flashing, valleys and edge detail, over and above the covering install itself."),
+  factor("labor.tile_relay_handling", "Tile lift-and-relay handling", "labor", 1.15,
+    "Every tile is handled twice on a lift-and-relay, so install hours rise even though no new tile is laid."),
+  factor("material.tile_breakage_allowance", "Tile breakage allowance", "material", 0.12,
+    "Share of tile expected to break during a lift-and-relay and need replacing. Ask each contractor what allowance they assumed."),
+  factor("area.eave_overhang", "Eave overhang allowance", "material", 1.08,
+    "Roof plan area exceeds conditioned floor footprint because of eaves and overhangs."),
+
+  factor("quality.builder.material", "Builder-grade material selection", "material", 0.88,
+    "Entry-level product within the chosen material family."),
+  factor("quality.standard.material", "Standard material selection", "material", 1.0,
+    "Mid-range product within the chosen family. The default."),
+  factor("quality.premium.material", "Premium material selection", "material", 1.22,
+    "Top-of-line product within the chosen family, heavier weight and longer warranty."),
+
+  factor("warranty.standard.adder", "Manufacturer standard warranty", "all", 1.0,
+    "The warranty that comes with the product. No cost adder."),
+  factor("warranty.extended-labor.adder", "Extended workmanship warranty", "all", 1.03,
+    "Contractor-backed extended labour coverage, typically 10 years or more."),
+  factor("warranty.system.adder", "Manufacturer system warranty", "all", 1.08,
+    "Requires a certified installer and a complete single-manufacturer system, including underlayment and accessories."),
+
+  // Overhead and profit is where most of the low/high spread comes from. It is
+  // a real cost of doing business, not a markup to be negotiated away.
+  factor("overhead.low", "Contractor overhead and profit - low", "all", 1.22,
+    "A lean, high-volume operation working at cost-plus in a soft market."),
+  factor("overhead.typical", "Contractor overhead and profit - typical", "all", 1.32,
+    "A properly insured company carrying warranty reserve, supervision and overhead."),
+  factor("overhead.high", "Contractor overhead and profit - high", "all", 1.45,
+    "A premium or capacity-constrained contractor, or a post-storm market."),
+
+  factor("contingency.deck", "Deck repair contingency", "all", 1.0,
+    "Deck replacement is estimated explicitly from a sheet count rather than as a percentage."),
+];
+
+// ---------------------------------------------------------------------------
+// Price history. We ship ONE clearly-labelled sample series so the chart
+// component is exercised. Any city without a series renders an honest empty
+// state rather than an invented trend line.
+// ---------------------------------------------------------------------------
+export const priceIndexSeries: PriceIndexSeries[] = [
+  {
+    id: "pis-us-roofing-material", seriesKey: "us.roofing.material_index",
+    name: "US roofing material cost index (sample)",
+    geoScopeType: "country", geoScopeId: "us", sourceId: "src-internal-model",
+    unit: "index (2024-01 = 100)", dataStatus: "sample",
+    methodology:
+      "SAMPLE SERIES. Illustrative only, so the history component can be developed and reviewed. Replace with BLS Producer Price Index series for asphalt shingle and coating materials before this is shown to users as fact.",
+  },
+];
+
+export const priceIndexPoints: PriceIndexPoint[] = [
+  ["2024-01-01", 100.0, undefined], ["2024-07-01", 102.4, undefined],
+  ["2025-01-01", 104.9, 4.9], ["2025-07-01", 107.6, 5.1],
+  ["2026-01-01", 110.3, 5.1], ["2026-07-01", 112.1, 4.2],
+].map(([period, value, yoy], i) => ({
+  id: `pip-${i}`, seriesId: "pis-us-roofing-material",
+  periodStart: period as string, value: value as number,
+  pctChangeYoy: yoy as number | undefined,
+}));
