@@ -178,6 +178,19 @@ export const pricingRecords: PricingRecord[] = [
 // ---------------------------------------------------------------------------
 // Factors - every multiplier the engine applies lives here, not in code.
 // ---------------------------------------------------------------------------
+/** A geographically scoped factor. State-scoped rows beat the global one. */
+function scopedFactor(
+  key: string, label: string, appliesTo: PricingFactor["appliesTo"], multiplier: number,
+  description: string, geoScopeType: PricingFactor["geoScopeType"], geoScopeId: string,
+  dataStatus: PricingFactor["dataStatus"] = "modeled",
+): PricingFactor {
+  return {
+    id: `pf-${key.replace(/\./g, "-")}-${geoScopeId}`, serviceId: "svc-roofing", factorKey: key,
+    label, appliesTo, multiplier, geoScopeType, geoScopeId, description, dataStatus,
+    sourceId: "src-internal-model", updatedAt: SEED_COLLECTED_DATE,
+  };
+}
+
 function factor(
   key: string, label: string, appliesTo: PricingFactor["appliesTo"], multiplier: number,
   description: string, dataStatus: PricingFactor["dataStatus"] = "sample",
@@ -267,6 +280,38 @@ export const pricingFactors: PricingFactor[] = [
 
   factor("contingency.deck", "Deck repair contingency", "all", 1.0,
     "Deck replacement is estimated explicitly from a sheet count rather than as a percentage."),
+
+  // ---------------------------------------------------------------------
+  // Labour burden: what a published wage becomes once an employer pays for it.
+  //
+  // Covers payroll taxes, workers' compensation, general liability, vehicles,
+  // supervision and non-productive hours. It does NOT include profit - the
+  // engine applies overhead and profit separately, and including it here would
+  // count profit twice. Used by scripts/ingest-bls-oews.ts to convert BLS wage
+  // data into a fully burdened crew rate.
+  //
+  // State overrides exist because workers' compensation for roofing is one of
+  // the most expensive classifications there is, and its cost varies enormously
+  // by state.
+  // ---------------------------------------------------------------------
+  scopedFactor("labor.burden_multiplier", "Labour burden - national default", "labor", 1.8,
+    "Applied to a published hourly wage to reach an employer's fully burdened crew cost. Excludes profit.",
+    "global", "global"),
+  scopedFactor("labor.burden_multiplier", "Labour burden - Texas", "labor", 1.68,
+    "Texas is the one state that does not require most private employers to carry workers' compensation, so the burden on a published wage is typically lower. Verify against the employer's actual coverage.",
+    "state", "us-tx"),
+  scopedFactor("labor.burden_multiplier", "Labour burden - California", "labor", 1.95,
+    "High workers' compensation rates for roofing classifications plus state payroll costs.",
+    "state", "us-ca"),
+  scopedFactor("labor.burden_multiplier", "Labour burden - Florida", "labor", 1.9,
+    "Roofing carries one of the most expensive workers' compensation classifications in the state.",
+    "state", "us-fl"),
+  scopedFactor("labor.burden_multiplier", "Labour burden - Arizona", "labor", 1.78,
+    "Modelled from typical roofing workers' compensation and payroll burden.",
+    "state", "us-az"),
+  scopedFactor("labor.burden_multiplier", "Labour burden - Nevada", "labor", 1.82,
+    "Modelled from typical roofing workers' compensation and payroll burden.",
+    "state", "us-nv"),
 ];
 
 // ---------------------------------------------------------------------------

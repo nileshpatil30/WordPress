@@ -1,0 +1,9 @@
+AREA,AREA_TITLE,OCC_CODE,OCC_TITLE,TOT_EMP,H_MEAN,H_PCT25,H_MEDIAN,H_PCT75
+38060,"Phoenix-Mesa-Chandler, AZ",47-2181,Roofers,3120,25.40,20.11,24.22,29.85
+38060,"Phoenix-Mesa-Chandler, AZ",47-2111,Electricians,18240,29.80,23.50,28.90,35.10
+19100,"Dallas-Fort Worth-Arlington, TX",47-2181,Roofers,4410,23.90,19.02,22.51,27.40
+31080,"Los Angeles-Long Beach-Anaheim, CA",47-2181,Roofers,5200,30.10,24.80,29.15,35.60
+33100,"Miami-Fort Lauderdale-West Palm Beach, FL",47-2181,Roofers,2870,24.80,19.90,23.60,28.70
+29820,"Las Vegas-Henderson-North Las Vegas, NV",47-2181,Roofers,90,26.10,*,*,*
+0041740,"San Diego-Chula Vista-Carlsbad, CA",47-2181,Roofers,1180,28.40,23.10,27.30,#
+99999,"Somewhere We Do Not Cover, ZZ",47-2181,Roofers,410,21.00,17.50,20.40,24.10

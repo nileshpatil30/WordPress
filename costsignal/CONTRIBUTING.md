@@ -21,7 +21,14 @@ people about what a roof costs.
    for scope and lets the reader decide.
 6. **Never hardcode a multiplier in a component.** It belongs in
    `pricing_factors`, where an admin can see and change it.
-7. **Never publish a page with nothing to say.** `is_published` and
+7. **Never put profit in two places.** `labor.burden_multiplier` converts a
+   worker's wage into an employer's cost. Overhead and profit are applied
+   separately by the engine, on the whole direct cost. A "burden" of 2.5-3.0x
+   that quietly includes profit inflates the labour line by ~55% and the final
+   estimate by ~17%.
+8. **Recency is governed by the oldest input, not the newest.** One fresh row
+   must never make stale data look current.
+9. **Never publish a page with nothing to say.** `is_published` and
    `page_eligible` are the gates. If you cannot write something specific and
    true about a place, it does not get a page.
 

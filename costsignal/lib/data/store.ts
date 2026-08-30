@@ -63,6 +63,16 @@ export interface DataStore {
   insertRecord<K extends EditableCollection>(
     collection: K, row: Record<string, unknown>, actor: string,
   ): Promise<{ ok: boolean; message?: string; id?: string }>;
+
+  /**
+   * Remove one reference-data row, writing an audit entry that keeps the
+   * deleted values. Needed for data operations: when a verified feed supersedes
+   * a sample row, the sample row has to go, or the geographic resolution chain
+   * keeps preferring it for being more specific.
+   */
+  deleteRecord<K extends EditableCollection>(
+    collection: K, id: string, actor: string,
+  ): Promise<{ ok: boolean; message?: string }>;
 }
 
 export type EditableCollection = Extract<

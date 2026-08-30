@@ -58,7 +58,10 @@ export interface ConfidenceResult {
 }
 
 export interface FreshnessInfo {
+  /** Oldest input feeding the estimate. This is what it is honestly dated to. */
   effectiveDate: string;
+  /** Newest input, shown for transparency about the spread of data ages. */
+  newestEffectiveDate: string;
   collectedDate: string;
   label: string;
   containsSampleData: boolean;

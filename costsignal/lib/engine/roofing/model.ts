@@ -1,5 +1,5 @@
 import type { CostComponent, PricingSource } from "@/lib/types";
-import { addTriples, makePriceLookup, scale, zeroTriple } from "../geo";
+import { addTriples, makeFactorLookup, makePriceLookup, scale } from "../geo";
 import { scoreConfidence } from "../confidence";
 import type {
   Assumption, EngineContext, EstimateResult, LineItem, PriceTriple,
@@ -46,8 +46,9 @@ export function estimateRoofing(
   const assumptions: Assumption[] = [];
   const provided = new Set(input.providedFields ?? []);
 
-  const factor = (key: string, fallback = 1) =>
-    ctx.factors.find((f) => f.factorKey === key)?.multiplier ?? fallback;
+  // Factors resolve through the geographic chain, exactly like prices, so a
+  // state-scoped override beats the global default.
+  const factor = makeFactorLookup(ctx.factors, ctx.geo);
 
   const material = ctx.materials.find((m) => m.slug === input.material)
     ?? ctx.materials.find((m) => m.slug === "asphalt-architectural")
@@ -328,11 +329,14 @@ export function estimateRoofing(
 
   // -- Confidence ----------------------------------------------------------
   const bestLevel = price.bestLevel();
-  const newestEffective = price.used
-    .map((h) => h.record.effectiveDate)
-    .sort()
-    .at(-1) ?? new Date().toISOString().slice(0, 10);
-  const monthsOld = monthsBetween(new Date(newestEffective), ctx.now);
+  const effectiveDates = price.used.map((h) => h.record.effectiveDate).sort();
+  const today = new Date().toISOString().slice(0, 10);
+  // Recency is governed by the OLDEST input, not the newest. One fresh row must
+  // not make three-year-old data look current - an estimate is only as current
+  // as the stalest number inside it.
+  const oldestEffective = effectiveDates[0] ?? today;
+  const newestEffective = effectiveDates.at(-1) ?? today;
+  const monthsOld = monthsBetween(new Date(oldestEffective), ctx.now);
 
   const missing = OPTIONAL_DETAIL_FIELDS.filter((f) => !provided.has(f));
   const confidence = scoreConfidence({
@@ -381,11 +385,14 @@ export function estimateRoofing(
     confidence,
     geo: { ...ctx.geo, bestLevel },
     freshness: {
-      effectiveDate: newestEffective,
+      // The headline date is the oldest input, because that is what the whole
+      // estimate is honestly dated to.
+      effectiveDate: oldestEffective,
+      newestEffectiveDate: newestEffective,
       collectedDate: collected,
       monthsOld,
       containsSampleData: containsSample,
-      label: formatMonth(newestEffective),
+      label: formatMonth(oldestEffective),
     },
     warnings,
   };

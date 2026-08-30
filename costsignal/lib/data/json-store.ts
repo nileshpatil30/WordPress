@@ -12,6 +12,15 @@ import type {
 const DATA_DIR = path.join(process.cwd(), ".data");
 const DATA_FILE = path.join(DATA_DIR, "store.json");
 
+/**
+ * Reference collections are merged over the seed by id, so a seed update is
+ * never lost behind a stale overlay. That merge cannot express a deletion, so
+ * deletions are recorded as tombstones and filtered out on load. Without this,
+ * a row removed through the admin console or an ingest job silently reappears
+ * on the next boot.
+ */
+type Tombstones = Partial<Record<string, string[]>>;
+
 function emptyMutable(): Pick<StoreShape,
   "estimateRequests" | "quoteChecks" | "contractorQuoteSets" | "actualProjectCosts"
   | "leads" | "analyticsEvents" | "auditLog"> {
@@ -37,6 +46,7 @@ export class JsonStore implements DataStore {
   readonly driver = "json" as const;
   private state: StoreShape;
   private canWrite: boolean;
+  private deleted: Tombstones = {};
 
   constructor() {
     this.canWrite = process.env.ALLOW_FILE_WRITES !== "false";
@@ -47,7 +57,10 @@ export class JsonStore implements DataStore {
   private load() {
     try {
       if (!fs.existsSync(DATA_FILE)) return;
-      const raw = JSON.parse(fs.readFileSync(DATA_FILE, "utf8")) as Partial<StoreShape>;
+      const parsed = JSON.parse(fs.readFileSync(DATA_FILE, "utf8")) as
+        Partial<StoreShape> & { __deleted?: Tombstones };
+      const raw = parsed as Partial<StoreShape>;
+      this.deleted = parsed.__deleted ?? {};
       // Runtime collections replace wholesale; reference collections are merged
       // by id so a seed update is not lost behind a stale overlay.
       this.state = { ...this.state, ...emptyMutable(), ...pickMutable(raw) };
@@ -58,6 +71,15 @@ export class JsonStore implements DataStore {
         for (const row of overlay) byId.set(row.id, { ...byId.get(row.id), ...row });
         (this.state as unknown as Record<string, unknown>)[key] = [...byId.values()];
       }
+      // Re-apply deletions last, so a tombstoned row cannot come back via the
+      // seed or the overlay.
+      for (const [key, ids] of Object.entries(this.deleted)) {
+        if (!ids?.length) continue;
+        const rows = this.state[key as keyof StoreShape] as unknown as { id: string }[] | undefined;
+        if (!Array.isArray(rows)) continue;
+        const gone = new Set(ids);
+        (this.state as unknown as Record<string, unknown>)[key] = rows.filter((r) => !gone.has(r.id));
+      }
     } catch (err) {
       console.warn("[json-store] could not read overlay, using seed only:", err);
     }
@@ -67,7 +89,8 @@ export class JsonStore implements DataStore {
     if (!this.canWrite) return;
     try {
       fs.mkdirSync(DATA_DIR, { recursive: true });
-      fs.writeFileSync(DATA_FILE, JSON.stringify(this.state, null, 2), "utf8");
+      fs.writeFileSync(
+        DATA_FILE, JSON.stringify({ ...this.state, __deleted: this.deleted }, null, 2), "utf8");
     } catch (err) {
       // A read-only filesystem is an expected deployment, not a crash.
       this.canWrite = false;
@@ -169,12 +192,32 @@ export class JsonStore implements DataStore {
     return { ok: true };
   }
 
+  async deleteRecord<K extends EditableCollection>(
+    collection: K, id: string, actor: string,
+  ) {
+    const rows = this.state[collection] as unknown as { id: string }[];
+    const idx = rows.findIndex((r) => r.id === id);
+    if (idx === -1) return { ok: false, message: `No ${collection} row with id ${id}` };
+    const [removed] = rows.splice(idx, 1);
+    this.deleted[collection] = [...(this.deleted[collection] ?? []), id];
+    this.state.auditLog.push({
+      id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      tableName: collection, recordId: id, action: "delete", actor,
+      before: removed as unknown as Record<string, unknown>,
+      createdAt: new Date().toISOString(),
+    });
+    this.persist();
+    return { ok: true };
+  }
+
   async insertRecord<K extends EditableCollection>(
     collection: K, row: Record<string, unknown>, actor: string,
   ) {
     const rows = this.state[collection] as unknown as { id: string }[];
     const id = String(row.id ?? `${collection}-${Date.now().toString(36)}`);
     if (rows.some((r) => r.id === id)) return { ok: false, message: `id ${id} already exists` };
+    // Re-inserting a previously deleted id is a resurrection, not a duplicate.
+    this.deleted[collection] = (this.deleted[collection] ?? []).filter((x) => x !== id);
     rows.push({ ...row, id } as { id: string });
     this.state.auditLog.push({
       id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,

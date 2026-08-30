@@ -107,6 +107,27 @@ describe("roofing engine", () => {
     expect(supplied(detailed)).toBeGreaterThan(supplied(sparse));
   });
 
+  it("dates the estimate to its OLDEST input, not its newest", async () => {
+    // One fresh row must never make stale data look current. This is the whole
+    // reason the freshness label exists.
+    const ctx = (await buildEngineContext(store, "roofing", baseline.zip))!;
+    // Age every labour row, whichever scope ends up resolving.
+    for (const r of ctx.records) {
+      if (r.metricKey === "labor.rate_per_hour") r.effectiveDate = "2023-05-01";
+    }
+
+    const parsed = engine.parse(baseline);
+    if (!parsed.ok) throw new Error(parsed.error);
+    const r = engine.estimate(parsed.value, ctx);
+
+    expect(r.freshness.effectiveDate).toBe("2023-05-01");
+    expect(r.freshness.newestEffectiveDate > r.freshness.effectiveDate).toBe(true);
+    expect(r.freshness.monthsOld).toBeGreaterThan(24);
+
+    const recency = r.confidence.breakdown.find((b) => b.key === "recency")!;
+    expect(recency.earned).toBeLessThanOrEqual(6);
+  });
+
   it("rejects a malformed ZIP", () => {
     const parsed = engine.parse({ zip: "abc" });
     expect(parsed.ok).toBe(false);

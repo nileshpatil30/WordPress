@@ -17,7 +17,7 @@ even though none of it gives you a roof price directly.
 
 | Source | Use | Notes |
 |---|---|---|
-| **BLS Occupational Employment and Wage Statistics** | Metro-level roofer wages (SOC 47-2181) → the labour index | Replaces our modelled per-city labour rate with something defensible. Highest value per hour of work. |
+| **BLS Occupational Employment and Wage Statistics** | Metro-level roofer wages (SOC 47-2181) → the labour index | **Ingester built** - see `scripts/ingest-bls-oews.ts` and the README. Download the MSA file and run it. |
 | **BLS Producer Price Index** | Roofing material cost trend → the price history series | The honest source for the "+6.8% vs last year" claim we currently refuse to make. |
 | **US Census Building Permits Survey** | Construction activity per metro as a demand proxy | Useful for seasonality and for prioritising which cities to add. |
 | **Municipal permit fee schedules** | Actual permit fees per jurisdiction | Published, exact, and knowable. Our permit allowance is currently the weakest number in the model, and this fixes it outright. |
@@ -101,7 +101,11 @@ defend. If we want that data, we license it — `pricing_sources` already has a
 1. **Municipal permit schedules** for the ten launch cities. Exact, free,
    removes the weakest number in the model.
 2. **BLS OEWS metro wages** → replaces the modelled labour index. This is the
-   largest single input to the price.
+   largest single input to the price. The ingester is written and tested; it
+   needs the real MSA file, which is a download rather than an engineering task.
+   Note that a release is typically about a year in arrears, so this trades a
+   sample-data cap for a recency penalty - net confidence may not rise until
+   material pricing is also replaced.
 3. **Material pricing** from distributor or manufacturer published pricing under
    an agreement.
 4. **BLS PPI** → turns on the price history section honestly.

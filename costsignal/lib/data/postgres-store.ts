@@ -276,6 +276,30 @@ export class PostgresStore implements DataStore {
     }
   }
 
+  async deleteRecord<K extends EditableCollection>(
+    collection: K, id: string, actor: string,
+  ) {
+    const table = TABLE_FOR[collection];
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const before = (await client.query(
+        `DELETE FROM ${table} WHERE id = $1 RETURNING *`, [id])).rows[0];
+      if (!before) { await client.query("ROLLBACK"); return { ok: false, message: "not found" }; }
+      await client.query(
+        `INSERT INTO audit_log (id, table_name, record_id, action, actor, before)
+         VALUES (gen_random_uuid()::text, $1, $2, 'delete', $3, $4)`,
+        [table, id, actor, JSON.stringify(before)]);
+      await client.query("COMMIT");
+      return { ok: true };
+    } catch (e) {
+      await client.query("ROLLBACK");
+      return { ok: false, message: e instanceof Error ? e.message : "delete failed" };
+    } finally {
+      client.release();
+    }
+  }
+
   async insertRecord<K extends EditableCollection>(
     collection: K, row: Record<string, unknown>, actor: string,
   ) {

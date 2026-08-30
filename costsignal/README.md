@@ -236,6 +236,44 @@ cannot write something the city page does not already say, do not set the flag.
 The calculator, quote checker, comparison tool and cost pages are all driven by
 the engine's declared steps and the registry — none of them need editing.
 
+### Ingest BLS wage data
+
+```bash
+# download the OEWS metro (MSA) file for the release you want, then:
+npm run ingest:bls -- --file ./MSA_M2025_dl.csv --effective 2025-05-01
+npm run ingest:bls -- --file ./MSA_M2025_dl.csv --effective 2025-05-01 --apply --retire-superseded
+```
+
+Dry run by default. `--effective` is required and is the **release period**, not
+today - dating a 2023 file as current would make the freshness badge and the
+confidence score lie.
+
+What it does, and why each part matters:
+
+- **Joins on `cbsa_code`, not the area title.** BLS renames metros between
+  releases (Phoenix has been both "Phoenix-Mesa-Scottsdale" and
+  "Phoenix-Mesa-Chandler"). Joining on the title silently shifts data between
+  cities.
+- **Uses the published `H_PCT25` / `H_MEDIAN` / `H_PCT75`,** so the low and high
+  are observed wage dispersion rather than an invented percentage spread.
+- **Applies `labor.burden_multiplier`, resolved per state.** A published wage is
+  what the worker receives; a crew on a roof also costs payroll tax, workers'
+  compensation (brutal for roofing, and Texas is the one state not requiring
+  most employers to carry it), liability, vehicles and supervision. **Profit is
+  deliberately not in this multiplier** - the engine applies overhead and profit
+  separately, and folding it in here double-counts it. A test guards this.
+- **Writes `data_status: 'modeled'`, never `verified`.** The wage is BLS; the
+  burden factor is ours. A derivation from a verified input is modelled, so the
+  cap moves 60 → 78, not to 100.
+- **`--retire-superseded` deletes the sample city-scoped labour rows it
+  replaces.** Without it they keep winning, because a finer geographic scope
+  always beats a coarser one.
+
+Expect the score to move in both directions. Ingesting a real release that is
+15 months old trades a sample-data cap for a recency penalty, and can land
+*lower* than before. That is the system working: an estimate is only as current
+as the stalest number inside it.
+
 ### Add or update pricing data
 
 Admin console → **Pricing and factors**. Every edit writes a before/after
