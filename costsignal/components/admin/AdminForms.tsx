@@ -11,9 +11,12 @@ export function LoginForm({ action }: {
 }) {
   const [state, formAction, pending] = useActionState(action, INITIAL);
   return (
-    <form action={formAction} className="w-full max-w-sm">
-      <Field label="Admin password" hint="Set ADMIN_PASSWORD in your environment.">
-        <input name="password" type="password" className={inputClass} autoComplete="current-password" />
+    <form action={formAction} className="w-full max-w-sm space-y-4">
+      <Field label="Email">
+        <input name="email" type="email" className={inputClass} autoComplete="username" required />
+      </Field>
+      <Field label="Password">
+        <input name="password" type="password" className={inputClass} autoComplete="current-password" required />
       </Field>
       {state.message && (
         <div className="mt-4"><Callout tone="danger">{state.message}</Callout></div>

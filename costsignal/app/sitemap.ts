@@ -29,6 +29,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: siteUrl("/data-sources"), changeFrequency: "monthly", priority: 0.5 },
     { url: siteUrl("/contribute"), changeFrequency: "monthly", priority: 0.5 },
     { url: siteUrl("/hire"), changeFrequency: "monthly", priority: 0.4 },
+    { url: siteUrl("/privacy"), changeFrequency: "yearly", priority: 0.2 },
+    { url: siteUrl("/terms"), changeFrequency: "yearly", priority: 0.2 },
   ] as const).map((e) => ({ ...e, lastModified: now }));
 
   const servicePages = services.map((s) => ({

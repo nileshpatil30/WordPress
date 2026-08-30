@@ -3,7 +3,7 @@ import path from "node:path";
 import { seedDataset } from "./seed";
 import type { DataStore, EditableCollection } from "./store";
 import type {
-  ActualProjectCost, AnalyticsEvent, AuditLogEntry, City, ContractorQuoteSet, Country,
+  ActualProjectCost, AdminUser, AnalyticsEvent, AuditLogEntry, City, ContractorQuoteSet, Country,
   Dataset, EstimateRequest, Lead, Material, Metro, PriceIndexPoint, PriceIndexSeries,
   PricingFactor, PricingRecord, PricingSource, ProjectType, QuoteCheck, Service, State,
   StoreShape, ZipCode,
@@ -23,10 +23,10 @@ type Tombstones = Partial<Record<string, string[]>>;
 
 function emptyMutable(): Pick<StoreShape,
   "estimateRequests" | "quoteChecks" | "contractorQuoteSets" | "actualProjectCosts"
-  | "leads" | "analyticsEvents" | "auditLog"> {
+  | "leads" | "analyticsEvents" | "auditLog" | "adminUsers"> {
   return {
     estimateRequests: [], quoteChecks: [], contractorQuoteSets: [],
-    actualProjectCosts: [], leads: [], analyticsEvents: [], auditLog: [],
+    actualProjectCosts: [], leads: [], analyticsEvents: [], auditLog: [], adminUsers: [],
   };
 }
 
@@ -163,6 +163,28 @@ export class JsonStore implements DataStore {
     this.persist();
   }
 
+  // -- admin accounts -------------------------------------------------------
+  async getAdminUserByEmail(email: string) {
+    const needle = email.trim().toLowerCase();
+    return this.state.adminUsers.find((u) => u.email.toLowerCase() === needle) ?? null;
+  }
+  async getAdminUserById(id: string) {
+    return this.state.adminUsers.find((u) => u.id === id) ?? null;
+  }
+  async listAdminUsers() { return this.state.adminUsers; }
+  async createAdminUser(user: AdminUser) {
+    if (await this.getAdminUserByEmail(user.email)) {
+      return { ok: false, message: "An account with that email already exists." };
+    }
+    this.state.adminUsers.push(user);
+    this.persist();
+    return { ok: true };
+  }
+  async recordAdminLogin(id: string, at: string) {
+    const user = this.state.adminUsers.find((u) => u.id === id);
+    if (user) { user.lastLoginAt = at; this.persist(); }
+  }
+
   // -- admin ---------------------------------------------------------------
   async listEstimateRequests(limit = 200) { return tail(this.state.estimateRequests, limit); }
   async listQuoteChecks(limit = 200) { return tail(this.state.quoteChecks, limit); }
@@ -237,7 +259,7 @@ const REFERENCE_KEYS = [
 
 const MUTABLE_KEYS = [
   "estimateRequests", "quoteChecks", "contractorQuoteSets", "actualProjectCosts",
-  "leads", "analyticsEvents", "auditLog",
+  "leads", "analyticsEvents", "auditLog", "adminUsers",
 ] as const;
 
 function pickMutable(raw: Partial<StoreShape>) {

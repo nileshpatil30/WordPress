@@ -24,9 +24,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Card className="w-full p-8">
           <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-ink">Admin console</h1>
           <p className="mt-2 text-[14px] leading-relaxed text-muted">
-            Phase 1 uses a single shared password rather than user accounts.
-            Replace this with real authentication before launch &mdash; the audit
-            log already records an actor, so the swap is contained.
+            Accounts are created from the command line with{" "}
+            <code className="font-mono text-[13px] text-ink">npm run admin:create</code>.
+            There is no default account and no shared password.
           </p>
           <div className="mt-6"><LoginForm action={loginAction} /></div>
         </Card>
@@ -39,7 +39,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
         <div>
           <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-ink">Admin console</h1>
-          <p className="mt-0.5 text-[13px] text-muted">Signed in as {admin.actor}</p>
+          <p className="mt-0.5 text-[13px] text-muted">Signed in as {admin.email} · {admin.role}</p>
         </div>
         <form action={logoutAction}>
           <Button type="submit" variant="secondary" size="sm">Sign out</Button>

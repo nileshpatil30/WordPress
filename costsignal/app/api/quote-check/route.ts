@@ -4,11 +4,15 @@ import { bad, id, isError, runEstimate, safeSessionId } from "@/lib/api";
 import { assessQuote } from "@/lib/engine/quote";
 import { explainVariance } from "@/lib/engine/roofing/explain";
 import type { RoofingInput } from "@/lib/engine/roofing/schema";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const limited = enforceRateLimit(req, "quoteCheck");
+  if (limited) return limited;
+
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return bad("Invalid JSON body"); }
 

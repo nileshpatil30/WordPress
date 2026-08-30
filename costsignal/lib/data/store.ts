@@ -1,5 +1,5 @@
 import type {
-  ActualProjectCost, AnalyticsEvent, AuditLogEntry, City, ContractorQuoteSet, Country,
+  ActualProjectCost, AdminUser, AnalyticsEvent, AuditLogEntry, City, ContractorQuoteSet, Country,
   Dataset, EstimateRequest, Lead, Material, Metro, PriceIndexPoint, PriceIndexSeries,
   PricingFactor, PricingRecord, PricingSource, ProjectType, QuoteCheck, Service, State,
   StoreShape, ZipCode,
@@ -47,6 +47,13 @@ export interface DataStore {
   saveLead(row: Lead): Promise<void>;
   saveEvent(row: AnalyticsEvent): Promise<void>;
 
+  // -- admin accounts -------------------------------------------------------
+  getAdminUserByEmail(email: string): Promise<AdminUser | null>;
+  getAdminUserById(id: string): Promise<AdminUser | null>;
+  listAdminUsers(): Promise<AdminUser[]>;
+  createAdminUser(user: AdminUser): Promise<{ ok: boolean; message?: string }>;
+  recordAdminLogin(id: string, at: string): Promise<void>;
+
   // -- admin ---------------------------------------------------------------
   listEstimateRequests(limit?: number): Promise<EstimateRequest[]>;
   listQuoteChecks(limit?: number): Promise<QuoteCheck[]>;
@@ -90,6 +97,22 @@ let cached: DataStore | null = null;
  */
 export async function getStore(): Promise<DataStore> {
   if (cached) return cached;
+
+  // Failing loudly beats failing silently. Without this, a production deploy
+  // with no DATABASE_URL falls back to the JSON store, whose writes land on a
+  // read-only serverless filesystem and vanish: estimates, submissions and
+  // leads would all be accepted and then quietly lost.
+  // Skipped during `next build`, which legitimately prerenders pages with no
+  // database attached; the risk being guarded against is lost writes at runtime.
+  const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
+  if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production" && !isBuildPhase
+      && process.env.ALLOW_JSON_STORE_IN_PRODUCTION !== "true") {
+    throw new Error(
+      "DATABASE_URL is not set. The JSON file store is for development only and will " +
+      "silently discard writes on a read-only filesystem. Set DATABASE_URL, or set " +
+      "ALLOW_JSON_STORE_IN_PRODUCTION=true if you genuinely intend to run without a database.");
+  }
+
   if (process.env.DATABASE_URL) {
     const { PostgresStore } = await import("./postgres-store");
     cached = new PostgresStore(process.env.DATABASE_URL);

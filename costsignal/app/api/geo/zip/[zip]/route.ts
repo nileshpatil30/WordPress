@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/data/store";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
 /** ZIP lookup for the calculator: resolves city/state and page availability. */
 export async function GET(
-  _req: Request, { params }: { params: Promise<{ zip: string }> },
+  req: Request, { params }: { params: Promise<{ zip: string }> },
 ) {
+  const limited = enforceRateLimit(req, "geo");
+  if (limited) return limited;
+
   const { zip } = await params;
   if (!/^\d{5}$/.test(zip)) {
     return NextResponse.json({ error: "ZIP must be 5 digits" }, { status: 422 });

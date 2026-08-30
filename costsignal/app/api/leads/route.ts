@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/data/store";
 import { bad, id } from "@/lib/api";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +14,9 @@ export const dynamic = "force-dynamic";
  * real partner is a deliberate later decision, not an accident of the code.
  */
 export async function POST(req: Request) {
+  const limited = enforceRateLimit(req, "leads");
+  if (limited) return limited;
+
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return bad("Invalid JSON body"); }
 

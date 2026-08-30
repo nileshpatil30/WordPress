@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { bad, isError, runEstimate } from "@/lib/api";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +28,11 @@ export async function GET(req: Request) {
       { error: "Missing or invalid API key. Set PARTNER_API_KEYS and send x-api-key." },
       { status: 401 });
   }
+
+  // Limited per API key rather than per IP: a partner behind one NAT should
+  // not be throttled by another partner's traffic.
+  const limited = enforceRateLimit(req, "partnerApi", req.headers.get("x-api-key") ?? undefined);
+  if (limited) return limited;
 
   const url = new URL(req.url);
   const p = url.searchParams;

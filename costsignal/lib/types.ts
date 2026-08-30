@@ -361,6 +361,20 @@ export interface AnalyticsEvent {
   createdAt: string;
 }
 
+export type AdminRole = "owner" | "editor" | "viewer";
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  /** scrypt hash, stored as "scrypt:<N>:<r>:<p>:<saltB64>:<hashB64>". */
+  passwordHash: string;
+  role: AdminRole;
+  createdAt: string;
+  lastLoginAt?: string;
+  /** Set to disable without deleting, so the audit trail stays resolvable. */
+  disabledAt?: string;
+}
+
 export interface AuditLogEntry {
   id: string;
   tableName: string;
@@ -400,6 +414,7 @@ export interface MutableCollections {
   leads: Lead[];
   analyticsEvents: AnalyticsEvent[];
   auditLog: AuditLogEntry[];
+  adminUsers: AdminUser[];
 }
 
 export type StoreShape = Dataset & MutableCollections;

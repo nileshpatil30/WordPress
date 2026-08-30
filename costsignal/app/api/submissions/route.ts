@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/data/store";
 import { bad, id, safeSessionId } from "@/lib/api";
 import { CONSENT_VERSION } from "@/lib/consent";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +18,9 @@ export const dynamic = "force-dynamic";
  *   - explicit consent, with a version string, is required
  */
 export async function POST(req: Request) {
+  const limited = enforceRateLimit(req, "submissions");
+  if (limited) return limited;
+
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return bad("Invalid JSON body"); }
 

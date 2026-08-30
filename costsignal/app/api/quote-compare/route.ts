@@ -2,11 +2,15 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/data/store";
 import { bad, id, isError, runEstimate, safeSessionId } from "@/lib/api";
 import { compareQuotes, type QuoteInput } from "@/lib/engine/quote";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const limited = enforceRateLimit(req, "quoteCompare");
+  if (limited) return limited;
+
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return bad("Invalid JSON body"); }
 

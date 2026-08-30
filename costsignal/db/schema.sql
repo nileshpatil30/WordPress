@@ -355,6 +355,20 @@ CREATE TABLE IF NOT EXISTS audit_log (
 );
 CREATE INDEX IF NOT EXISTS audit_log_record ON audit_log(table_name, record_id, created_at DESC);
 
+-- Admin accounts. Passwords are scrypt hashes; the application never stores or
+-- transmits a plaintext password, and there is no default account.
+CREATE TABLE IF NOT EXISTS admin_users (
+  id            TEXT PRIMARY KEY,
+  email         TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  role          TEXT NOT NULL DEFAULT 'viewer',  -- owner | editor | viewer
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_login_at TIMESTAMPTZ,
+  -- Disable rather than delete, so audit_log.actor stays resolvable.
+  disabled_at   TIMESTAMPTZ,
+  CHECK (role IN ('owner','editor','viewer'))
+);
+
 CREATE TABLE IF NOT EXISTS api_keys (
   id         TEXT PRIMARY KEY,
   name       TEXT NOT NULL,

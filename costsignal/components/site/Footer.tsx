@@ -43,6 +43,8 @@ export async function SiteFooter() {
               <li><Link href="/data-sources" className="hover:text-ink">Data sources and licences</Link></li>
               <li><Link href="/contribute" className="hover:text-ink">Share what you actually paid</Link></li>
               <li><Link href="/hire" className="hover:text-ink">Getting contractor quotes</Link></li>
+              <li><Link href="/privacy" className="hover:text-ink">Privacy policy</Link></li>
+              <li><Link href="/terms" className="hover:text-ink">Terms of use</Link></li>
             </ul>
           </div>
 

@@ -1,7 +1,7 @@
 import { Pool } from "pg";
 import type { DataStore, EditableCollection } from "./store";
 import type {
-  ActualProjectCost, AnalyticsEvent, AuditLogEntry, City, ContractorQuoteSet, Country,
+  ActualProjectCost, AdminUser, AnalyticsEvent, AuditLogEntry, City, ContractorQuoteSet, Country,
   Dataset, EstimateRequest, Lead, Material, Metro, PriceIndexPoint, PriceIndexSeries,
   PricingFactor, PricingRecord, PricingSource, ProjectType, QuoteCheck, Service, State,
   ZipCode,
@@ -212,6 +212,30 @@ export class PostgresStore implements DataStore {
       `INSERT INTO analytics_events (id, session_id, event_name, properties, path, created_at)
        VALUES ($1,$2,$3,$4,$5,$6)`,
       [r.id, r.sessionId, r.eventName, JSON.stringify(r.properties), r.path ?? null, r.createdAt]);
+  }
+
+  // -- admin accounts -------------------------------------------------------
+  async getAdminUserByEmail(email: string) {
+    return (await this.q<AdminUser>(
+      "SELECT * FROM admin_users WHERE lower(email) = lower($1)", [email]))[0] ?? null;
+  }
+  async getAdminUserById(id: string) {
+    return (await this.q<AdminUser>("SELECT * FROM admin_users WHERE id = $1", [id]))[0] ?? null;
+  }
+  listAdminUsers() { return this.q<AdminUser>("SELECT * FROM admin_users ORDER BY email"); }
+  async createAdminUser(user: AdminUser) {
+    try {
+      await this.pool.query(
+        `INSERT INTO admin_users (id, email, password_hash, role, created_at)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [user.id, user.email, user.passwordHash, user.role, user.createdAt]);
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: e instanceof Error ? e.message : "insert failed" };
+    }
+  }
+  async recordAdminLogin(id: string, at: string) {
+    await this.pool.query("UPDATE admin_users SET last_login_at = $2 WHERE id = $1", [id, at]);
   }
 
   // -- admin ---------------------------------------------------------------

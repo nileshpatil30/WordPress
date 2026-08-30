@@ -333,25 +333,57 @@ stale) and `v_demand_gaps` (which ZIP to add next).
 
 ---
 
-## What is NOT done before production
+## Deployment
 
-Honest list. None of it is hidden behind a "coming soon".
+```bash
+# 1. Database (required in production - the app refuses to boot without it)
+export DATABASE_URL=postgresql://...
+npm run db:schema
+npm run db:seed
+
+# 2. Session secret (required, min 16 chars)
+export ADMIN_SESSION_SECRET=$(openssl rand -base64 32)
+
+# 3. First admin account. There is no default account and no shared password.
+npm run admin:create -- --email you@example.com --role owner
+
+# 4. Verify
+curl https://your-host/api/health
+```
+
+`/api/health` reports the storage driver, whether any admin account exists, and
+**how many price rows are still sample data**. That last one is in the health
+check on purpose: shipping with sample prices is the most consequential state
+this application can be in, and it should be visible to monitoring rather than
+only to someone reading a page.
+
+Without `DATABASE_URL`, a production boot throws rather than falling back to the
+JSON store, whose writes land on a read-only serverless filesystem and vanish.
+Override with `ALLOW_JSON_STORE_IN_PRODUCTION=true` only if you mean it.
+
+### Security posture
+
+| | Status |
+|---|---|
+| **Admin auth** | Accounts in `admin_users`, scrypt (N=2^15, r=8, p=1) with per-user salts, HMAC session cookie (HTTP-only, SameSite=Lax, scoped to `/admin`). Roles: owner / editor / viewer, with writes requiring editor. The role is read from the database per request, so revoking access is immediate rather than session-expiry-delayed. |
+| **Login** | One message for every failure, so administrators cannot be enumerated; comparable work is done on a miss so timing does not leak either. |
+| **Rate limiting** | Every API route. Reads 60-120/min per IP; submissions and lead forms 5/hour. Partner API limited per key rather than per IP. **Counts in one process** - behind multiple instances the effective limit multiplies, so swap `hit()` for Redis or a Postgres counter before relying on it as a control. |
+| **Audit** | Every reference-data write records before/after values and the signed-in user's email. |
+| **Still open** | No CSRF token beyond SameSite plus Next.js server-action origin checks; no MFA; no account lockout after repeated failures; no error monitoring wired. |
+
+## What is NOT done before production
 
 | Area | Status |
 |---|---|
-| **Pricing data** | All sample. This is the blocker; everything else is secondary. |
-| **Auth** | Admin is a single shared password + HMAC cookie. Needs real accounts and roles. The audit log already records an `actor`, so the swap is contained. |
-| **Rate limiting** | None on any API route. Add before public exposure. |
-| **Ingestion jobs** | The schema and provenance model are ready; no scheduled ingestion exists. |
-| **Email / notifications** | Submissions and interest registrations are stored, nothing is sent. |
+| **Pricing data** | Still sample for materials, which are ~42% of a typical estimate and identical in every city. This is the blocker; everything else is secondary. |
+| **Legal pages** | `/privacy` and `/terms` are written from the code rather than a template, but are **drafts pending legal review** and name no entity, jurisdiction or contact. |
+| **Ingestion jobs** | BLS OEWS ingester is built and tested. Permit schedules and material pricing are not. |
+| **Email / notifications** | Submissions and interest registrations are stored; nothing is sent. |
 | **Contractor network** | Does not exist, and `/hire` says so plainly rather than collecting leads under false pretences. |
-| **Price history** | One clearly-labelled sample series. Cities without a series render an honest empty state rather than an invented trend. |
-| **Analytics** | First-party, allow-listed events into our own store. No third-party analytics wired. |
+| **Price history** | One clearly-labelled sample series; cities without one render an honest empty state. |
 | **Accessibility** | Semantic HTML, labelled controls, visible focus rings, `prefers-reduced-motion`, ARIA on charts. Not yet audited with a screen reader. |
-| **Legal pages** | Privacy policy and terms are not written. Required before collecting submissions in production. |
+| **Monitoring** | No error tracking. `/api/health` exists; nothing consumes it. |
 | **API keys** | `/api/v1/*` reads keys from an env var. The `api_keys` table exists but is not wired. |
-
----
 
 ## Commercial model
 

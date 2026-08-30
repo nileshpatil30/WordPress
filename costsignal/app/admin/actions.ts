@@ -2,22 +2,35 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { ADMIN_COOKIE, ADMIN_MAX_AGE, checkPassword, currentAdmin, issueToken } from "@/lib/auth";
+import {
+  ADMIN_COOKIE, ADMIN_MAX_AGE, authenticate, currentAdmin, hasRole, issueToken,
+} from "@/lib/auth";
 import { getStore, type EditableCollection } from "@/lib/data/store";
 
 export type ActionState = { ok: boolean; message?: string };
 
 export async function loginAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
-  if (!process.env.ADMIN_PASSWORD) {
-    return { ok: false, message: "ADMIN_PASSWORD is not set on the server. Set it in .env.local and restart." };
+  if (!email || !password) return { ok: false, message: "Email and password are required." };
+
+  const store = await getStore();
+  if ((await store.listAdminUsers()).length === 0) {
+    return {
+      ok: false,
+      message: "No admin accounts exist yet. Create the first one with: npm run admin:create",
+    };
   }
-  if (!checkPassword(password)) {
-    // Deliberately vague: no hint about which part was wrong.
-    return { ok: false, message: "Incorrect password." };
-  }
-  const store = await cookies();
-  store.set(ADMIN_COOKIE, issueToken("admin"), {
+
+  const user = await authenticate(email, password);
+  // Deliberately one message for every failure: distinguishing "no such
+  // account" from "wrong password" lets anyone enumerate our administrators.
+  if (!user) return { ok: false, message: "Incorrect email or password." };
+
+  await store.recordAdminLogin(user.id, new Date().toISOString());
+
+  const jar = await cookies();
+  jar.set(ADMIN_COOKIE, issueToken(user.id), {
     httpOnly: true, sameSite: "lax", path: "/admin",
     secure: process.env.NODE_ENV === "production", maxAge: ADMIN_MAX_AGE,
   });
@@ -45,6 +58,9 @@ const NUMERIC_FIELDS = new Set([
 export async function updateRecordAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const admin = await currentAdmin();
   if (!admin) return { ok: false, message: "Not signed in." };
+  if (!hasRole(admin, "editor")) {
+    return { ok: false, message: "Your account has read-only access." };
+  }
 
   const collection = String(formData.get("collection") ?? "") as EditableCollection;
   const id = String(formData.get("id") ?? "");
@@ -81,7 +97,7 @@ export async function updateRecordAction(_prev: ActionState, formData: FormData)
   }
 
   const store = await getStore();
-  const result = await store.updateRecord(collection, id, patch, admin.actor);
+  const result = await store.updateRecord(collection, id, patch, admin.email);
   if (!result.ok) return { ok: false, message: result.message ?? "Update failed." };
 
   const returnTo = String(formData.get("returnTo") ?? "/admin");
@@ -93,6 +109,9 @@ export async function updateRecordAction(_prev: ActionState, formData: FormData)
 export async function reviewSubmissionAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const admin = await currentAdmin();
   if (!admin) return { ok: false, message: "Not signed in." };
+  if (!hasRole(admin, "editor")) {
+    return { ok: false, message: "Your account has read-only access." };
+  }
 
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "");
@@ -103,7 +122,7 @@ export async function reviewSubmissionAction(_prev: ActionState, formData: FormD
     status,
     reviewedAt: new Date().toISOString(),
     moderationNotes: String(formData.get("moderationNotes") ?? "") || undefined,
-  }, admin.actor);
+  }, admin.email);
 
   if (!result.ok) return { ok: false, message: result.message ?? "Update failed." };
   revalidatePath("/admin/submissions");

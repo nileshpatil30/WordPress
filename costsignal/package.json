@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "db:schema": "psql \"$DATABASE_URL\" -f db/schema.sql",
     "db:seed": "tsx scripts/seed-postgres.ts",
-    "ingest:bls": "tsx scripts/ingest-bls-oews.ts"
+    "ingest:bls": "tsx scripts/ingest-bls-oews.ts",
+    "admin:create": "tsx scripts/create-admin.ts"
   },
   "dependencies": {
     "next": "^15.5.24",
