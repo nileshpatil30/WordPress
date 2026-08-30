@@ -133,3 +133,27 @@ describe("roofing engine", () => {
     expect(parsed.ok).toBe(false);
   });
 });
+
+describe("source quality scoring", () => {
+  it("weights sources by how much they actually supply, not by how many exist", async () => {
+    const ctx = (await buildEngineContext(store, "roofing", "85018"))!;
+    // Swap exactly one of ~10 price lookups to a high-reliability source.
+    const labour = ctx.records.find(
+      (r) => r.metricKey === "labor.rate_per_hour" && r.geoScopeType === "city")!;
+    labour.sourceId = "src-bls-oes";
+
+    const parsed = engine.parse({
+      zip: "85018", areaMode: "roof" as const, roofAreaSqft: 2000, stories: 2 as const,
+      material: "asphalt-architectural", pitch: "moderate" as const,
+      complexity: "moderate" as const, existingLayers: 1 as const,
+    });
+    if (!parsed.ok) throw new Error(parsed.error);
+    const r = engine.estimate(parsed.value, ctx);
+    const sources = r.confidence.breakdown.find((b) => b.key === "sources")!;
+
+    // An unweighted mean over the two distinct sources would give
+    // (0.40 + 0.92) / 2 * 16 = 11. Weighted by contribution it is ~7.
+    expect(sources.earned).toBeLessThan(9);
+    expect(sources.detail).toMatch(/Weighted by contribution/);
+  });
+});

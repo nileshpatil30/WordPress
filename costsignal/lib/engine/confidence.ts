@@ -72,16 +72,31 @@ export function scoreConfidence(input: ConfidenceInput): ConfidenceResult {
   });
 
   // 4. Source quality
+  //
+  // Weighted by how much each source ACTUALLY supplies, not by an unweighted
+  // mean over distinct sources. Averaging over distinct sources lets one good
+  // row among thirty poor ones lift the score as if it supplied half the
+  // estimate - the score would flatter itself exactly where it matters most.
+  const weightById = new Map(input.sources.map((s) => [s.id, s.reliabilityWeight]));
   const usedSourceIds = new Set(input.hits.map((h) => h.record.sourceId));
   const used = input.sources.filter((s) => usedSourceIds.has(s.id));
-  const avgWeight = used.length
-    ? used.reduce((a, s) => a + s.reliabilityWeight, 0) / used.length
+
+  const avgWeight = input.hits.length
+    ? input.hits.reduce((a, h) => a + (weightById.get(h.record.sourceId) ?? 0.3), 0) / input.hits.length
     : 0.3;
   const sourceEarned = Math.round(avgWeight * 16);
+
+  const shares = used
+    .map((s) => {
+      const n = input.hits.filter((h) => h.record.sourceId === s.id).length;
+      return { name: s.name, pct: Math.round((n / Math.max(1, input.hits.length)) * 100) };
+    })
+    .sort((a, b) => b.pct - a.pct);
+
   breakdown.push({
     key: "sources", label: "Source quality", earned: sourceEarned, max: 16,
-    detail: used.length
-      ? `Based on ${used.length} source${used.length === 1 ? "" : "s"}: ${used.map((s) => s.name).join(", ")}.`
+    detail: shares.length
+      ? `Weighted by contribution: ${shares.map((s) => `${s.name} (${s.pct}%)`).join(", ")}.`
       : "No source metadata attached to the prices used.",
   });
 
