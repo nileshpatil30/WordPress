@@ -348,6 +348,45 @@ const byCity: Record<string, { stateId: string; zips: ZipSeed[] }> = {
       { code: "33145", county: "Miami-Dade" }, { code: "33176", county: "Miami-Dade" },
     ],
   },
+
+  // -- Northeast: membership data only, no page-eligible ZIPs ---------------
+  // These make the calculator work for a Northeast homeowner today. Every one
+  // is pageEligible: false, so none of them produces an indexable page.
+  "city-newark": {
+    stateId: "us-nj",
+    zips: [
+      { code: "07102", county: "Essex" }, { code: "07104", county: "Essex" },
+      { code: "07106", county: "Essex" }, { code: "07107", county: "Essex" },
+    ],
+  },
+  "city-jersey-city": {
+    stateId: "us-nj",
+    zips: [
+      { code: "07302", county: "Hudson" }, { code: "07304", county: "Hudson" },
+      { code: "07305", county: "Hudson" }, { code: "07306", county: "Hudson" },
+    ],
+  },
+  "city-cherry-hill": {
+    stateId: "us-nj",
+    zips: [
+      { code: "08002", county: "Camden" }, { code: "08003", county: "Camden" },
+      { code: "08034", county: "Camden" },
+    ],
+  },
+  "city-philadelphia": {
+    stateId: "us-pa",
+    zips: [
+      { code: "19103", county: "Philadelphia" }, { code: "19125", county: "Philadelphia" },
+      { code: "19147", county: "Philadelphia" }, { code: "19128", county: "Philadelphia" },
+    ],
+  },
+  "city-boston": {
+    stateId: "us-ma",
+    zips: [
+      { code: "02116", county: "Suffolk" }, { code: "02130", county: "Suffolk" },
+      { code: "02132", county: "Suffolk" }, { code: "02135", county: "Suffolk" },
+    ],
+  },
 };
 
 export const zipCodes: ZipCode[] = Object.entries(byCity).flatMap(([cityId, cfg]) =>

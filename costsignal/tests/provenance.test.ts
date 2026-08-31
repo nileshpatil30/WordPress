@@ -89,7 +89,14 @@ describe("estimate provenance", () => {
   });
 
   it("reports an uncovered ZIP as wholly sample data at country scope", async () => {
-    const r = await estimate("02116");
+    // Deliberately far outside any metro we cover. If coverage ever reaches
+    // Montana this test will fail loudly rather than quietly asserting nothing
+    // - which is exactly what happened when Boston moved from uncovered to
+    // covered and this case was still pointing at 02116.
+    const ctx = (await buildEngineContext(store, "roofing", "59718"))!;
+    expect(ctx.geo.isFallback, "59718 was expected to be uncovered").toBe(true);
+
+    const r = await estimate("59718");
     expect(r.provenance).toHaveLength(1);
     expect(r.provenance[0].dataStatus).toBe("sample");
     expect(r.provenance[0].scope).toBe("country");

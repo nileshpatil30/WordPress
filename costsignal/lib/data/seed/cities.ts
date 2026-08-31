@@ -1,11 +1,19 @@
 import type { City } from "@/lib/types";
 
 /**
- * Ten launch cities. Every one carries hand-written local content.
+ * Ten launch cities, each carrying hand-written local content, plus five
+ * Northeast cities held back as unpublished data preparation.
  *
  * `isPublished` is the gate on indexable pages: a city with no editorial does
  * not get a page, no matter how much traffic the keyword has. This is the
  * difference between useful programmatic SEO and mass-generated SEO.
+ *
+ * That gate is also what makes the Northeast rows safe to commit. An
+ * unpublished city is invisible to generateStaticParams, the sitemap and every
+ * internal link, but it is fully visible to resolveGeo - so a Newark homeowner
+ * using the calculator gets real New York metro wage data today, while no thin
+ * page exists for anyone to find. Publishing is then a one-field change, made
+ * only once the local editorial below it is actually written.
  */
 export const cities: City[] = [
   {
@@ -252,5 +260,36 @@ export const cities: City[] = [
         { q: "Can I switch from tile to shingles to save money?", a: "Sometimes, but not always. It changes the load on the structure and may require engineering sign-off, and the saving is smaller than the material price difference suggests once compliance work is included." },
       ],
     },
+  },
+  // -- Northeast: data preparation only, deliberately unpublished ------------
+  // No `content`, therefore no page. These exist so the calculator resolves a
+  // Northeast ZIP to a real metro wage instead of the national fallback. Do not
+  // flip isPublished without writing the local editorial first - freeze-thaw and
+  // ice-damming behaviour, ice-and-water-shield code requirements, steep-slope
+  // and slate prevalence, and the permit authority for each city.
+  {
+    id: "city-newark", countryId: "us", stateId: "us-nj", metroId: "metro-nyc",
+    name: "Newark", slug: "newark-nj", population: 311000,
+    latitude: 40.7357, longitude: -74.1724, isPublished: false,
+  },
+  {
+    id: "city-jersey-city", countryId: "us", stateId: "us-nj", metroId: "metro-nyc",
+    name: "Jersey City", slug: "jersey-city-nj", population: 292000,
+    latitude: 40.7178, longitude: -74.0431, isPublished: false,
+  },
+  {
+    id: "city-cherry-hill", countryId: "us", stateId: "us-nj", metroId: "metro-phl",
+    name: "Cherry Hill", slug: "cherry-hill-nj", population: 74000,
+    latitude: 39.9348, longitude: -75.0307, isPublished: false,
+  },
+  {
+    id: "city-philadelphia", countryId: "us", stateId: "us-pa", metroId: "metro-phl",
+    name: "Philadelphia", slug: "philadelphia-pa", population: 1580000,
+    latitude: 39.9526, longitude: -75.1652, isPublished: false,
+  },
+  {
+    id: "city-boston", countryId: "us", stateId: "us-ma", metroId: "metro-bos",
+    name: "Boston", slug: "boston-ma", population: 654000,
+    latitude: 42.3601, longitude: -71.0589, isPublished: false,
   },
 ];

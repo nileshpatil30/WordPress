@@ -50,6 +50,32 @@ export const states: State[] = [
     laborIndex: 0.97, materialIndex: 1.04, dataStatus: "sample",
     notes: "Florida requires a state-certified or registered roofing contractor (CCC licence) and a permit with inspections for re-roofing.",
   },
+
+  // -- Northeast ------------------------------------------------------------
+  // Added as data preparation, not as a launch. No city under these states is
+  // published, so none of them generates an indexable page. What they do is let
+  // a Northeast ZIP resolve to a metro with real BLS wage data instead of
+  // dropping to the national fallback.
+  {
+    id: "us-nj", countryId: "us", code: "NJ", name: "New Jersey", slug: "new-jersey",
+    laborIndex: 1.18, materialIndex: 1.05, dataStatus: "sample",
+    notes: "New Jersey requires contractors performing home improvement work to register with the Division of Consumer Affairs and to carry commercial general liability insurance. Confirm registration status before signing.",
+  },
+  {
+    id: "us-ny", countryId: "us", code: "NY", name: "New York", slug: "new-york",
+    laborIndex: 1.26, materialIndex: 1.06, dataStatus: "sample",
+    notes: "New York issues no statewide roofing licence. Licensing is local - New York City, Nassau, Suffolk and Westchester each run their own scheme - so verification is county or city specific.",
+  },
+  {
+    id: "us-pa", countryId: "us", code: "PA", name: "Pennsylvania", slug: "pennsylvania",
+    laborIndex: 1.06, materialIndex: 1.02, dataStatus: "sample",
+    notes: "Pennsylvania has no statewide trade licence for roofing, but contractors must register as Home Improvement Contractors with the Office of Attorney General. Philadelphia additionally licenses contractors through L&I.",
+  },
+  {
+    id: "us-ma", countryId: "us", code: "MA", name: "Massachusetts", slug: "massachusetts",
+    laborIndex: 1.21, materialIndex: 1.05, dataStatus: "sample",
+    notes: "Massachusetts requires both a Construction Supervisor Licence for structural work and Home Improvement Contractor registration. HIC registration is what gives a homeowner access to the state's arbitration and guaranty fund.",
+  },
 ];
 
 export const metros: Metro[] = [
@@ -63,4 +89,12 @@ export const metros: Metro[] = [
   { id: "metro-tpa", countryId: "us", stateId: "us-fl", name: "Tampa-St. Petersburg-Clearwater", slug: "tampa-st-petersburg-clearwater", cbsaCode: "45300" },
   { id: "metro-orl", countryId: "us", stateId: "us-fl", name: "Orlando-Kissimmee-Sanford", slug: "orlando-kissimmee-sanford", cbsaCode: "36740" },
   { id: "metro-mia", countryId: "us", stateId: "us-fl", name: "Miami-Fort Lauderdale-West Palm Beach", slug: "miami-fort-lauderdale-west-palm-beach", cbsaCode: "33100" },
+
+  // Northeast. `stateId` is the metro's primary state, which is not always the
+  // state of a city inside it: Newark sits in the New York metro but in New
+  // Jersey. The geo chain reads metro and state independently, so a Newark ZIP
+  // correctly gets New York metro wages and New Jersey state rules.
+  { id: "metro-nyc", countryId: "us", stateId: "us-ny", name: "New York-Newark-Jersey City", slug: "new-york-newark-jersey-city", cbsaCode: "35620" },
+  { id: "metro-phl", countryId: "us", stateId: "us-pa", name: "Philadelphia-Camden-Wilmington", slug: "philadelphia-camden-wilmington", cbsaCode: "37980" },
+  { id: "metro-bos", countryId: "us", stateId: "us-ma", name: "Boston-Cambridge-Newton", slug: "boston-cambridge-newton", cbsaCode: "14460" },
 ];

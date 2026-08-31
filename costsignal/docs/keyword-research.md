@@ -79,11 +79,27 @@ local pack (3).
   880/mo at KD 7 for a state-qualified roofing term is anomalous — high volume
   and near-zero difficulty rarely coexist. Check the live SERP before trusting
   it. Semrush KD is a model, not an observation.
-- **We do not cover New Jersey.** All ten launch metros are sunbelt: Phoenix,
-  Dallas–Fort Worth, Houston, Austin, San Diego, Los Angeles, Las Vegas, Tampa,
-  Orlando, Miami. The strongest geographic signal in this dataset points at a
-  region where our ZIP lookup falls back to national figures and the confidence
-  score drops accordingly. Either the coverage or the target has to move.
+- ~~**We do not cover New Jersey.**~~ **Resolved 2026-08-31 (pricing only).**
+  Three Northeast metros were added as data preparation: New York–Newark–Jersey
+  City (35620), Philadelphia–Camden–Wilmington (37980) and Boston–Cambridge–
+  Newton (14460), all with real BLS OEWS wages. A Newark or Boston ZIP now
+  resolves to metro-level labour instead of the national fallback.
+
+  **No Northeast page is published.** Those cities are `isPublished: false` and
+  their ZIPs `pageEligible: false`, so the calculator serves them while the
+  sitemap and every route still 404. Publishing waits on two things: verifying
+  the keyword below, and writing the local editorial (freeze–thaw and ice
+  damming, ice-and-water-shield code requirements, steep-slope and slate
+  prevalence, permit authority per city).
+
+  Wages are far apart, which is the whole reason the fallback was wrong:
+  burdened median $66.11/hr in the New York metro against $40.87 in Phoenix.
+
+  One known weakness: no state-specific labour-burden factor exists for NY, NJ,
+  PA or MA, so those three metros use the national default of 1.80. Roofing
+  workers' compensation rates in NY and NJ are among the highest in the country,
+  so 1.80 is more likely an understatement than an overstatement there. Each
+  record's methodology string names the factor it used.
 - Volume figures are Semrush estimates, not Google-reported data.
 
 ---
