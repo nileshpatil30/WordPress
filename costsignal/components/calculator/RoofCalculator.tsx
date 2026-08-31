@@ -8,6 +8,8 @@ import { EstimateResultView } from "@/components/estimate/EstimateView";
 import { Badge, Button, Card } from "@/components/ui";
 import { StepFields, type FieldOptions } from "@/components/calculator/Fields";
 import { sessionId, track } from "@/lib/analytics";
+import { ShareButton } from "@/components/estimate/ShareButton";
+import { encodeShare } from "@/lib/share";
 import { usd } from "@/lib/format";
 
 type Values = Record<string, unknown>;
@@ -269,6 +271,7 @@ function NextSteps({ estimate, values }: { estimate: EstimateResult; values: Val
     params.set(k, String(v));
   }
   const qs = params.toString();
+  const shareUrl = `/r/${encodeShare(values)}`;
 
   return (
     <Card className="mt-5 p-6 sm:p-8">
@@ -276,6 +279,14 @@ function NextSteps({ estimate, values }: { estimate: EstimateResult; values: Val
       <p className="mt-1.5 text-[14px] text-muted">
         A number on its own does not help you hire anyone. These do.
       </p>
+      <div className="mt-5 border-b border-line pb-5">
+        <ShareButton shareUrl={shareUrl} label="Copy a link to this estimate" />
+        <p className="mt-2 text-[12.5px] leading-relaxed text-faint">
+          Send it to whoever else is deciding. The link recalculates on open, and
+          carries no name, address or contact details.
+        </p>
+      </div>
+
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <NextCard
           href={`/quote-check?${qs}`}

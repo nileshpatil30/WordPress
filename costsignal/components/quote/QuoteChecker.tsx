@@ -11,6 +11,8 @@ import { QuoteUpload } from "@/components/quote/QuoteUpload";
 import { PriceRangeBar } from "@/components/estimate/EstimateView";
 import { Badge, Button, Callout, Card, Field, inputClass } from "@/components/ui";
 import { sessionId, track } from "@/lib/analytics";
+import { ShareButton } from "@/components/estimate/ShareButton";
+import { encodeShare } from "@/lib/share";
 import { pct, usd } from "@/lib/format";
 
 type Values = Record<string, unknown>;
@@ -199,7 +201,7 @@ export function QuoteChecker({ materials, projectTypes, initialValues }: {
 
         {result && (
           <>
-            <VerdictCard {...result} />
+            <VerdictCard {...result} shareUrl={`/r/${encodeShare({ ...payload, quotedPrice: Number(quotedPrice) })}`} />
             {result.variance && <VarianceCard variance={result.variance} />}
             <ConsiderationsCard assessment={result.assessment} />
           </>
@@ -209,8 +211,8 @@ export function QuoteChecker({ materials, projectTypes, initialValues }: {
   );
 }
 
-function VerdictCard({ estimate, assessment }: {
-  estimate: EstimateResult; assessment: QuoteAssessment;
+function VerdictCard({ estimate, assessment, shareUrl }: {
+  estimate: EstimateResult; assessment: QuoteAssessment; shareUrl: string;
 }) {
   const tone = VERDICT_TONE[assessment.verdict];
   const markerTone = tone === "positive" ? "positive" : tone === "caution" ? "caution" : "danger";
@@ -259,6 +261,14 @@ function VerdictCard({ estimate, assessment }: {
         <Callout tone="neutral" title="Read this before you act on it">
           {assessment.disclaimer}
         </Callout>
+
+        <div className="mt-5 border-t border-line pt-5">
+          <ShareButton shareUrl={shareUrl} label="Copy a link to this comparison" />
+          <p className="mt-2 text-[12.5px] leading-relaxed text-faint">
+            Useful for a second opinion, or for the thread where someone asked
+            whether their quote was reasonable.
+          </p>
+        </div>
       </div>
     </Card>
   );
