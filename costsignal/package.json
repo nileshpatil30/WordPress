@@ -14,7 +14,8 @@
     "db:schema": "psql \"$DATABASE_URL\" -f db/schema.sql",
     "db:seed": "tsx scripts/seed-postgres.ts",
     "ingest:bls": "tsx scripts/ingest-bls-oews.ts",
-    "admin:create": "tsx scripts/create-admin.ts"
+    "admin:create": "tsx scripts/create-admin.ts",
+    "test:extract": "tsx scripts/check-extraction.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

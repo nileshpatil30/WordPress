@@ -1,0 +1,119 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Roofing Estimate</title>
+<!--
+  A synthetic contractor quote, written to be adversarial rather than tidy.
+
+  This is not a real company, person, address or phone number. It exists so the
+  extractor can be exercised before anyone spends a real homeowner's document on
+  it, and every awkward feature here is deliberate:
+
+    - Identity everywhere (company, licence, phone, email, web, both addresses)
+      so the privacy audit has something real to catch. None of it may come back.
+    - The permit is never mentioned. It must extract as not_stated, not as
+      excluded and not as included.
+    - Decking is priced per sheet as a conditional allowance, which is the single
+      most common source of a change order and the thing homeowners misread.
+    - Ventilation is explicitly excluded, in a sentence, not a line item.
+    - A deductible-absorption offer, which is a genuine red flag and in several
+      states is illegal. It must be caught and quoted.
+    - Full payment demanded before work starts - a second red flag.
+    - The total is written once in figures and once in words, and the line items
+      deliberately do not sum to it, because real quotes often don't.
+-->
+<style>
+  body { font: 13px/1.5 Georgia, serif; color: #111; margin: 44px; }
+  header { border-bottom: 3px double #444; padding-bottom: 12px; margin-bottom: 18px; }
+  h1 { font-size: 21px; margin: 0 0 2px; letter-spacing: .5px; }
+  .sub { font-size: 11px; color: #444; }
+  h2 { font-size: 13px; margin: 20px 0 6px; text-transform: uppercase; letter-spacing: 1px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid #ddd; font-size: 12px; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  .total { font-weight: bold; font-size: 15px; border-top: 2px solid #333; }
+  .box { border: 1px solid #bbb; padding: 10px 12px; margin-top: 14px; background: #fafafa; }
+  .sig { margin-top: 26px; font-size: 11px; color: #333; }
+  .line { display: inline-block; width: 230px; border-bottom: 1px solid #333; }
+</style>
+
+<header>
+  <h1>SUMMIT CREST ROOFING &amp; EXTERIORS, LLC</h1>
+  <div class="sub">
+    4820 East Camelback Road, Suite 210, Phoenix, AZ 85018<br>
+    Office (602) 555-0147 &middot; estimating@summitcrestroof.example &middot; www.summitcrestroof.example<br>
+    Arizona ROC License #327841 &middot; Bonded &amp; Insured
+  </div>
+</header>
+
+<p><strong>ESTIMATE #SC-4471</strong> &nbsp;&nbsp; Date: March 14, 2026 &nbsp;&nbsp; Valid 30 days</p>
+
+<p>
+  <strong>Prepared for:</strong> Daniel Whitfield<br>
+  Property: 3117 North 44th Place, Phoenix, AZ 85018<br>
+  Phone: 480-555-0192
+</p>
+
+<h2>Scope of Work</h2>
+<p>
+  Complete removal of existing concrete tile roof covering and underlayment down
+  to the wood deck. Stack and protect existing tile for reuse. Install new
+  two-ply modified underlayment system. Re-set salvaged tile with a fifteen
+  percent (15%) breakage allowance using new tile of matching profile where
+  available. Replace all valley metal, pipe jack flashings and counter-flashing
+  at chimney and parapet returns.
+</p>
+<p>
+  Approximate roof area: <strong>27.5 squares</strong> (2,750 sq ft) measured by
+  aerial report. Single story. One existing layer.
+</p>
+
+<h2>Pricing</h2>
+<table>
+  <tr><th>Item</th><th class="n">Qty</th><th class="n">Amount</th></tr>
+  <tr><td>Tear-off of existing tile and underlayment, stack and protect</td><td class="n">27.5 sq</td><td class="n">$4,125.00</td></tr>
+  <tr><td>Debris removal, dumpster and haul-off</td><td class="n">1</td><td class="n">$1,150.00</td></tr>
+  <tr><td>Two-ply modified bitumen underlayment system, installed</td><td class="n">27.5 sq</td><td class="n">$6,462.50</td></tr>
+  <tr><td>Re-set salvaged concrete tile, incl. 15% breakage allowance</td><td class="n">27.5 sq</td><td class="n">$5,775.00</td></tr>
+  <tr><td>New valley metal, pipe jacks, counter-flashing</td><td class="n">1 lot</td><td class="n">$1,340.00</td></tr>
+  <tr><td>Final site cleanup and magnetic nail sweep</td><td class="n">1</td><td class="n">$275.00</td></tr>
+  <tr class="total"><td>CONTRACT TOTAL</td><td class="n"></td><td class="n">$19,450.00</td></tr>
+</table>
+<p><em>Nineteen thousand four hundred fifty and 00/100 dollars.</em></p>
+
+<div class="box">
+  <strong>Decking:</strong> Price above assumes sound existing sheathing.
+  Any deteriorated plywood discovered at tear-off will be replaced at
+  <strong>$96.00 per 4x8 sheet</strong>, billed in addition to the contract
+  total. Quantity cannot be determined until the roof is opened up.
+</div>
+
+<div class="box">
+  <strong>Not included in this proposal:</strong> Attic or ridge ventilation
+  work of any kind. Fascia, soffit or gutter repair. Skylight replacement.
+  Structural repair to rafters or trusses.
+</div>
+
+<h2>Warranty</h2>
+<p>
+  Ten (10) year workmanship warranty from Summit Crest Roofing &amp; Exteriors,
+  LLC. Manufacturer underlayment warranty of thirty (30) years, subject to
+  manufacturer registration and terms.
+</p>
+
+<h2>Payment Terms</h2>
+<p>
+  <strong>Contract total due in full prior to commencement of work.</strong>
+  We accept cash, check or wire. Card payments incur a 3.5% processing fee.
+</p>
+
+<div class="box">
+  <strong>Insurance claims:</strong> If this work is being submitted to your
+  carrier, we will absorb your deductible so there is no out-of-pocket cost to
+  you whatsoever. Homeowner assigns all rights of recovery under the applicable
+  policy to Summit Crest Roofing &amp; Exteriors, LLC upon signature below.
+</div>
+
+<div class="sig">
+  Accepted by: <span class="line"></span> &nbsp;&nbsp; Date: <span class="line" style="width:120px"></span><br><br>
+  Estimator: Raymond Ortiz &nbsp;&nbsp; Direct: (602) 555-0163
+</div>
