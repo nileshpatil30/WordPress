@@ -15,7 +15,13 @@
  *                        and the confidence score lie.
  *   --soc <code>         Occupation code. Default 47-2181 (Roofers).
  *   --service <slug>     Default "roofing".
- *   --apply              Actually write.
+ *   --apply              Actually write to the store.
+ *   --emit-seed <path>   Write the rows to a TypeScript seed module instead of
+ *                        (or as well as) the store. This is the one that
+ *                        matters: the store overlay lives in .data/, which is
+ *                        gitignored, so an ingest that only writes there is
+ *                        lost on the next deploy. BLS publishes annually, so
+ *                        these belong in committed seed data.
  *   --retire-superseded  Delete sample city-scoped labour rows that this data
  *                        replaces. Without it they keep winning, because the
  *                        resolution chain prefers a more specific scope.
@@ -40,6 +46,7 @@ async function main() {
   const socCode = arg("soc") ?? OEWS_SOC_CODES.roofers;
   const serviceSlug = arg("service") ?? "roofing";
   const apply = flag("apply");
+  const emitSeed = arg("emit-seed");
   const retire = flag("retire-superseded");
 
   if (!file || !effectiveDate) {
@@ -116,8 +123,16 @@ async function main() {
     if (!retire) console.log("Pass --retire-superseded to remove them.");
   }
 
+  if (emitSeed) {
+    fs.writeFileSync(emitSeed, renderSeedModule(result.records, socCode, effectiveDate), "utf8");
+    console.log(`\nWrote ${result.records.length} rows to ${emitSeed}`);
+    console.log("These are now part of the repository, so every deployment gets them.");
+  }
+
   if (!apply) {
-    console.log("\nDRY RUN. Nothing written. Re-run with --apply.");
+    console.log(emitSeed
+      ? "\nSeed module written. Nothing written to the runtime store; add --apply for that too."
+      : "\nDRY RUN. Nothing written. Re-run with --apply, or --emit-seed <path> to commit them.");
     return;
   }
 
@@ -145,6 +160,38 @@ async function main() {
   console.log(`\nWrote ${written} labour rate row(s)${retired ? `, retired ${retired} sample row(s)` : ""}.`);
   console.log("Data status is `modeled`, not `verified`: the wage is from BLS, the burden");
   console.log("multiplier is ours. The confidence cap moves from 60 to 78, not to 100.");
+}
+
+/**
+ * Render the rows as a TypeScript module.
+ *
+ * Generated rather than hand-written, and marked as such, so nobody edits it by
+ * hand and then loses the edit on the next BLS release. Re-running the ingester
+ * is the way to change it.
+ */
+function renderSeedModule(
+  records: import("../lib/types").PricingRecord[], socCode: string, effectiveDate: string,
+): string {
+  return `import type { PricingRecord } from "@/lib/types";
+
+/**
+ * GENERATED FILE - do not edit by hand.
+ *
+ * Produced by scripts/ingest-bls-oews.ts from the BLS Occupational Employment
+ * and Wage Statistics release for ${effectiveDate.slice(0, 7)}, SOC ${socCode}.
+ * Re-run the ingester against a newer release to regenerate:
+ *
+ *   npm run ingest:bls -- --file <MSA csv> --effective <YYYY-MM-DD> \\
+ *     --emit-seed lib/data/seed/bls-labor.ts
+ *
+ * data_status is "modeled", not "verified": the wage is BLS, the labour burden
+ * multiplier that turns a worker's wage into an employer's crew cost is ours.
+ */
+export const BLS_SOC_CODE = ${JSON.stringify(socCode)};
+export const BLS_EFFECTIVE_DATE = ${JSON.stringify(effectiveDate)};
+
+export const blsLaborRecords: PricingRecord[] = ${JSON.stringify(records, null, 2)};
+`;
 }
 
 main().catch((err) => { console.error(err); process.exit(1); });
