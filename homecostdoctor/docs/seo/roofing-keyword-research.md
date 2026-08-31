@@ -304,3 +304,98 @@ scale only the patterns that show impressions.
 No page generation at volume before Search Console has something to say. The
 roadmap in `seo-page-roadmap.csv` holds the current selection, with the tiers
 and the explicit do-not-build list.
+
+---
+
+## Keyword clustering — 254 keywords into 30 pages
+
+Full mapping in `seo-page-roadmap.csv`. The master list was ~200 keywords across
+10 tiers; clustering under rule R8 collapses them into 30 pages plus 8 explicit
+do-not-builds.
+
+### Source quality of the relayed volumes
+
+The volumes in that master list come from SEO agency blog posts — LYNX SEO,
+skillmammoth, roofingseo.services, AIBuildCalc — not from Semrush directly. The
+list itself notes `roof replacement cost` ranging from **12K to 67K/month**
+depending on the database. A 5× spread is not a measurement.
+
+Every relayed figure in the CSV is suffixed `*`. Treat them as directional
+ordering, never as inputs to a revenue model. **The semantic groupings are the
+valuable part** and they hold regardless of whose number is right.
+
+### The finding that reorders everything
+
+**All five `verified` rows in our entire dataset are pitch geometry.**
+
+```
+pitch.flat.area          1.000
+pitch.low.area           1.054   sqrt(1 + (3.5/12)^2)
+pitch.moderate.area      1.118   sqrt(1 + (6/12)^2)
+pitch.steep.area         1.250   sqrt(1 + (9/12)^2)
+pitch.very-steep.area    1.414
+```
+
+Exact mathematics, not estimates. Everything else in the dataset is `modeled`
+or `sample`.
+
+This means the **geometry cluster is the only part of the site our data gap does
+not touch**: roof area, roof squares, pitch, shingle bundles. Zero pricing data
+required, 100% confidence, shippable today — while every cost page is gated on
+materials being 60–70% invented.
+
+That is a different and better reason to build them than search volume, and it
+promotes four geometry tools into Tier 1:
+
+| Page | Why it ships now |
+|---|---|
+| `/roof-calculator` | Hub. Area, squares, pitch, bundles. Verified data |
+| `/roofing-square-calculator` | The unit the trade quotes in; homeowners don't know it |
+| `/roof-pitch-calculator` | Pure geometry |
+| `/roof-shingle-calculator` | Quantities exact; price-out carries the confidence badge |
+
+They also feed the cost calculator naturally: someone who just learned their
+roof is 24 squares is one click from what 24 squares should cost.
+
+**Second finding:** `/roofing-labor-cost` is the one *cost* page we can defend
+today — backed by real BLS OEWS wages across 13 metros. No competitor found
+publishes sourced local labour rates.
+
+### Deliberately not Tier 1
+
+`/roof-replacement-cost` and `/roof-cost-calculator` are the head terms and the
+money, and they are Tier 2. The live SERP holds This Old House and Modernize,
+and our materials are still sample. Entering the most contested term in the
+vertical with our weakest data is the losing fight. Win the flanks — geometry,
+quote-checking, labour — while materials get fixed.
+
+### One correction to earlier advice
+
+I previously said do not build TPO or EPDM because they are commercial roofing.
+**Half right.** Those named-membrane searches do skew commercial, but
+residential low-slope roofing is real — Phoenix foam, row houses, patio sections
+— and our catalog already carries `tpo-membrane`, `modified-bitumen` and
+`spf-foam`. The correct call is **one homeowner-framed `/flat-roof-cost` page**
+absorbing all four membranes, not separate TPO and EPDM pages.
+
+### What the do-not-build list now covers
+
+- `/cost-of-roofing-felt-paper` — 40/mo, KD 1%. Cluster member. R8.
+- Separate TPO and EPDM pages — merge into flat roof.
+- 11 individual size pages — R4. Use the size hub with a selector.
+- 50 state pages — R1+R2. We have 13 metros, not 50 states; 37 would be
+  national fallback wearing a state name.
+- 14 question keywords as standalone pages — they are H2s and FAQ blocks inside
+  the cost pages. Separate pages would cannibalise them.
+- Ohio and Connecticut metros — fragmented and small on the BLS evidence.
+- `best-roofing-contractor-{city}` — no vetted network exists.
+- Any second vertical.
+
+### Insurance and storm — the one I keep saying wait to
+
+Highest lead value in the master list, and still Tier 3. These are *insurance*
+questions — "is my adjuster's scope fair?" — not retail cost questions. Our
+engine models retail replacement. Ranking for them and then answering a
+different question than the one asked is how a page earns a high bounce rate and
+loses the ranking anyway. Build the adjuster-scope comparison first; the page
+follows the tool, not the reverse.
