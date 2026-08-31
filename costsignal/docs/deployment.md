@@ -29,21 +29,47 @@ you bought; only the hosting moves.
 
 ---
 
-## Option A — Vercel (recommended)
+## Option A — Vercel (this is the chosen path)
 
-1. Push this repo to GitHub (already done).
-2. vercel.com → New Project → import the repo → set **Root Directory** to
-   `costsignal`.
-3. Add the environment variables in the table below.
-4. Deploy, then add `homecostdoctor.com` under Project → Domains and follow the
-   DNS instructions it gives you.
+1. Push this repo to GitHub — already done, branch
+   `claude/home-services-pricing-arch-wpjwqg`.
+2. vercel.com → **Add New → Project** → import `nileshpatil30/WordPress`.
+3. **Set Root Directory to `costsignal`.** This is the one step that is easy to
+   miss and it fails confusingly if you skip it: the repository root is not the
+   app, so Vercel finds no `package.json` and the build dies immediately.
+4. Framework preset should auto-detect as **Next.js**. Leave the build and
+   output settings alone — `output: "standalone"` is handled for you.
+5. Add the environment variables in the table below. `SITE_URL` is already
+   committed in `.env.production`, so the build gets the right domain even if
+   you add nothing else.
+6. Deploy. You get a `*.vercel.app` URL immediately — check the site works
+   there **before** touching DNS.
+7. Project → **Settings → Domains** → add `homecostdoctor.com` and
+   `www.homecostdoctor.com`. Vercel shows the exact records to create.
 
-`SITE_URL` is already committed in `.env.production`, so the build gets the
-right domain with no further configuration.
+### DNS at your registrar
+
+Vercel will tell you the current values; at the time of writing they are:
+
+| Type | Name | Value |
+|---|---|---|
+| A | `@` | `76.76.21.21` |
+| CNAME | `www` | `cname.vercel-dns.com` |
+
+Use whatever Vercel's own Domains screen shows over this table — these change.
+Propagation is usually minutes. HTTPS is issued automatically once DNS resolves;
+you do not need to buy or configure a certificate.
+
+### After it is live
+
+Redeploys happen automatically on every push to the branch. To change the
+production branch: Settings → Git → Production Branch.
 
 ---
 
 ## Option B — Hostinger VPS, from the prebuilt bundle
+
+Only needed if you move off Vercel later. Vercel is the chosen path above.
 
 The zip contains a self-contained server. It does **not** need `npm install`.
 

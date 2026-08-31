@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const SITE_NAME = "CostSignal";
+export const SITE_NAME = "Home Cost Doctor";
 export const SITE_TAGLINE = "Know what your project should cost before you hire a contractor.";
 
 /**

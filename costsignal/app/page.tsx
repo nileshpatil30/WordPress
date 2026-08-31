@@ -10,7 +10,7 @@ import { buildMetadata, JsonLd, SITE_NAME, siteUrl } from "@/lib/seo";
 export const metadata = buildMetadata({
   // The root layout's title template does not apply to its own segment,
   // so the brand is added explicitly here.
-  title: "Roof replacement cost calculator and quote checker | CostSignal",
+  title: "Roof replacement cost calculator and quote checker | Home Cost Doctor",
   description:
     "Personalised roof replacement estimates by ZIP code, with a full cost breakdown, a confidence score, a contractor quote fairness check and side-by-side quote comparison.",
   path: "/",

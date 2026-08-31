@@ -71,7 +71,7 @@ export async function SiteFooter() {
             requirements with the relevant authority for your address.
           </p>
           <p className="mt-4 text-[12.5px] text-faint">
-            &copy; {new Date().getFullYear()} CostSignal. Currently modelling
+            &copy; {new Date().getFullYear()} Home Cost Doctor. Currently modelling
             roof replacement in the United States.
           </p>
         </div>

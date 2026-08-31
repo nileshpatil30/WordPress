@@ -7,7 +7,7 @@ import { usd } from "@/lib/format";
 export const metadata = buildMetadata({
   title: "How we estimate roofing costs",
   description:
-    "The full methodology behind CostSignal estimates: the cost model, the geographic fallback chain, how ranges are combined, and how the confidence score is calculated.",
+    "The full methodology behind Home Cost Doctor estimates: the cost model, the geographic fallback chain, how ranges are combined, and how the confidence score is calculated.",
   path: "/methodology",
 });
 

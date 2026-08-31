@@ -19,7 +19,7 @@ export const SEED_COLLECTED_DATE = "2026-08-15";
  */
 export const pricingSources: PricingSource[] = [
   {
-    id: "src-internal-model", name: "CostSignal internal model (sample data)",
+    id: "src-internal-model", name: "Home Cost Doctor internal model (sample data)",
     sourceType: "internal_model", reliabilityWeight: 0.4, isActive: true,
     lastReviewedAt: SEED_COLLECTED_DATE,
     licenseNotes:
@@ -59,7 +59,7 @@ export const pricingSources: PricingSource[] = [
       "Open Database Licence (ODbL). Commercial use is permitted with attribution, and share-alike obligations attach to derivative databases. Intended use: building footprints to pre-fill roof area. Legal review required before any derivative database is published.",
   },
   {
-    id: "src-first-party", name: "CostSignal homeowner submissions",
+    id: "src-first-party", name: "Home Cost Doctor homeowner submissions",
     sourceType: "first_party", reliabilityWeight: 0.75, isActive: true,
     licenseNotes:
       "Voluntarily submitted by homeowners with explicit consent, moderated before use, and aggregated so no individual project is identifiable. This is the intended long-term backbone of the model.",

@@ -82,7 +82,7 @@ export function InterestForm() {
             className="mt-1 h-4 w-4 shrink-0 rounded border-line-strong accent-[#0C6B58]" />
           <span className="text-[13.5px] leading-relaxed text-ink-soft">
             I would like to be told when contractor matching is available in my
-            area. I understand CostSignal has no contractor network today, will
+            area. I understand Home Cost Doctor has no contractor network today, will
             not pass my details to third parties, and that I can ask for my
             details to be deleted at any time.
           </span>

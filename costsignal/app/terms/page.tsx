@@ -5,7 +5,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "Terms of use",
   description:
-    "The terms on which CostSignal is provided: estimates are modelled ranges, not quotes, offers, inspections or advice.",
+    "The terms on which Home Cost Doctor is provided: estimates are modelled ranges, not quotes, offers, inspections or advice.",
   path: "/terms",
 });
 
@@ -28,7 +28,7 @@ export default function TermsPage() {
 
       <Section title="1. What this service is">
         <p>
-          CostSignal produces <strong>modelled cost ranges</strong> for home
+          Home Cost Doctor produces <strong>modelled cost ranges</strong> for home
           improvement projects from pricing data and the project characteristics
           you supply. That is the entire product.
         </p>

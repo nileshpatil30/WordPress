@@ -1,10 +1,10 @@
-# CostSignal
+# Home Cost Doctor
 
 **Home project cost intelligence. Phase 1: roof replacement, United States.**
 
 > Know what your project should cost before you hire a contractor.
 
-CostSignal is not a cost guide with a calculator bolted on. It is a pricing
+Home Cost Doctor is not a cost guide with a calculator bolted on. It is a pricing
 engine with a website in front of it. The same engine produces the homepage
 example, every city page, the calculator, the quote checker, the comparison
 tool and the public API — so none of them can drift from each other.

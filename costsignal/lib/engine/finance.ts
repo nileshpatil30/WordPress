@@ -50,6 +50,6 @@ export function buildFinanceScenarios(
   return {
     principal, downPayment, amountFinanced, scenarios,
     disclaimer:
-      "These are arithmetic scenarios using rates and terms you enter. CostSignal is not a lender, does not broker finance, and has no lending partners. Nothing here is a loan offer or financial advice. Contractor-arranged finance frequently carries a dealer fee built into the project price - ask what the cash price is before comparing.",
+      "These are arithmetic scenarios using rates and terms you enter. Home Cost Doctor is not a lender, does not broker finance, and has no lending partners. Nothing here is a loan offer or financial advice. Contractor-arranged finance frequently carries a dealer fee built into the project price - ask what the cash price is before comparing.",
   };
 }

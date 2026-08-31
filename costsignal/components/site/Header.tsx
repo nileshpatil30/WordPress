@@ -12,9 +12,9 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-3.5">
-        <Link href="/" className="flex items-center gap-2.5" aria-label="CostSignal home">
+        <Link href="/" className="flex items-center gap-2.5" aria-label="Home Cost Doctor home">
           <Mark />
-          <span className="text-[17px] font-semibold tracking-[-0.02em] text-ink">CostSignal</span>
+          <span className="whitespace-nowrap text-[17px] font-semibold tracking-[-0.02em] text-ink">Home Cost Doctor</span>
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">

@@ -39,9 +39,9 @@ export default async function Image({ params }: { params: Promise<{ token: strin
             width: 44, height: 44, borderRadius: 12, background: "#0C6B58",
             display: "flex", alignItems: "center", justifyContent: "center",
             color: "white", fontSize: 26, fontWeight: 700,
-          }}>C</div>
+          }}>H</div>
           <div style={{ fontSize: 30, fontWeight: 600, color: "#101614", letterSpacing: -0.5 }}>
-            CostSignal
+            Home Cost Doctor
           </div>
         </div>
 

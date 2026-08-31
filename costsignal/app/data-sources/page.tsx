@@ -6,7 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "Data sources, licences and provenance",
   description:
-    "Every pricing source behind CostSignal: what it is, what licence it carries, how much weight it gets, and whether it is connected yet.",
+    "Every pricing source behind Home Cost Doctor: what it is, what licence it carries, how much weight it gets, and whether it is connected yet.",
   path: "/data-sources",
 });
 

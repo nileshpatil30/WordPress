@@ -6,7 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "Privacy policy",
   description:
-    "What CostSignal collects, what it deliberately does not collect, how long it is kept, and how to have it deleted.",
+    "What Home Cost Doctor collects, what it deliberately does not collect, how long it is kept, and how to have it deleted.",
   path: "/privacy",
 });
 

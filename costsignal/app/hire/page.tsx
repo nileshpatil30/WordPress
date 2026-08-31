@@ -6,7 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "Getting contractor quotes",
   description:
-    "How to get good roofing quotes, and where CostSignal stands on contractor matching. We have no vetted network yet, and we would rather say so.",
+    "How to get good roofing quotes, and where Home Cost Doctor stands on contractor matching. We have no vetted network yet, and we would rather say so.",
   path: "/hire",
 });
 

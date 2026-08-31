@@ -1,4 +1,4 @@
-# Working on CostSignal
+# Working on Home Cost Doctor
 
 ## Non-negotiables
 
