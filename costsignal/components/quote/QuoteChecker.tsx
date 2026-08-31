@@ -5,9 +5,11 @@ import type { Material, ProjectType } from "@/lib/types";
 import type { EstimateResult } from "@/lib/engine/types";
 import type { QuoteAssessment } from "@/lib/engine/quote";
 import type { VarianceExplanation } from "@/lib/engine/roofing/explain";
+import type { PersonalQuestion } from "@/lib/engine/questions";
 import { roofingSteps } from "@/lib/engine/roofing/schema";
 import { StepFields } from "@/components/calculator/Fields";
 import { QuoteUpload } from "@/components/quote/QuoteUpload";
+import { QuestionsCard } from "@/components/quote/QuestionsCard";
 import { PriceRangeBar } from "@/components/estimate/EstimateView";
 import { Badge, Button, Callout, Card, Field, inputClass } from "@/components/ui";
 import { sessionId, track } from "@/lib/analytics";
@@ -41,8 +43,12 @@ export function QuoteChecker({ materials, projectTypes, initialValues }: {
   }));
   const [quotedPrice, setQuotedPrice] = useState<string>("");
   const [result, setResult] = useState<{
-    estimate: EstimateResult; assessment: QuoteAssessment; variance: VarianceExplanation | null;
+    estimate: EstimateResult; assessment: QuoteAssessment;
+    variance: VarianceExplanation | null; questions: PersonalQuestion[];
   } | null>(null);
+  // Signals from an uploaded quote, sent with the check so the questions can be
+  // about this document rather than about roofing in general.
+  const [extraction, setExtraction] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [uploadFlags, setUploadFlags] = useState<{ issue: string; quotedText: string }[]>([]);
@@ -77,6 +83,7 @@ export function QuoteChecker({ materials, projectTypes, initialValues }: {
         body: JSON.stringify({
           serviceSlug: "roofing", input: payload,
           quotedPrice: Number(quotedPrice), sessionId: sessionId(),
+          extraction: extraction ?? undefined,
         }),
       });
       const data = await res.json();
@@ -100,7 +107,7 @@ export function QuoteChecker({ materials, projectTypes, initialValues }: {
     const t = setTimeout(() => void check(), 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payload, quotedPrice]);
+  }, [payload, quotedPrice, extraction]);
 
   const options = useMemo(() => ({
     materials: materials.map((m) => ({ value: m.slug, label: m.name })),
@@ -121,6 +128,14 @@ export function QuoteChecker({ materials, projectTypes, initialValues }: {
               setValues((v) => ({ ...v, warranty: "extended-labor" }));
             }
             setUploadFlags(e.redFlags);
+            setExtraction({
+              scope: e.summary.scope,
+              exclusions: e.summary.exclusions,
+              redFlags: e.redFlags,
+              warrantyWorkmanshipYears: e.summary.warrantyWorkmanshipYears,
+              deckSheetsIncluded: e.summary.deckSheetsIncluded,
+              measuredSquares: e.summary.measuredSquares,
+            });
             if (!started.current) { started.current = true; track("quote_check_started"); }
           }}
         />
@@ -202,6 +217,7 @@ export function QuoteChecker({ materials, projectTypes, initialValues }: {
         {result && (
           <>
             <VerdictCard {...result} shareUrl={`/r/${encodeShare({ ...payload, quotedPrice: Number(quotedPrice) })}`} />
+            <QuestionsCard questions={result.questions ?? []} />
             {result.variance && <VarianceCard variance={result.variance} />}
             <ConsiderationsCard assessment={result.assessment} />
           </>

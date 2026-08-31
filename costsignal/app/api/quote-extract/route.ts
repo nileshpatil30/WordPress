@@ -81,6 +81,9 @@ export async function POST(req: Request) {
       measuredSquares: extracted.measuredSquares ?? undefined,
       roofAreaSqft: extracted.roofAreaSqft ?? undefined,
       existingLayers: extracted.existingLayers ?? undefined,
+      stories: extracted.stories ?? undefined,
+      pitchDescription: extracted.pitchDescription ?? undefined,
+      documentType: extracted.documentType,
       warrantyWorkmanshipYears: extracted.warrantyWorkmanshipYears ?? undefined,
       warrantyMaterialYears: extracted.warrantyMaterialYears ?? undefined,
       scope: extracted.scope as unknown as Record<string, string>,
@@ -105,6 +108,8 @@ export async function POST(req: Request) {
       paymentTerms: extracted.paymentTerms,
       scope: extracted.scope,
       notes: extracted.notes,
+      warrantyWorkmanshipYears: extracted.warrantyWorkmanshipYears,
+      deckSheetsIncluded: extracted.deckSheetsIncluded,
     },
   });
 }

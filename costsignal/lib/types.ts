@@ -338,6 +338,10 @@ export interface ExtractedQuoteRecord {
   measuredSquares?: number;
   roofAreaSqft?: number;
   existingLayers?: number;
+  stories?: number;
+  /** Free text as written on the quote, e.g. "6/12". Normalised later. */
+  pitchDescription?: string;
+  documentType?: string;
   warrantyWorkmanshipYears?: number;
   warrantyMaterialYears?: number;
   /** Tri-state per scope key: included | excluded | not_stated. */

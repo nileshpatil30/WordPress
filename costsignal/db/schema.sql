@@ -313,6 +313,11 @@ CREATE TABLE IF NOT EXISTS extracted_quotes (
   measured_squares            NUMERIC(8,2),
   roof_area_sqft              INTEGER,
   existing_layers             INTEGER,
+  stories                     INTEGER,
+  -- Free text as written on the quote. Normalising it at capture time would
+  -- throw away information we cannot get back; normalise on read instead.
+  pitch_description           TEXT,
+  document_type               TEXT,
   warranty_workmanship_years  INTEGER,
   warranty_material_years     INTEGER,
   -- Tri-state per key: included | excluded | not_stated. "Not stated" is not

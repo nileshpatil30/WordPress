@@ -211,11 +211,13 @@ export class PostgresStore implements DataStore {
     await this.pool.query(
       `INSERT INTO extracted_quotes
        (id, session_id, service_id, zip, total_price, material_family, measured_squares,
-        roof_area_sqft, existing_layers, warranty_workmanship_years, warranty_material_years,
+        roof_area_sqft, existing_layers, stories, pitch_description, document_type,
+        warranty_workmanship_years, warranty_material_years,
         scope, line_item_count, red_flag_count, extraction_confidence, extractor_version, created_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)`,
       [r.id, r.sessionId, r.serviceId, r.zip ?? null, r.totalPrice ?? null, r.materialFamily,
         r.measuredSquares ?? null, r.roofAreaSqft ?? null, r.existingLayers ?? null,
+        r.stories ?? null, r.pitchDescription ?? null, r.documentType ?? null,
         r.warrantyWorkmanshipYears ?? null, r.warrantyMaterialYears ?? null,
         JSON.stringify(r.scope), r.lineItemCount, r.redFlagCount,
         r.extractionConfidence, r.extractorVersion, r.createdAt]);
@@ -282,7 +284,7 @@ export class PostgresStore implements DataStore {
     const rows = await this.q<ExtractedQuoteRecord>(
       "SELECT * FROM extracted_quotes ORDER BY created_at DESC LIMIT $1", [limit]);
     return rows.map((r) => num(r as never,
-      ["totalPrice", "measuredSquares", "roofAreaSqft", "existingLayers",
+      ["totalPrice", "measuredSquares", "roofAreaSqft", "existingLayers", "stories",
         "warrantyWorkmanshipYears", "warrantyMaterialYears", "lineItemCount", "redFlagCount"],
     ) as ExtractedQuoteRecord);
   }

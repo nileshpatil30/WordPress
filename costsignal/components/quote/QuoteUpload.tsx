@@ -26,6 +26,8 @@ interface Extraction {
     paymentTerms: string | null;
     scope: Record<string, string>;
     notes: string;
+    warrantyWorkmanshipYears: number | null;
+    deckSheetsIncluded: number | null;
   };
 }
 
