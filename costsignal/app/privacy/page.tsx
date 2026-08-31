@@ -33,9 +33,10 @@ export default function PrivacyPage() {
           We collect as little as we can get away with. The contribution form has
           no field for your name, address, or your contractor&rsquo;s name, so we
           cannot collect them even by accident. We do not sell anything to
-          anyone, we run no third-party advertising or tracking scripts, and the
-          only place we ask for contact details is a form that says plainly that
-          nobody will call you.
+          anyone, we run no advertising and no remarketing, and the only place we
+          ask for contact details is a form that says plainly that nobody will
+          call you. We do use Google Analytics to see which pages get used, with
+          advertising features switched off &mdash; the detail is below.
         </p>
       </Section>
 
@@ -56,7 +57,7 @@ export default function PrivacyPage() {
           <li>The exact date of a project. Contributions store the month only, because a precise date plus a ZIP code starts to identify a specific property.</li>
           <li>The contractor&rsquo;s name, phone number, licence number, or your property address from an uploaded quote. The reader is instructed not to return them, and the data structure we store them into has no field for them.</li>
           <li>The uploaded file itself. It is held in memory for the length of the request and then discarded.</li>
-          <li>Anything from third-party advertising or tracking networks. There are none on this site.</li>
+          <li>Anything from advertising or remarketing networks. Google Analytics is the only third-party script on this site, and it runs with Google&rsquo;s advertising features explicitly disabled, so it cannot be used to build an advertising audience from your visit.</li>
           <li>Free-text that looks like contact detail in analytics. The event endpoint strips anything resembling an email address or phone number before storing.</li>
         </ul>
       </Section>
@@ -77,8 +78,9 @@ export default function PrivacyPage() {
           <li><strong>Session identifier</strong> &mdash; a random string in your browser&rsquo;s <code className="font-mono text-[13px]">sessionStorage</code>. It is not a cookie, it is not a fingerprint, and it is discarded when you close the tab.</li>
           <li><strong>Contractor question checklist</strong> &mdash; your ticked items are saved in <code className="font-mono text-[13px]">localStorage</code> on your own device and are never sent to us.</li>
           <li><strong>Admin session cookie</strong> &mdash; set only for staff signing into the admin console. It is HTTP-only and scoped to <code className="font-mono text-[13px]">/admin</code>.</li>
+          <li><strong>Google Analytics cookies</strong> &mdash; <code className="font-mono text-[13px]">_ga</code> and a related per-property cookie, set by Google to tell repeat visits apart. We send Google a truncated IP address and we have turned off Google Signals, which is the setting that would otherwise link your visit to a Google account for advertising. These are the only cookies set by anyone other than us.</li>
         </ul>
-        <p>We set no advertising, marketing or cross-site cookies.</p>
+        <p>We set no advertising, marketing or cross-site cookies of our own, and we run no remarketing or ad-network tags.</p>
       </Section>
 
       <Section title="Who we share it with">
@@ -92,6 +94,15 @@ export default function PrivacyPage() {
         <p>
           We use infrastructure providers to host the application and its
           database. They process data on our instructions only.
+        </p>
+        <p>
+          Google is the one exception worth naming. Google Analytics receives
+          your truncated IP address, the pages you view and basic device
+          information, and Google acts as a processor for that under its own
+          terms. We have disabled the advertising features that would let it be
+          used to target you elsewhere. If you would rather not be measured at
+          all, Google publishes a browser opt-out add-on, and any tracker
+          blocker will stop it.
         </p>
       </Section>
 

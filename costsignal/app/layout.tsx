@@ -3,6 +3,8 @@ import "./globals.css";
 import { SiteHeader } from "@/components/site/Header";
 import { SiteFooter } from "@/components/site/Footer";
 import { SITE_NAME, SITE_TAGLINE, siteUrl } from "@/lib/seo";
+import { Analytics } from "@/components/site/Analytics";
+import { GOOGLE_SITE_VERIFICATION } from "@/lib/analytics-config";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl("/")),
@@ -14,6 +16,7 @@ export const metadata: Metadata = {
     "Personalised, local roof replacement cost estimates with a full price breakdown, a contractor quote fairness check, and side-by-side quote comparison. Built on transparent, sourced pricing data.",
   applicationName: SITE_NAME,
   formatDetection: { telephone: false },
+  verification: { google: GOOGLE_SITE_VERIFICATION },
 };
 
 export const viewport = { width: "device-width", initialScale: 1, themeColor: "#0C6B58" };
@@ -31,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteHeader />
         <main id="main">{children}</main>
         <SiteFooter />
+        <Analytics />
       </body>
     </html>
   );
