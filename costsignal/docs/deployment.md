@@ -200,6 +200,23 @@ pollute the property.
 
 ---
 
+## Two Vercel limits to know about
+
+**Function timeout.** Quote extraction sets `maxDuration = 60` because reading a
+multi-page PDF with a vision model takes 20-60 seconds, well past the ~10 second
+serverless default. Plans cap this, and a plan below the cap clamps silently
+rather than erroring — so if uploads still time out, the plan's ceiling is the
+binding limit, not the code. Everything else on the site responds in
+milliseconds and is unaffected.
+
+**Commercial use.** Vercel's free Hobby tier is for non-commercial projects. The
+moment this site earns money — a paid report, a lead sold to a contractor — it
+needs a paid plan. Budget for that alongside the database rather than being
+surprised by it, and note that the paid plan is also what lifts the timeout
+above.
+
+---
+
 ## Before you point traffic at it
 
 - [ ] `DATABASE_URL` set, or accept that all submissions are lost on restart

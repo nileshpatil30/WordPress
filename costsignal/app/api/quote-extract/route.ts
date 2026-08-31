@@ -9,6 +9,19 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * Reading a multi-page quote with a vision model and adaptive thinking commonly
+ * takes 20-60 seconds. Serverless platforms default to roughly 10, so without
+ * this the upload times out and the homeowner sees a failure on a request that
+ * was working perfectly - the most confusing failure available.
+ *
+ * If the platform caps this below the value here, it silently clamps rather
+ * than erroring, so confirm the effective ceiling on your plan. On Vercel this
+ * is a paid-plan feature at the upper end; a timeout that survives this setting
+ * means the plan's cap is the binding limit, not this line.
+ */
+export const maxDuration = 60;
+
 const MAX_BYTES = 15 * 1024 * 1024; // Well under the API's 32 MB request limit.
 const ACCEPTED = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
 
