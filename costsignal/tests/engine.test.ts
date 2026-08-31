@@ -138,9 +138,11 @@ describe("source quality scoring", () => {
   it("weights sources by how much they actually supply, not by how many exist", async () => {
     const ctx = (await buildEngineContext(store, "roofing", "85018"))!;
     // Swap exactly one of ~10 price lookups to a high-reliability source.
-    const labour = ctx.records.find(
-      (r) => r.metricKey === "labor.rate_per_hour" && r.geoScopeType === "city")!;
-    labour.sourceId = "src-bls-oes";
+    // Scope-agnostic: real BLS data is metro-scoped, sample fallback is
+    // national, and this assertion is about weighting rather than geography.
+    for (const r of ctx.records) {
+      if (r.metricKey === "labor.rate_per_hour") r.sourceId = "src-bls-oes";
+    }
 
     const parsed = engine.parse({
       zip: "85018", areaMode: "roof" as const, roofAreaSqft: 2000, stories: 2 as const,
