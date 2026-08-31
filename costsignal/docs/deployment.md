@@ -47,6 +47,21 @@ you bought; only the hosting moves.
 7. Project → **Settings → Domains** → add `homecostdoctor.com` and
    `www.homecostdoctor.com`. Vercel shows the exact records to create.
 
+### Keeping the domain at Hostinger
+
+You do **not** need to cancel or upgrade the Hostinger plan, and you do not need
+to move the domain anywhere. Hostinger keeps doing the one job it can do here —
+being your registrar — while Vercel serves the site. Two separate things:
+
+| | Who does it | Cost |
+|---|---|---|
+| Owning `homecostdoctor.com` | Hostinger (unchanged) | already paid |
+| Serving the website | Vercel | free tier |
+
+Premium Web Hosting has no Node runtime, so it cannot run this app. That is a
+limit of the plan, not something to work around, and paying more for a VPS to
+avoid a free tier that is better suited to Next.js is not worth it.
+
 ### DNS at your registrar
 
 Vercel will tell you the current values; at the time of writing they are:
@@ -57,8 +72,19 @@ Vercel will tell you the current values; at the time of writing they are:
 | CNAME | `www` | `cname.vercel-dns.com` |
 
 Use whatever Vercel's own Domains screen shows over this table — these change.
-Propagation is usually minutes. HTTPS is issued automatically once DNS resolves;
-you do not need to buy or configure a certificate.
+
+In Hostinger: **hPanel → Domains → `homecostdoctor.com` → DNS / Nameservers →
+DNS Zone Editor**. Edit the existing `A` record for `@` to Vercel's IP (do not
+add a second one — two A records for `@` will send visitors to whichever answers
+first), and point the `www` CNAME at Vercel.
+
+Leave the `MX` and `TXT` records alone. Those carry email and any domain
+verification; changing the `A` record does not affect them, so Hostinger email on
+this domain keeps working.
+
+Propagation is usually minutes, occasionally a few hours. HTTPS is issued
+automatically once DNS resolves — you do not need to buy or configure a
+certificate, and you should not use Hostinger's SSL for this.
 
 ### After it is live
 
