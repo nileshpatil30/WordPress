@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { getStore } from "@/lib/data/store";
 import { buildLocalScenarios } from "@/lib/local-estimates";
 import { RoofCalculator } from "@/components/calculator/RoofCalculator";
-import { BreakdownTable, ConfidenceMeter, FreshnessLine, PriceRangeBar } from "@/components/estimate/EstimateView";
+import {
+  BreakdownTable, ConfidenceMeter, FreshnessLine, PriceRangeBar, ProvenancePanel,
+} from "@/components/estimate/EstimateView";
 import { Badge, ButtonLink, Card, DataNotice, SectionHeading } from "@/components/ui";
 import { usd } from "@/lib/format";
 import { breadcrumbJsonLd, buildMetadata, JsonLd } from "@/lib/seo";
@@ -192,6 +194,14 @@ export default async function ZipCostPage({ params }: {
           <Card className="mt-8 p-6 sm:p-8">
             <h3 className="text-[16px] font-semibold text-ink">Cost breakdown for a typical roof here</h3>
             <div className="mt-5"><BreakdownTable estimate={rep} /></div>
+          </Card>
+
+          <Card className="mt-4 p-6 sm:p-8">
+            <h3 className="text-[16px] font-semibold text-ink">What these figures are built on</h3>
+            <p className="mt-1 text-[13px] text-muted">
+              Weighted by money rather than by how many sources we can list.
+            </p>
+            <div className="mt-5"><ProvenancePanel estimate={rep} /></div>
           </Card>
         </section>
 

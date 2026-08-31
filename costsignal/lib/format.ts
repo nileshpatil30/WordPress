@@ -20,3 +20,13 @@ export function stateFromCitySlug(slug: string) {
   const parts = slug.split("-");
   return parts[parts.length - 1]?.toUpperCase() ?? "";
 }
+
+/**
+ * "May 2025" from an ISO date. Parsed in UTC deliberately: a date-only string
+ * is a calendar month, not an instant, and local parsing would shift it a month
+ * for anyone west of Greenwich.
+ */
+export function formatMonth(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+}

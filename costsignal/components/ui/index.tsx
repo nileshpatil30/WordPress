@@ -127,11 +127,13 @@ export function DataNotice({ className = "" }: { className?: string }) {
   return (
     <div className={`rounded-xl border border-caution/25 bg-caution-soft px-4 py-3 ${className}`}>
       <p className="text-[13px] leading-relaxed text-ink-soft">
-        <strong className="font-semibold text-caution">Sample data.</strong>{" "}
-        The prices behind every estimate on this site are internally modelled
-        placeholders shipped for development. They are not observed market
-        pricing and are not attributed to any third party. Verified data feeds
-        are listed on the{" "}
+        <strong className="font-semibold text-caution">Mostly sample data.</strong>{" "}
+        Labour rates come from the Bureau of Labor Statistics OEWS release for
+        the metros we cover. Everything else - materials, disposal, equipment
+        and permits, roughly seventy per cent of a typical re-roof - is an
+        internally modelled placeholder, not observed market pricing, and is not
+        attributed to any third party. Every estimate shows the split line by
+        line. Where the numbers come from is set out on the{" "}
         <Link href="/data-sources" className="font-medium text-accent underline underline-offset-2">
           data sources
         </Link>{" "}

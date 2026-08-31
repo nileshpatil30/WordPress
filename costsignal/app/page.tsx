@@ -126,9 +126,9 @@ export default async function HomePage() {
                   </span>
                 </div>
                 <p className="mt-3 text-[12px] leading-relaxed text-faint">
-                  Capped because the prices behind it are sample data, not
-                  observed market pricing. We would rather show you that than
-                  a confident-looking number we cannot stand behind.
+                  Capped because most of the prices behind it are still sample
+                  data rather than observed market pricing. We would rather show
+                  you that than a confident-looking number we cannot stand behind.
                 </p>
               </div>
             </Card>

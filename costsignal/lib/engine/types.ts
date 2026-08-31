@@ -14,8 +14,21 @@ export interface LineItem {
   high: number;
   /** Plain-language derivation, e.g. "24.6 squares x $158/square". */
   basis: string;
-  /** Where the unit price came from, for the "show your working" panel. */
-  sourceRef?: { metricKey: string; scope: string; dataStatus: DataStatus };
+  /**
+   * Where the unit price came from. Carried on every line so the interface can
+   * show provenance per row rather than as a single site-wide disclaimer - the
+   * difference between claiming transparency and demonstrating it.
+   */
+  sourceRef?: {
+    metricKey: string;
+    /** Geographic level that answered: zip, city, metro, state, country. */
+    scope: string;
+    dataStatus: DataStatus;
+    sourceId: string;
+    sourceName: string;
+    /** The period the price describes, not when we fetched it. */
+    effectiveDate: string;
+  };
   optional?: boolean;
   note?: string;
 }
@@ -57,6 +70,20 @@ export interface ConfidenceResult {
   caveats: string[];
 }
 
+/** One row of the "what is this estimate built on" summary. */
+export interface ProvenanceEntry {
+  sourceId: string;
+  sourceName: string;
+  dataStatus: DataStatus;
+  /** Finest geographic level this source answered at. */
+  scope: string;
+  /** Oldest period any of its prices describes. */
+  oldestEffectiveDate: string;
+  /** Share of the estimate's direct cost this source priced, 0-1. */
+  shareOfCost: number;
+  lineItemCount: number;
+}
+
 export interface FreshnessInfo {
   /** Oldest input feeding the estimate. This is what it is honestly dated to. */
   effectiveDate: string;
@@ -84,6 +111,8 @@ export interface EstimateResult {
   directCostStraightSum: PriceTriple;
   overheadAndProfit: PriceTriple;
   assumptions: Assumption[];
+  /** What the estimate is built on, biggest contributor first. */
+  provenance: ProvenanceEntry[];
   derived: Record<string, number | string>;
   confidence: ConfidenceResult;
   geo: GeoResolution;

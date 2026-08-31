@@ -248,7 +248,7 @@ material qty   = squares x waste factor    (7% to 20% by complexity)`}
             "It does not model code upgrades triggered by your specific permit. Those are jurisdiction-specific and sometimes property-specific.",
             "It assumes a competent, insured contractor doing the job properly. It is not modelling the cheapest possible way to get shingles onto a roof.",
             "Its permit figures are allowances, not schedules. Published fee schedules are exact, and replacing our allowance with them is one of the highest-value improvements available.",
-            "The prices behind it today are sample data. That is the single largest limitation, and no amount of good modelling fixes it.",
+            "Its labour rates are real - Bureau of Labor Statistics wage data for each metro - but materials, disposal, equipment and permits are still our own sample figures, and they are the larger share of the bill. That is the single largest limitation, and no amount of good modelling fixes it.",
           ].map((t) => (
             <li key={t} className="flex gap-3">
               <span aria-hidden className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-caution" />

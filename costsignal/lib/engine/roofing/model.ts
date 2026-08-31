@@ -1,4 +1,6 @@
 import type { CostComponent, PricingSource } from "@/lib/types";
+import { formatMonth } from "@/lib/format";
+import type { ProvenanceEntry } from "../types";
 import { addTriples, makeFactorLookup, makePriceLookup, scale } from "../geo";
 import { scoreConfidence } from "../confidence";
 import type {
@@ -101,15 +103,23 @@ export function estimateRoofing(
   const lineItems: LineItem[] = [];
   const push = (
     key: string, label: string, component: CostComponent, triple: PriceTriple,
-    basis: string, ref?: { metricKey: string; scope: string; dataStatus: LineItem["sourceRef"] extends undefined ? never : "verified" | "modeled" | "sample" },
+    basis: string, ref?: LineItem["sourceRef"],
     extra?: Partial<LineItem>,
   ) => {
     if (triple.typical <= 0 && triple.low <= 0 && triple.high <= 0) return;
     lineItems.push({ key, label, component, ...triple, basis, sourceRef: ref, ...extra });
   };
 
+  const sourceName = (id: string) =>
+    sources.find((s) => s.id === id)?.name ?? id;
+
   const refOf = (hit: ReturnType<typeof price.require>) => ({
-    metricKey: hit.record.metricKey, scope: hit.level, dataStatus: hit.record.dataStatus,
+    metricKey: hit.record.metricKey,
+    scope: hit.level,
+    dataStatus: hit.record.dataStatus,
+    sourceId: hit.record.sourceId,
+    sourceName: sourceName(hit.record.sourceId),
+    effectiveDate: hit.record.effectiveDate,
   });
 
   const qualityMult = factor(`quality.${input.quality}.material`, 1);
@@ -350,6 +360,36 @@ export function estimateRoofing(
     geoIsFallback: ctx.geo.isFallback,
   });
 
+  // What is this estimate actually built on, weighted by what each source
+  // priced rather than by how many sources exist.
+  const SCOPE_ORDER = ["zip", "city", "metro", "state", "country", "global"];
+  const provenanceMap = new Map<string, ProvenanceEntry>();
+  for (const item of lineItems) {
+    if (!item.sourceRef) continue;
+    const ref = item.sourceRef;
+    const existing = provenanceMap.get(ref.sourceId);
+    if (existing) {
+      existing.shareOfCost += item.typical;
+      existing.lineItemCount += 1;
+      if (ref.effectiveDate < existing.oldestEffectiveDate) {
+        existing.oldestEffectiveDate = ref.effectiveDate;
+      }
+      if (SCOPE_ORDER.indexOf(ref.scope) < SCOPE_ORDER.indexOf(existing.scope)) {
+        existing.scope = ref.scope;
+      }
+    } else {
+      provenanceMap.set(ref.sourceId, {
+        sourceId: ref.sourceId, sourceName: ref.sourceName, dataStatus: ref.dataStatus,
+        scope: ref.scope, oldestEffectiveDate: ref.effectiveDate,
+        shareOfCost: item.typical, lineItemCount: 1,
+      });
+    }
+  }
+  const pricedTotal = [...provenanceMap.values()].reduce((a, e) => a + e.shareOfCost, 0) || 1;
+  const provenance = [...provenanceMap.values()]
+    .map((e) => ({ ...e, shareOfCost: e.shareOfCost / pricedTotal }))
+    .sort((a, b) => b.shareOfCost - a.shareOfCost);
+
   const containsSample = price.used.some((h) => h.record.dataStatus === "sample");
   const collected = price.used.map((h) => h.record.collectedDate).sort().at(-1) ?? newestEffective;
 
@@ -370,6 +410,7 @@ export function estimateRoofing(
     directCostStraightSum: straightSum,
     overheadAndProfit,
     assumptions,
+    provenance,
     derived: {
       roofSurfaceSqft: Math.round(roofSurfaceSqft),
       squares: Number(squares.toFixed(1)),
@@ -417,7 +458,3 @@ function monthsBetween(from: Date, to: Date) {
   return Math.max(0, (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth()));
 }
 
-export function formatMonth(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
-}

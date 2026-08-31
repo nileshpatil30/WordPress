@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { getStore } from "@/lib/data/store";
 import { buildLocalScenarios } from "@/lib/local-estimates";
 import { RoofCalculator } from "@/components/calculator/RoofCalculator";
-import { BreakdownTable, ConfidenceMeter, FreshnessLine, PriceRangeBar } from "@/components/estimate/EstimateView";
+import {
+  BreakdownTable, ConfidenceMeter, FreshnessLine, PriceRangeBar, ProvenancePanel,
+} from "@/components/estimate/EstimateView";
 import { PriceHistory } from "@/components/charts/PriceHistory";
 import { Badge, ButtonLink, Card, DataNotice, SectionHeading } from "@/components/ui";
 import { usd } from "@/lib/format";
@@ -255,6 +257,18 @@ export default async function CityCostPage({ params }: {
           />
           <Card className="mt-7 p-6 sm:p-8">
             <BreakdownTable estimate={rep} />
+          </Card>
+        </section>
+
+        {/* ------------------------- Provenance ------------------------- */}
+        <section className="mt-16">
+          <SectionHeading
+            eyebrow="Where the numbers come from"
+            title={`What the ${city.name} figures are built on`}
+            description="Weighted by money rather than by how many sources we can list. Anything still resting on our own sample figures is named as such."
+          />
+          <Card className="mt-7 p-6 sm:p-8">
+            <ProvenancePanel estimate={rep} />
           </Card>
         </section>
 

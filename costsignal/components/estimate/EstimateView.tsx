@@ -1,6 +1,7 @@
+import type { DataStatus } from "@/lib/types";
 import type { EstimateResult, LineItem } from "@/lib/engine/types";
 import { Badge, Callout, Card, Disclosure } from "@/components/ui";
-import { num, pct, usd } from "@/lib/format";
+import { formatMonth, num, pct, usd } from "@/lib/format";
 
 /* -------------------------------------------------------------------------
    Price range bar
@@ -194,6 +195,129 @@ export function BreakdownTable({ estimate }: { estimate: EstimateResult }) {
   );
 }
 
+/* -------------------------------------------------------------------------
+   Provenance
+   Every priced row carries the source that answered it. Showing that per row,
+   rather than as one site-wide disclaimer, is the difference between claiming
+   transparency and demonstrating it - and it makes weak data visible to us as
+   well as to the reader.
+------------------------------------------------------------------------- */
+const STATUS_DOT: Record<DataStatus, string> = {
+  verified: "bg-positive", modeled: "bg-accent", sample: "bg-caution",
+};
+
+const STATUS_WORD: Record<DataStatus, string> = {
+  verified: "Published", modeled: "Modelled", sample: "Sample",
+};
+
+const STATUS_MEANING: Record<DataStatus, string> = {
+  verified: "Taken directly from a published source, unchanged.",
+  modeled: "Derived from a published source by a documented calculation.",
+  sample: "Our own placeholder. Plausible, but not observed in the market.",
+};
+
+const SCOPE_WORD: Record<string, string> = {
+  zip: "your ZIP", city: "your city", metro: "your metro area",
+  state: "your state", country: "national", global: "global default",
+};
+
+const scopeWord = (s: string) => SCOPE_WORD[s] ?? s;
+
+/** The inline marker under a line item: who priced this row, and how well. */
+export function SourceChip({ source: r }: { source: NonNullable<LineItem["sourceRef"]> }) {
+  return (
+    <span
+      className="mt-1 inline-flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11.5px] leading-snug text-faint"
+      title={`${STATUS_WORD[r.dataStatus]}: ${STATUS_MEANING[r.dataStatus]}`}
+    >
+      <span aria-hidden className={`h-1.5 w-1.5 shrink-0 rounded-full ${STATUS_DOT[r.dataStatus]}`} />
+      <span className="font-medium text-muted">{r.sourceName}</span>
+      <span aria-hidden>·</span>
+      <span>{scopeWord(r.scope)}</span>
+      <span aria-hidden>·</span>
+      <span>{formatMonth(r.effectiveDate)}</span>
+      <span className="sr-only">
+        {`. Data quality: ${STATUS_WORD[r.dataStatus]}. ${STATUS_MEANING[r.dataStatus]}`}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * The summary card. Sources are weighted by the share of the estimate they
+ * actually priced, not by how many of them there are, so one sample row on a
+ * trivial line cannot make the whole estimate look weak - and a sample source
+ * carrying 60% of the cost cannot hide behind five good ones.
+ */
+export function ProvenancePanel({ estimate }: { estimate: EstimateResult }) {
+  const entries = estimate.provenance;
+  if (entries.length === 0) return null;
+
+  const sampleShare = entries
+    .filter((e) => e.dataStatus === "sample")
+    .reduce((a, e) => a + e.shareOfCost, 0);
+  const statuses = [...new Set(entries.map((e) => e.dataStatus))];
+
+  return (
+    <div>
+      <div className="flex h-3 w-full overflow-hidden rounded-full" role="img"
+        aria-label={`Data quality by share of cost: ${entries.map((e) => `${e.sourceName} ${Math.round(e.shareOfCost * 100)} percent, ${STATUS_WORD[e.dataStatus]}`).join("; ")}`}>
+        {entries.map((e) => (
+          <div key={e.sourceId} className={STATUS_DOT[e.dataStatus]}
+            style={{ width: `${e.shareOfCost * 100}%` }}
+            title={`${e.sourceName}: ${Math.round(e.shareOfCost * 100)}% of the direct cost`} />
+        ))}
+      </div>
+
+      <ul className="mt-5 space-y-3.5">
+        {entries.map((e) => (
+          <li key={e.sourceId} className="flex items-baseline justify-between gap-4">
+            <span className="min-w-0">
+              <span className="flex items-center gap-2 text-[13.5px] font-medium text-ink">
+                <span aria-hidden className={`h-2.5 w-2.5 shrink-0 rounded-sm ${STATUS_DOT[e.dataStatus]}`} />
+                <span className="truncate">{e.sourceName}</span>
+              </span>
+              <span className="mt-0.5 block pl-[18px] text-[12px] leading-snug text-faint">
+                {STATUS_WORD[e.dataStatus]} · {scopeWord(e.scope)} · {formatMonth(e.oldestEffectiveDate)}
+                {" · "}{e.lineItemCount} line item{e.lineItemCount === 1 ? "" : "s"}
+              </span>
+            </span>
+            <span className="shrink-0 text-right">
+              <span className="text-[15px] font-semibold tnum text-ink">
+                {Math.round(e.shareOfCost * 100)}%
+              </span>
+              <span className="block text-[11px] text-faint">of direct cost</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <dl className="mt-6 space-y-2 border-t border-line pt-4">
+        {statuses.map((st) => (
+          <div key={st} className="flex gap-2.5 text-[12.5px] leading-snug">
+            <dt className="flex shrink-0 items-center gap-1.5 font-semibold text-ink-soft">
+              <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT[st]}`} />
+              {STATUS_WORD[st]}
+            </dt>
+            <dd className="text-muted">{STATUS_MEANING[st]}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {sampleShare > 0 && (
+        <p className="mt-4 rounded-lg bg-caution-soft px-3.5 py-2.5 text-[12.5px] leading-relaxed text-ink-soft">
+          <span className="font-semibold">{Math.round(sampleShare * 100)}% of this estimate rests on sample
+          data.</span>{" "}
+          That is the honest limit of what we can tell you today, and it is why
+          the confidence score above is capped. Replacing it with observed
+          pricing is the work we are doing next.
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------- */
 function LineItemRow({ item }: { item: LineItem }) {
   return (
     <tr className="border-b border-line/70 align-top">
@@ -202,6 +326,7 @@ function LineItemRow({ item }: { item: LineItem }) {
         {item.optional && <span className="ml-2 text-[11px] text-faint">optional</span>}
         <span className="block text-[12px] leading-snug text-faint">{item.basis}</span>
         {item.note && <span className="mt-1 block text-[12px] leading-snug text-muted">{item.note}</span>}
+        {item.sourceRef && <span className="block"><SourceChip source={item.sourceRef} /></span>}
       </td>
       <td className="py-2.5 pr-3 text-right text-[13px] tnum text-faint">{usd(item.low)}</td>
       <td className="py-2.5 pr-3 text-right text-[13px] font-semibold tnum text-ink">{usd(item.typical)}</td>
@@ -328,6 +453,16 @@ export function EstimateResultView({ estimate, compact = false }: {
           <AssumptionsList estimate={estimate} />
         </Card>
       )}
+
+      <Card className="px-6 py-7 sm:px-8">
+        <h3 className="text-[15px] font-semibold text-ink">What this estimate is built on</h3>
+        <p className="mb-5 mt-1 text-[13px] text-muted">
+          Each priced line above names the source that answered it. This is the
+          same thing weighted by money: how much of your estimate each source is
+          actually carrying.
+        </p>
+        <ProvenancePanel estimate={estimate} />
+      </Card>
 
       <Card className="px-6 py-5 sm:px-8">
         <Disclosure summary="What this estimate is, and what it is not" className="border-t-0 pt-0">
