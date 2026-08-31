@@ -399,3 +399,61 @@ engine models retail replacement. Ranking for them and then answering a
 different question than the one asked is how a page earns a high bounce rate and
 loses the ranking anyway. Build the adjuster-scope comparison first; the page
 follows the tool, not the reverse.
+
+---
+
+## Seasonal SEO — the honest version
+
+**The tactic to avoid:** restamping an unchanged page with today's date, or
+putting the current month in a title that says the same thing all year. Search
+engines discount `lastmod` they cannot trust, and a site that publishes its own
+confidence scores cannot also fake its freshness dates.
+
+**What was actually wrong:** `app/sitemap.ts` set `lastModified: new Date()` on
+every URL. Every deploy — including one that only touched CSS — told Google all
+43 pages had changed. That is the unreliable-lastmod pattern, and it was already
+live.
+
+**The fix, in the only order that makes the date true: content moves first, the
+date follows.**
+
+`lib/seasonality.ts` gives each metro a real seasonal profile — installation
+window, peak demand, softest pricing, storm season — and renders guidance for
+the *current month*. The page genuinely says something different in September
+than in February, so a monthly `lastmod` is a fact rather than a claim.
+
+Sitemap dates now derive from two real signals: `SEED_COLLECTED_DATE` (when the
+pricing behind every estimate was collected) and the first of the current month
+(when the seasonal guidance last changed). Nothing derives from build time.
+
+### Why regional profiles rather than one national calendar
+
+| Metro group | Install window | Peak | Storm season |
+|---|---|---|---|
+| Phoenix, Las Vegas | Oct–Apr | Oct–Nov, Feb–Apr | Monsoon, Jul–Sep |
+| Dallas, Houston, Austin | year-round | Mar–Jun | Hail, Mar–Jun |
+| Miami, Tampa, Orlando | year-round | Mar–May, Sep–Oct | Hurricane, Jun–Nov |
+| Los Angeles, San Diego | year-round | Apr–Aug | — |
+| NY/Newark, Philadelphia, Boston | Apr–Oct | Jun–Sep | Ice damming, Dec–Mar |
+
+Phoenix and Boston are near-exact inverses. In July, Phoenix is *outside* its
+comfortable window and Boston is at peak. Any single national "spring is roofing
+season" line is wrong for most of the country, and writing one under a specific
+city name is precisely the templated local page rule R1 exists to prevent.
+
+Profiles fall back metro → state → continental default, the same chain the
+pricing lookup uses.
+
+### Where the month should and should not appear
+
+- **In the page content:** yes. It changes, it is useful, it is true.
+- **In `lastmod`:** yes, now that the content behind it moves.
+- **In the `<title>`:** no. A title rewritten twelve times a year destabilises
+  CTR history for no ranking gain. The year is already there via
+  `getFullYear()`; that is enough.
+
+### Still not built: storm-event pages
+
+The seasonal *guidance* covers storm seasons. Storm *keywords* — hail damage,
+roof insurance claim — remain Tier 3 for the reason given above: they are
+insurance questions, and our engine models retail replacement cost.

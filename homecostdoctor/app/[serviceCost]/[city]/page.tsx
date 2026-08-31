@@ -7,6 +7,7 @@ import {
   BreakdownTable, ConfidenceMeter, FreshnessLine, PriceRangeBar, ProvenancePanel,
 } from "@/components/estimate/EstimateView";
 import { PriceHistory } from "@/components/charts/PriceHistory";
+import { seasonalGuidance, seasonalProfile } from "@/lib/seasonality";
 import { Badge, ButtonLink, Card, DataNotice, SectionHeading } from "@/components/ui";
 import { usd } from "@/lib/format";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd, JsonLd } from "@/lib/seo";
@@ -243,7 +244,35 @@ export default async function CityCostPage({ params }: {
             </Card>
             <Card className="p-6">
               <h3 className="text-[16px] font-semibold text-ink">When to book the work</h3>
-              <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{city.content.seasonality}</p>
+              {(() => {
+                // Month-aware, and therefore genuinely different in September
+                // than in February. This is what makes the sitemap's lastmod on
+                // this page an honest claim rather than a restamp.
+                const g = seasonalGuidance(
+                  seasonalProfile({ metroId: city.metroId, stateId: city.stateId }),
+                  city.name);
+                const tone = g.stance === "peak" ? "caution"
+                  : g.stance === "off-window" ? "caution"
+                    : g.stance === "soft-pricing" ? "positive" : "accent";
+                return (
+                  <div className="mt-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge tone={tone}>{g.monthLabel}</Badge>
+                      <span className="text-[13px] font-semibold text-ink">{g.headline}</span>
+                    </div>
+                    <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{g.detail}</p>
+                    {g.stormNote && (
+                      <p className="mt-2.5 rounded-lg bg-caution-soft px-3 py-2 text-[13px] leading-relaxed text-ink-soft">
+                        {g.stormNote}
+                      </p>
+                    )}
+                    <p className="mt-3 border-t border-line pt-3 text-[13.5px] leading-relaxed text-muted">
+                      {g.driver}
+                    </p>
+                  </div>
+                );
+              })()}
+              <p className="mt-3 text-[14.5px] leading-relaxed text-muted">{city.content.seasonality}</p>
             </Card>
           </div>
         </section>
