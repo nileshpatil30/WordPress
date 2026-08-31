@@ -161,7 +161,7 @@ async function main() {
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error(
       "ANTHROPIC_API_KEY is not set.\n" +
-      "Put it in costsignal/.env.local (which is gitignored):\n\n" +
+      "Put it in homecostdoctor/.env.local (which is gitignored):\n\n" +
       "  ANTHROPIC_API_KEY=sk-ant-...\n");
     process.exit(2);
   }

@@ -34,7 +34,7 @@ you bought; only the hosting moves.
 1. Push this repo to GitHub — already done, branch
    `claude/home-services-pricing-arch-wpjwqg`.
 2. vercel.com → **Add New → Project** → import `nileshpatil30/WordPress`.
-3. **Set Root Directory to `costsignal`.** This is the one step that is easy to
+3. **Set Root Directory to `homecostdoctor`.** This is the one step that is easy to
    miss and it fails confusingly if you skip it: the repository root is not the
    app, so Vercel finds no `package.json` and the build dies immediately.
 4. Framework preset should auto-detect as **Next.js**. Leave the build and
@@ -229,7 +229,7 @@ above.
 ## Rebuilding after a change
 
 ```bash
-cd costsignal
+cd homecostdoctor
 npm ci
 npm run build          # reads .env.production, bakes in SITE_URL
 ```

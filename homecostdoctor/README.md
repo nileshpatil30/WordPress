@@ -55,7 +55,7 @@ npm run build
 ### Running on PostgreSQL
 
 ```bash
-export DATABASE_URL=postgresql://user:pass@localhost:5432/costsignal
+export DATABASE_URL=postgresql://user:pass@localhost:5432/homecostdoctor
 npm run db:schema    # psql -f db/schema.sql
 npm run db:seed      # loads the same seed modules, idempotent
 ```

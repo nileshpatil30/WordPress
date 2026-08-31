@@ -215,3 +215,92 @@ Connecticut is simply small.
   uploaded quotes, which is better than either.
 - **Google Trends seasonality curves** — no access. Month-by-month roofing
   seasonality claims from anyone without the tool are invented.
+
+---
+
+## Page selection rules
+
+Policy, not data. These are what stop 780 possible URLs becoming 700 thin ones.
+R1–R3 are already enforced in code via `cities.is_published` and
+`zip_codes.page_eligible`.
+
+| # | Rule |
+|---|---|
+| **R1** | A city page requires hand-written local editorial. If it could be templated from the city name, it does not ship. |
+| **R2** | A city page requires metro-level pricing. National fallback wearing a city name is the definition of thin. |
+| **R3** | A ZIP page requires something the city page does not already say. |
+| **R4** | A size page requires the calculation to change materially. 2,000 and 2,100 sq ft are the same page. |
+| **R5** | A material page requires its own cost structure. Tile lift-and-relay differs from asphalt tear-off; two shingle brands do not. |
+| **R6** | No page without demonstrated demand — a Semrush volume or a Search Console impression. |
+| **R7** | Every page states its own confidence. This is what lets us publish before certainty without lying. |
+| **R8** | **Build the cluster, not the keyword.** |
+
+### R8, because it is the one most easily got wrong
+
+A keyword with 10 searches and KD 1% is not a page. It is a *section* of a page
+that serves a cluster.
+
+Worked example. These all belong to one tool:
+
+- roofing underlayment cost
+- synthetic underlayment cost
+- roofing felt cost — **40/mo, KD 1%**
+- felt paper cost
+- underlayment cost per square foot
+- underlayment cost for a 1,500 / 2,000 / 2,500 sq ft roof
+
+Wrong: `/cost-of-roofing-felt-paper`, a page for 40 searches a month.
+Right: `/roofing-underlayment-cost`, one calculator absorbing the whole cluster.
+
+The test is not *"can I rank for this keyword?"* but **"what larger topic does
+this keyword belong to, and how much of that topic can one excellent tool
+capture?"** That is the difference between a keyword site and an SEO product.
+
+Low KD is never a reason on its own. It is a tie-breaker between pages that
+already passed R6 and R8.
+
+---
+
+## Homewyse — the scale competitor
+
+Reported at roughly **487K visits/month**, ~98.8% US, with Google organic about
+48.9% of traffic, and **1,000+ material cost calculators**. *(Figures relayed
+from a Semrush profile; not independently verified here.)*
+
+Their per-page architecture is a genuine reference: ZIP, surface area, material
+grade, labour and roof layout in, a range out, described as a vendor-neutral
+estimate customised by location and options. That is close to what we do.
+
+**Three things to take, one to refuse.**
+
+Take: the cluster architecture, the calculator input model, and the proof that
+this page type sustains real traffic at scale.
+
+Refuse: **the page count.** Their 1,000+ pages are inventory, not a ranking
+report — the existence of a page says nothing about whether it ranks. Copying
+the count rather than the method is how you end up with hundreds of pages Google
+treats as templated filler.
+
+**Where we can be better:** Homewyse answers *"what should this project cost?"*
+We can answer *"what should YOUR roof cost, and is the quote you were handed
+reasonable?"* The second question is the product; the first is table stakes.
+
+### Two corrections to the material list under consideration
+
+- **TPO and EPDM are commercial roofing.** The searcher is a building owner or
+  contractor, not a homeowner with a quote. Wrong buyer, wrong engine, no lead
+  value in our funnel. Excluded in the roadmap.
+- **Cedar shake, clay tile and slate are cluster members, not launch pages**, at
+  10–30 searches/month each on the data we have. Including them in a first-20
+  list contradicts the very trap we are trying to avoid.
+
+---
+
+## Working order
+
+Research → pick 20–50 → build those properly → measure Search Console →
+scale only the patterns that show impressions.
+
+No page generation at volume before Search Console has something to say. The
+roadmap in `seo-page-roadmap.csv` holds the current selection, with the tiers
+and the explicit do-not-build list.
