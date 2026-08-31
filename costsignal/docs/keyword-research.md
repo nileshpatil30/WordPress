@@ -114,3 +114,104 @@ Run the same exercise and record it here before deciding what to build:
 - tile underlayment / lift and relay (the representative Phoenix job)
 - "is my roofing quote too high" and quote-checking intent generally — this is
   our differentiated product and we have no volume data for it at all
+
+---
+
+## Live SERP evidence — retrieved 2026-08-31
+
+Real Google results, not tool estimates. Recorded because SERP composition
+decides difficulty far more reliably than a KD score does.
+
+### "roof replacement cost calculator"
+
+This Old House, Inch Calculator, Modernize, RealCostIQ, RoofPitch,
+RoofingCostCalculator.com, Roof Maxx, CostFlowAI. Homewyse and
+RoofingCalculator.com did not appear in this result set.
+
+Contested but not closed. This Old House and Modernize are strong domains; the
+rest are ordinary. Entering here on "better calculator" positioning alone is a
+hard fight for a new domain.
+
+### "is my roofing quote too high" / quote-checking intent
+
+**A direct competitor exists: roofcostdata.com.**
+
+- `/roof-quote-checker` — "Roof Quote Checker (2026) | Review a Roof Replacement Quote"
+- `/roof-quote-checklist`
+- `/roofing-estimate`
+- `/roofing-cost/tx/dallas`, `/roofing-cost/co/denver` — programmatic city pages,
+  structurally near-identical to our `/roofing-cost/dallas-tx`
+
+Their framing closely matches ours: scope gaps, decking allowance, permits,
+flashing, ventilation, warranty, tear-off, and "the risk is not a high price,
+it is a high price with unclear scope."
+
+The rest of that SERP is contractor marketing blogs (roof-crafters, equityroofs,
+stronghouse, valorhome, roofsbyrhino) — thin, no tool. That gap is the opening:
+everyone is *writing about* quote comparison, almost nobody is *doing* it.
+
+**Not yet verified** — the domain is blocked by this environment's egress proxy,
+so whether they gate on email, accept PDF uploads, or use real local pricing is
+unknown. Checking that is the highest-value hour of competitive research
+available right now.
+
+---
+
+## Market size by state — BLS OEWS May 2025, SOC 47-2181
+
+Roofer employment is a direct measure of how much roofing work a market absorbs,
+and a far better expansion signal than population.
+
+| State | Roofers | Largest metro | Median wage | Covered |
+|---|---:|---|---:|---|
+| FL | 21,940 | Miami-Fort Lauderdale | $23.09 | yes (3) |
+| CA | 20,210 | Los Angeles-Long Beach | $30.56 | yes (2) |
+| NY | 5,370 | New York-Newark-Jersey City | $36.73 | yes |
+| TX | 4,840 | Dallas-Fort Worth | $22.59 | yes (3) |
+| IL | 4,640 | Chicago-Naperville-Elgin | $39.47 | **no** |
+| OH | 3,790 | Cleveland | $26.77 | no |
+| PA | 3,650 | Philadelphia-Camden | $28.72 | yes |
+| AZ | 3,180 | Phoenix-Mesa-Chandler | $22.96 | yes |
+| MI | 2,470 | Detroit-Warren-Dearborn | $30.48 | **no** |
+| NV | 2,010 | Las Vegas-Henderson | $23.94 | yes |
+| MA | 1,790 | Boston-Cambridge-Newton | $31.90 | yes |
+| CT | 660 | Hartford-West Hartford | $31.59 | no |
+| NJ | 230* | Trenton-Princeton | $39.47 | yes |
+
+**\*The New Jersey figure is an artefact — do not act on it literally.** NJ
+roofing labour is counted under the New York-Newark-Jersey City and
+Philadelphia-Camden-Wilmington metros, which BLS attributes to NY and PA. Only
+Trenton and Atlantic City are NJ-primary. Read naively this row says abandon our
+strongest geographic keyword; it actually says we already cover New Jersey,
+through both metros.
+
+**Caveat:** OEWS excludes the self-employed, a large share of roofing. Every
+count is a floor, and cross-state ratios may be distorted where self-employment
+rates differ.
+
+### Expansion order this supports
+
+1. **Publish the three Northeast metros already ingested** — pricing is live,
+   only local editorial is missing.
+2. **Chicago** — 3,900 roofers at the highest median wage of any large metro on
+   the list, and no coverage. High wage means high ticket means more valuable
+   lead. One BLS re-run away.
+3. **Detroit** — 1,450 in a single concentrated metro.
+
+Ohio is a trap despite its total: 3,790 roofers fragmented across metros, with
+Cleveland at only 780, so no single city page reaches much of the market.
+Connecticut is simply small.
+
+---
+
+## Not researched, and why
+
+- **Semrush volume/KD/CPC for 15 of the 16 seed keywords** — no Semrush account.
+  Fabricating these would be worse than leaving them blank, because pages would
+  get built on them.
+- **Reddit homeowner questions** — reddit.com blocks this crawler. Semrush's
+  Questions filter is a better source anyway: real search language *with volumes
+  attached*. Longer term, `lib/engine/questions.ts` generates this from real
+  uploaded quotes, which is better than either.
+- **Google Trends seasonality curves** — no access. Month-by-month roofing
+  seasonality claims from anyone without the tool are invented.
