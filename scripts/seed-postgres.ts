@@ -31,8 +31,12 @@ async function upsert(table: string, rows: readonly object[]) {
       .filter(([, v]) => v !== undefined);
     const cols = entries.map(([k]) => snake(k));
     const placeholders = entries.map((_, i) => `$${i + 1}`);
+    // Arrays map to real Postgres arrays (price_index_series.applies_to is a
+    // cost_component[]), so pass them through for the driver to serialise.
+    // JSON-stringifying one produces '["material"]', which will not cast.
     const values = entries.map(([, v]) =>
-      v !== null && typeof v === "object" ? JSON.stringify(v) : v);
+      Array.isArray(v) ? v
+        : v !== null && typeof v === "object" ? JSON.stringify(v) : v);
     const updates = cols.filter((c) => c !== "id").map((c) => `${c} = EXCLUDED.${c}`);
 
     await pool.query(

@@ -12,14 +12,24 @@ export async function buildEngineContext(
   const service = await store.getServiceBySlug(serviceSlug);
   if (!service || service.status !== "live") return null;
 
-  const [materials, projectTypes, records, factors, geo, sources] = await Promise.all([
-    store.listMaterials(service.id),
-    store.listProjectTypes(service.id),
-    store.listPricingRecords(service.id),
-    store.listPricingFactors(service.id),
-    resolveGeo(store, zip),
-    store.listPricingSources(),
-  ]);
+  const [materials, projectTypes, records, factors, geo, sources, indexSeries] =
+    await Promise.all([
+      store.listMaterials(service.id),
+      store.listProjectTypes(service.id),
+      store.listPricingRecords(service.id),
+      store.listPricingFactors(service.id),
+      resolveGeo(store, zip),
+      store.listPricingSources(),
+      store.listIndexSeries(),
+    ]);
 
-  return { service, materials, projectTypes, records, factors, geo, now, sources };
+  // Points are per series, and there are few series, so this stays one round
+  // trip per series rather than a join we would have to maintain.
+  const indexPoints = (await Promise.all(
+    indexSeries.map((s) => store.listIndexPoints(s.id)))).flat();
+
+  return {
+    service, materials, projectTypes, records, factors, geo, now, sources,
+    indexSeries, indexPoints,
+  };
 }

@@ -90,6 +90,92 @@ record it touches.
   shows what a contractor actually charged, overhead and margin included. Needs
   a server and a database; not available on the static build.
 
+## Keeping prices current: anchor once, escalate free
+
+A price you collect today is wrong in eighteen months, and re-collecting every
+material in every market on a schedule is not realistic. It does not have to be.
+
+A material price is three separable things, and they cost completely different
+amounts to obtain:
+
+| | | |
+|---|---|---|
+| **Level** | "shingles are $X a square" | effort - phone calls, retail feeds |
+| **Escalation** | "$X in June is $X x 1.06 now" | **free, public domain** |
+| **Geography** | "Dallas to Boston is x1.07" | **free, public domain** |
+
+A licensed cost database sells all three bundled. We only ever have to source
+the first one, because the other two are US federal statistics. The full survey
+is in [materials-data-sources.md](./materials-data-sources.md).
+
+### Ingesting the index
+
+The BLS Producer Price Index publishes roofing-specific series in the public
+domain. `WPU1361` (prepared asphalt and tar roofing and siding products) is the
+one that matters most; `WPU136`, `PCU3241223241221` and `PCU3241223241222` are
+the alternatives.
+
+```bash
+# straight from the BLS public API - no key, last three years
+npm run ingest:ppi -- --series WPU1361 --fetch
+
+# or from a download: https://fred.stlouisfed.org/series/WPU1361 -> CSV
+npm run ingest:ppi -- --series WPU1361 --file ~/Downloads/WPU1361.csv
+```
+
+Dry run by default. It prints the series, the latest reading, the year-on-year
+change, and — the useful part — exactly what a price anchored on each of several
+dates would be carried forward by. When the numbers look right:
+
+```bash
+npm run ingest:ppi -- --series WPU1361 --fetch --emit-seed lib/data/seed/ppi.ts
+```
+
+Then import it from `lib/data/seed/pricing.ts`, retire the sample series, and set
+`src-bls-ppi` to `isActive: true`.
+
+### What escalation is allowed to do
+
+`lib/escalation.ts` is the only place in the codebase that can move a price
+without anyone observing it, so every rule in it fails closed:
+
+- **A `sample` series escalates nothing, ever.** Until a real BLS series is
+  ingested this whole mechanism is inert and prices are served exactly as
+  anchored. There is a test asserting that against the shipped dataset. An
+  invented trend line applied to a real price is worse than no trend line.
+- **A series only moves the components it measures.** A materials PPI must never
+  age labour, which has its own OEWS series, and a series that does not declare
+  `appliesTo` moves nothing.
+- **Forward only, and no extrapolation behind the series.**
+- **Capped at x1.5.** Past that the honest answer is that the anchor needs
+  re-collecting, not multiplying, so it declines and the recency penalty in the
+  confidence score does the work instead.
+
+And the one that is easy to get wrong: **escalating fixes the price level, not
+the sample.** A 2025 observation carried forward on a 2026 index is still a 2025
+observation, so it keeps its full recency penalty. Escalation is not allowed to
+make old data look fresh.
+
+Every escalated estimate says so on the page, naming the series, both index
+readings and the observation date, so a reader can check it against the
+published series themselves.
+
+### The rest of the free escalation signal
+
+The index is the backbone but it is not the only free signal, and the other two
+are worth checking against it on a collection:
+
+- **Manufacturer price-increase letters.** GAF, Owens Corning and CertainTeed
+  send dated, percentage-specific letters to distribution, and distributors post
+  them publicly ([Mid-Atlantic](https://www.marsupply.com/resources/price-increase-announcements/),
+  [Carolina Atlantic](https://www.carolinaatlantic.com/resources/price-increase-announcements/),
+  [Cameron Ashley](https://www.cameronashleybp.com/pricenotices)). They are
+  roofing-specific and they lead the BLS series. Treat an announced increase as
+  an upper bound: it is a list-price change, and realisation is usually lower.
+- **Distributor public financials.** Beacon and SRS discuss average selling price
+  and price/volume mix in filings and earnings calls, which tells you whether an
+  announced increase actually stuck.
+
 ## What "done" looks like
 
 Not perfect numbers. Numbers whose direction of error is known.

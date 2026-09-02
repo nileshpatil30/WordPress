@@ -131,6 +131,12 @@ export interface EngineContext {
   now: Date;
   /** Source metadata, used by the confidence score. */
   sources?: import("@/lib/types").PricingSource[];
+  /**
+   * Published index series used to carry anchored prices forward. Optional, and
+   * absent means prices are served exactly as anchored.
+   */
+  indexSeries?: import("@/lib/types").PriceIndexSeries[];
+  indexPoints?: import("@/lib/types").PriceIndexPoint[];
 }
 
 export interface FormField {

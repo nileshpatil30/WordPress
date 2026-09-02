@@ -24,6 +24,8 @@ export const pricingSources: PricingSource[] = [
     lastReviewedAt: SEED_COLLECTED_DATE,
     licenseNotes:
       "Our own derivation. Shipped so the application is functional before real feeds are connected. Must not be presented to users as observed market pricing.",
+    license: "Our own work.",
+    redistributable: true,
   },
   {
     id: "src-observed-materials", name: "Observed material prices",
@@ -31,13 +33,17 @@ export const pricingSources: PricingSource[] = [
     lastReviewedAt: SEED_COLLECTED_DATE,
     licenseNotes:
       "Prices we observed ourselves from publicly listed retail and distributor sources, each row recording its own source, URL and observation date. We publish the derived cost range, never a third party's dataset. Where a competitor's published range is recorded it is marked as a benchmark and never becomes a priced record.",
+    license: "Our own observations. Third-party benchmark ranges are recorded as benchmarks and never become priced records.",
+    redistributable: true,
   },
   {
     id: "src-bls-oes", name: "BLS Occupational Employment and Wage Statistics",
     url: "https://www.bls.gov/oes/", sourceType: "government",
-    reliabilityWeight: 0.92, isActive: false,
+    reliabilityWeight: 0.92, isActive: true, lastReviewedAt: SEED_COLLECTED_DATE,
     licenseNotes:
-      "US federal government work, generally in the public domain. Intended use: metro-level roofer wage data (SOC 47-2181) to derive the labour index. Not yet ingested.",
+      "US federal government work, generally in the public domain. Ingested: metro-level roofer wage data (SOC 47-2181), May 2025 release, via scripts/ingest-bls-oews.ts. The wage is BLS; the labour burden multiplier that turns a worker's wage into an employer's crew cost is ours, so those records are modelled rather than verified.",
+    license: "Public domain (US federal government work).",
+    redistributable: true,
   },
   {
     id: "src-bls-ppi", name: "BLS Producer Price Index - roofing materials",
@@ -45,6 +51,8 @@ export const pricingSources: PricingSource[] = [
     reliabilityWeight: 0.9, isActive: false,
     licenseNotes:
       "US federal government work, generally in the public domain. Intended use: material cost trend and the price history series. Not yet ingested.",
+    license: "Public domain (US federal government work).",
+    redistributable: true,
   },
   {
     id: "src-census-permits", name: "US Census Building Permits Survey",
@@ -52,36 +60,48 @@ export const pricingSources: PricingSource[] = [
     reliabilityWeight: 0.85, isActive: false,
     licenseNotes:
       "US federal government work, generally in the public domain. Intended use: construction activity as a demand proxy per metro. Not yet ingested.",
+    license: "Public domain (US federal government work).",
+    redistributable: true,
   },
   {
     id: "src-municipal-permits", name: "Municipal permit fee schedules",
     sourceType: "government", reliabilityWeight: 0.95, isActive: false,
     licenseNotes:
       "Published fee schedules from each authority having jurisdiction. Intended use: replacing our modelled permit allowance with the actual local schedule. Must be collected per jurisdiction and re-checked on their revision cycle.",
+    license: "Public record. Published fee schedules from the authority having jurisdiction.",
+    redistributable: true,
   },
   {
     id: "src-osm", name: "OpenStreetMap", url: "https://www.openstreetmap.org/copyright",
     sourceType: "open_data", reliabilityWeight: 0.7, isActive: false,
     licenseNotes:
       "Open Database Licence (ODbL). Commercial use is permitted with attribution, and share-alike obligations attach to derivative databases. Intended use: building footprints to pre-fill roof area. Legal review required before any derivative database is published.",
+    license: "Open Database Licence (ODbL). Attribution and share-alike obligations attach to derivative databases.",
+    redistributable: false,
   },
   {
     id: "src-first-party", name: "Home Cost Doctor homeowner submissions",
     sourceType: "first_party", reliabilityWeight: 0.75, isActive: true,
     licenseNotes:
       "Voluntarily submitted by homeowners with explicit consent, moderated before use, and aggregated so no individual project is identifiable. This is the intended long-term backbone of the model.",
+    license: "Ours, collected with explicit consent and published only in aggregate.",
+    redistributable: true,
   },
   {
     id: "src-contractor", name: "Contractor-submitted pricing",
     sourceType: "contractor_submitted", reliabilityWeight: 0.6, isActive: false,
     licenseNotes:
       "Supplied by participating contractors under agreement. Carries obvious selection bias and must be weighted accordingly, never used as a sole source for a market.",
+    license: "Supplied under agreement with participating contractors.",
+    redistributable: true,
   },
   {
     id: "src-licensed-costbook", name: "Commercial construction cost database (licensed)",
     sourceType: "licensed", reliabilityWeight: 0.95, isActive: false,
     licenseNotes:
       "Commercial cost databases such as RSMeans require a paid licence. Do not scrape, redistribute or derive a competing database from them. Ingest only under an executed licence that permits derived estimates.",
+    license: "Proprietary commercial licence. Permits use in producing estimates, not redistribution as a dataset.",
+    redistributable: false,
   },
 ];
 

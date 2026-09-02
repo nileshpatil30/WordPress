@@ -60,6 +60,10 @@ export function buildLocalContext(serviceSlug: string, zip: string, now = new Da
     geo: resolveGeoLocal(zip),
     now,
     sources: seedDataset.pricingSources,
+    // The static build is the product, so the browser engine has to escalate on
+    // the same data the server would. Both are inert until a real index lands.
+    indexSeries: seedDataset.priceIndexSeries,
+    indexPoints: seedDataset.priceIndexPoints,
   };
 }
 

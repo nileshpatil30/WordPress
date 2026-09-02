@@ -388,12 +388,15 @@ What the codebase already enforces:
 - `confidenceScore` per record; trade-channel 80, converted retail 70.
 - Benchmarks are rejected at ingestion, not filtered at render.
 
-**One concrete addition this research recommends:** add a `license` field and a
-`redistributable: boolean` to the source table, and assert in a test that no
-record whose source is non-redistributable can reach a published page. Right now
-the discipline is enforced by the benchmark check and by convention. If we ever
-add a licensed source for private validation (§1), convention is not enough — the
-boundary should be mechanical.
+**One concrete addition this research recommends — BUILT.** `license` and
+`redistributable` now exist on every source, `redistributable` defaults to FALSE
+in the schema so a new source is unpublishable until someone decides, and
+`tests/provenance.test.ts` asserts that no priced record, index series or
+rendered estimate is ever backed by a source we cannot republish. RSMeans
+(`src-licensed-costbook`) and OSM (`src-osm`) are marked non-redistributable and
+named explicitly in that test. The discipline used to be convention plus the
+benchmark check; a licence breach is not something to catch in review, so it is
+mechanical now.
 
 Standing rules, unchanged: no scraping behind logins, email gates, CAPTCHAs,
 paywalls, rate limits or robots restrictions; no fake accounts or submissions; and
@@ -428,12 +431,20 @@ Every ★★★★★ row is free. That is the finding.
 
 ## 12. Phased recommendation
 
-**Phase 0 — free, now, no new dependencies.**
+**Phase 0 — free, now, no new dependencies. — BUILT**
 Wire BLS PPI (WPU1361) into the pipeline as an escalation factor, mirroring the
 OEWS ingester. Start a dated log of manufacturer price-increase letters from the
 distributor pages in §2. Both are public domain, both are low effort, and together
 they mean any anchor we set from here on stays current automatically.
 *Outcome: prices stop going stale.*
+
+> Shipped: `lib/ingest/ppi.ts`, `scripts/ingest-ppi.ts` (`npm run ingest:ppi`)
+> and `lib/escalation.ts`. The mechanism is deliberately **inert until a real
+> series is ingested** — a `sample` series escalates nothing, and a test asserts
+> that against the shipped dataset. Run
+> `npm run ingest:ppi -- --series WPU1361 --fetch` to see what it would do; add
+> `--emit-seed lib/data/seed/ppi.ts` to commit it. See
+> [materials-data.md](./materials-data.md#keeping-prices-current-anchor-once-escalate-free).
 
 **Phase 1 — free, one afternoon of phone calls.**
 Collect 10–15 trade-channel quotes across our published markets and put them in

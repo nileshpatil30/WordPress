@@ -2,6 +2,7 @@ import type { CostComponent, PricingSource } from "@/lib/types";
 import { formatMonth } from "@/lib/format";
 import type { ProvenanceEntry } from "../types";
 import { addTriples, makeFactorLookup, makePriceLookup, scale } from "../geo";
+import { buildEscalator } from "@/lib/escalation";
 import { scoreConfidence } from "../confidence";
 import type {
   Assumption, EngineContext, EstimateResult, LineItem, PriceTriple,
@@ -43,7 +44,18 @@ const round50 = (n: number) => Math.round(n / 50) * 50;
 export function estimateRoofing(
   input: RoofingInput, ctx: EngineContext, sources: PricingSource[] = [],
 ): EstimateResult {
-  const price = makePriceLookup(ctx.records, ctx.geo);
+  // Carry anchored prices forward on a published index, most specific scope
+  // first. Declines unless a real (non-sample) series covers the component, so
+  // with nothing ingested this changes no number anywhere.
+  const escalator = buildEscalator({
+    series: ctx.indexSeries ?? [],
+    points: ctx.indexPoints ?? [],
+    scopeIds: [
+      ctx.geo.city?.id, ctx.geo.city?.metroId, ctx.geo.state?.id,
+      ctx.geo.state?.countryId ?? "us", "global",
+    ].filter((id): id is string => Boolean(id)),
+  });
+  const price = makePriceLookup(ctx.records, ctx.geo, escalator);
   const warnings: string[] = [];
   const assumptions: Assumption[] = [];
   const provided = new Set(input.providedFields ?? []);
@@ -335,6 +347,19 @@ export function estimateRoofing(
   );
   if (input.warranty !== "standard") {
     assumptions.push({ label: "Warranty", value: warrantyLabel(input.warranty), note: `Adds about ${Math.round((warrantyMult - 1) * 100)}% to the job.` });
+  }
+  // Say it out loud when an index has moved a price. A silent adjustment is
+  // indistinguishable from an invented one.
+  const escalated = price.used.filter((h) => h.escalation);
+  if (escalated.length) {
+    const e = escalated[0].escalation!;
+    assumptions.push({
+      label: "Price escalation",
+      // The percentage measures the index span, which is what fromPeriod names.
+      // The note spells out the observation date separately.
+      value: `${e.multiplier >= 1 ? "+" : ""}${((e.multiplier - 1) * 100).toFixed(1)}% since ${formatMonth(e.fromPeriod)}`,
+      note: e.note,
+    });
   }
 
   // -- Confidence ----------------------------------------------------------

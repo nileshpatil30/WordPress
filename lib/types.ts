@@ -196,6 +196,19 @@ export interface PricingSource {
   url?: string;
   sourceType: SourceType;
   licenseNotes: string;
+  /** Short licence label, e.g. "Public domain (US federal government work)". */
+  license?: string;
+  /**
+   * May figures derived from this source be published on a public page?
+   *
+   * This is the mechanical version of the rule the project runs on: a
+   * competitor's cost guide or a licensed database may inform our work, and may
+   * never become our published dataset. Anything not explicitly marked true is
+   * treated as not publishable, and a test asserts no such source reaches a
+   * priced record. Fail closed - a licence breach is not something to catch in
+   * review.
+   */
+  redistributable?: boolean;
   /** 0-1. Feeds the confidence score. */
   reliabilityWeight: number;
   isActive: boolean;
@@ -258,6 +271,12 @@ export interface PriceIndexSeries {
   unit: string;
   methodology: string;
   dataStatus: DataStatus;
+  /**
+   * Which cost components this index is allowed to move. Required before a
+   * series can escalate anything: a materials PPI must never age labour, which
+   * has its own OEWS series. A series without this escalates nothing.
+   */
+  appliesTo?: CostComponent[];
 }
 
 export interface PriceIndexPoint {

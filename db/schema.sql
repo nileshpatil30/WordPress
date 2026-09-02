@@ -174,6 +174,11 @@ CREATE TABLE IF NOT EXISTS pricing_sources (
   source_type       source_type NOT NULL,
   -- Plain-language record of what we are allowed to do with this data.
   license_notes     TEXT NOT NULL,
+  -- Short licence label, e.g. "Public domain (US federal government work)".
+  license           TEXT,
+  -- May figures derived from this source be published on a public page?
+  -- Defaults to FALSE so a new source is unpublishable until someone decides.
+  redistributable   BOOLEAN NOT NULL DEFAULT FALSE,
   reliability_weight NUMERIC(4,3) NOT NULL DEFAULT 0.500,  -- 0-1, feeds confidence
   is_active         BOOLEAN NOT NULL DEFAULT TRUE,
   last_reviewed_at  DATE,
@@ -233,7 +238,10 @@ CREATE TABLE IF NOT EXISTS price_index_series (
   source_id      TEXT NOT NULL REFERENCES pricing_sources(id),
   unit           TEXT NOT NULL,
   methodology    TEXT NOT NULL,
-  data_status    data_status NOT NULL
+  data_status    data_status NOT NULL,
+  -- Which cost components this index may move. A materials PPI must never age
+  -- labour, which has its own OEWS series. NULL escalates nothing.
+  applies_to     cost_component[]
 );
 
 CREATE TABLE IF NOT EXISTS price_index_points (
@@ -415,6 +423,15 @@ CREATE TABLE IF NOT EXISTS api_keys (
 -- ---------------------------------------------------------------------------
 -- 6. Operational views
 -- ---------------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------------
+-- Migrations. The CREATE TABLE statements above are IF NOT EXISTS, so they are
+-- no-ops against a database that already exists and new columns have to be
+-- added explicitly. Each of these is idempotent and safe to re-run.
+-- ---------------------------------------------------------------------------
+ALTER TABLE pricing_sources    ADD COLUMN IF NOT EXISTS license TEXT;
+ALTER TABLE pricing_sources    ADD COLUMN IF NOT EXISTS redistributable BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE price_index_series ADD COLUMN IF NOT EXISTS applies_to cost_component[];
 
 -- Where is our data going stale, and where is it missing entirely?
 CREATE OR REPLACE VIEW v_data_freshness AS

@@ -1,6 +1,7 @@
 import type { PricingFactor, PricingRecord } from "@/lib/types";
 import type { GeoLevel, GeoResolution, PriceTriple } from "./types";
 import type { DataStore } from "@/lib/data/store";
+import { NO_ESCALATION, type Escalation, type Escalator } from "@/lib/escalation";
 
 /**
  * Resolve a ZIP to the geography chain, then let the price lookup walk that
@@ -30,15 +31,26 @@ const LEVEL_ORDER: GeoLevel[] = ["zip", "city", "metro", "state", "country", "gl
 export interface PriceLookupHit {
   record: PricingRecord;
   level: GeoLevel;
+  /** The price actually used, after any index escalation. */
   triple: PriceTriple;
+  /** Set only when a published index moved this record. */
+  escalation?: Escalation;
 }
 
 /**
  * Walks zip -> city -> metro -> state -> country -> global and returns the
  * first match, together with the level it was found at so the confidence score
  * can penalise coarse fallbacks.
+ *
+ * This is the one place a stored record becomes a price the model can use, so
+ * it is also where index escalation is applied - anything downstream sees an
+ * already-current number and the record it came from. The escalator declines by
+ * default, so with no real index ingested prices are served exactly as
+ * anchored. See lib/escalation.ts.
  */
-export function makePriceLookup(records: PricingRecord[], geo: GeoResolution) {
+export function makePriceLookup(
+  records: PricingRecord[], geo: GeoResolution, escalate: Escalator = NO_ESCALATION,
+) {
   const scopeIds: Partial<Record<GeoLevel, string | undefined>> = {
     zip: geo.zipRecord?.id,
     city: geo.city?.id,
@@ -66,9 +78,15 @@ export function makePriceLookup(records: PricingRecord[], geo: GeoResolution) {
       if (!matches.length) continue;
       // Most recent effective date wins within a level.
       const record = matches.sort((a, b) => b.effectiveDate.localeCompare(a.effectiveDate))[0];
+      const escalation = escalate(record) ?? undefined;
+      const k = escalation?.multiplier ?? 1;
       const hit: PriceLookupHit = {
-        record, level,
-        triple: { low: record.lowPrice, typical: record.medianPrice, high: record.highPrice },
+        record, level, escalation,
+        triple: {
+          low: record.lowPrice * k,
+          typical: record.medianPrice * k,
+          high: record.highPrice * k,
+        },
       };
       used.push(hit);
       return hit;

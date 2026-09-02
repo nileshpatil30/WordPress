@@ -115,3 +115,59 @@ describe("estimate provenance", () => {
     }
   });
 });
+
+/**
+ * The rule the whole project rests on, made mechanical.
+ *
+ * A licensed cost database or a competitor's published guide may inform our
+ * work and may never become our published dataset. That has been enforced by
+ * convention and by the benchmark rejection in the materials ingester. A
+ * licence breach is not something to catch in code review, so it is enforced
+ * here instead: fail closed, and treat anything not explicitly cleared as not
+ * publishable.
+ */
+describe("no source we cannot redistribute reaches a published price", () => {
+  const byId = new Map(seedDataset.pricingSources.map((s) => [s.id, s]));
+
+  it("declares a licence and a redistribution decision for every source", () => {
+    for (const s of seedDataset.pricingSources) {
+      expect(s.license, `${s.id} must state its licence`).toBeTruthy();
+      expect(typeof s.redistributable, `${s.id} must decide redistributability`)
+        .toBe("boolean");
+    }
+  });
+
+  it("backs every priced record with a redistributable source", () => {
+    for (const r of seedDataset.pricingRecords) {
+      const source = byId.get(r.sourceId);
+      expect(source, `record ${r.id} cites unknown source ${r.sourceId}`).toBeTruthy();
+      expect(source!.redistributable, `record ${r.id} is backed by ${r.sourceId}`)
+        .toBe(true);
+    }
+  });
+
+  it("backs every index series with a redistributable source", () => {
+    for (const s of seedDataset.priceIndexSeries) {
+      expect(byId.get(s.sourceId)?.redistributable, `series ${s.id}`).toBe(true);
+    }
+  });
+
+  it("keeps the licensed cost book and ODbL data out of the published set", () => {
+    // Named explicitly, because these are the two that would actually cost us
+    // something: RSMeans is licensed for producing estimates rather than for
+    // republication, and OSM carries share-alike obligations on derived
+    // databases that we have not taken legal advice on.
+    for (const id of ["src-licensed-costbook", "src-osm"]) {
+      const source = byId.get(id)!;
+      expect(source.redistributable).toBe(false);
+      expect(seedDataset.pricingRecords.some((r) => r.sourceId === id)).toBe(false);
+    }
+  });
+
+  it("does not surface a non-redistributable source in an estimate", async () => {
+    const r = await estimate("85018");
+    for (const p of r.provenance) {
+      expect(byId.get(p.sourceId)?.redistributable, p.sourceId).toBe(true);
+    }
+  });
+});

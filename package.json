@@ -17,7 +17,8 @@
     "admin:create": "tsx scripts/create-admin.ts",
     "test:extract": "tsx scripts/check-extraction.ts",
     "build:static": "bash scripts/build-static.sh",
-    "ingest:materials": "tsx scripts/ingest-materials.ts"
+    "ingest:materials": "tsx scripts/ingest-materials.ts",
+    "ingest:ppi": "tsx scripts/ingest-ppi.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
