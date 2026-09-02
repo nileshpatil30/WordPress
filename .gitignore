@@ -1,6 +1,8 @@
-# Deployment bundles built with `npm run build`. Generated output, not source:
-# reproducible any time, ~28MB each, and stale the moment anything changes.
-*-deploy.zip
+# Deployment bundles built with `npm run build:static`. Generated output, not
+# source: reproducible any time, and stale the moment anything changes. The
+# pattern is deliberately broad - it used to name each bundle individually and
+# a differently-named one slipped through.
+*.zip
 
 node_modules/
 .next/
@@ -13,6 +15,4 @@ build/
 next-env.d.ts
 /.data/
 coverage/
-out/
 .static-build/
-*-hostinger.zip
