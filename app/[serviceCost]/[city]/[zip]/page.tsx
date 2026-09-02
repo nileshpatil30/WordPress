@@ -7,6 +7,7 @@ import {
   BreakdownTable, ConfidenceMeter, FreshnessLine, PriceRangeBar, ProvenancePanel,
 } from "@/components/estimate/EstimateView";
 import { Badge, ButtonLink, Card, DataNotice, SectionHeading } from "@/components/ui";
+import { QuoteCheckCta } from "@/components/site/QuoteCheckCta";
 import { usd } from "@/lib/format";
 import { breadcrumbJsonLd, buildMetadata, JsonLd } from "@/lib/seo";
 
@@ -136,7 +137,8 @@ export default async function ZipCostPage({ params }: {
           </Card>
         </div>
 
-        <div className="mt-10 max-w-3xl"><DataNotice /></div>
+        <QuoteCheckCta className="mt-10 max-w-3xl" />
+        <div className="mt-6 max-w-3xl"><DataNotice /></div>
 
         <section className="mt-16">
           <SectionHeading

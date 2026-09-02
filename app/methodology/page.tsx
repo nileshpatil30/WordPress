@@ -37,7 +37,40 @@ export default async function MethodologyPage() {
         </p>
       </div>
 
-      <div className="mt-9 max-w-3xl"><DataNotice /></div>
+      {/* Two layers on purpose. Most people want to know we are not making it
+          up and then leave; the detail below is for the ones who want to check.
+          Putting the technical model first loses both. */}
+      <Card className="mt-9 max-w-3xl p-6 sm:p-7">
+        <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-accent">
+          In short
+        </p>
+        <ol className="mt-4 space-y-3">
+          {[
+            ["Measure the roof, not the house", "Your floor area is not your roof area. We derive the real sloped surface from the footprint and the pitch."],
+            ["Price the materials it needs", "Per square, for your material, including the waste a cut-up roofline creates."],
+            ["Add the crew, at local wages", "Hours for the install, the tear-off and the detail work, at the wage rates published for your metro."],
+            ["Add the real cost of a real contractor", "Disposal, equipment, permits, and the overhead and profit a licensed, insured, warrantied business has to carry."],
+            ["Say how sure we are", "The range widens where the data is thin, and the confidence score falls rather than pretending."],
+          ].map(([title, body], i) => (
+            <li key={title} className="flex gap-3.5">
+              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft text-[12px] font-semibold tnum text-accent">
+                {i + 1}
+              </span>
+              <span>
+                <span className="block text-[14.5px] font-semibold text-ink">{title}</span>
+                <span className="mt-0.5 block text-[13.5px] leading-relaxed text-muted">{body}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-5 border-t border-line pt-4 text-[13.5px] leading-relaxed text-muted">
+          That is the whole model. Everything below is the detail: the exact
+          formulas, the factor table live from the database, how the range is
+          combined, and where the model is weakest.
+        </p>
+      </Card>
+
+      <div className="mt-6 max-w-3xl"><DataNotice /></div>
 
       {/* --------------------------- The model --------------------------- */}
       <section className="mt-16">

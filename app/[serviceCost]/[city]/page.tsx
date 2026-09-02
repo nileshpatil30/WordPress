@@ -9,6 +9,7 @@ import {
 import { PriceHistory } from "@/components/charts/PriceHistory";
 import { seasonalGuidance, seasonalProfile } from "@/lib/seasonality";
 import { Badge, ButtonLink, Card, DataNotice, SectionHeading } from "@/components/ui";
+import { QuoteCheckCta } from "@/components/site/QuoteCheckCta";
 import { usd } from "@/lib/format";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd, JsonLd } from "@/lib/seo";
 
@@ -144,7 +145,8 @@ export default async function CityCostPage({ params }: {
           </Card>
         </div>
 
-        <div className="mt-10 max-w-3xl"><DataNotice /></div>
+        <QuoteCheckCta className="mt-10 max-w-3xl" />
+        <div className="mt-6 max-w-3xl"><DataNotice /></div>
 
         {/* ------------------------- Calculator ------------------------- */}
         <section className="mt-16" id="calculator">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getDataStatus, type StatusLevel } from "@/lib/data-status";
 import type { ReactNode } from "react";
 
 type Tone = "neutral" | "accent" | "caution" | "danger" | "positive";
@@ -123,24 +124,84 @@ export function Callout({ tone = "neutral", title, children }: {
   );
 }
 
-export function DataNotice({ className = "" }: { className?: string }) {
-  return (
-    <div className={`rounded-xl border border-caution/25 bg-caution-soft px-4 py-3 ${className}`}>
-      <p className="text-[13px] leading-relaxed text-ink-soft">
-        <strong className="font-semibold text-caution">Mostly sample data.</strong>{" "}
-        Labour rates come from the Bureau of Labor Statistics OEWS release for
-        the metros we cover. Everything else - materials, disposal, equipment
-        and permits, roughly seventy per cent of a typical re-roof - is an
-        internally modelled placeholder, not observed market pricing, and is not
-        attributed to any third party. Every estimate shows the split line by
-        line. Where the numbers come from is set out on the{" "}
+/**
+ * What the site knows, as a status readout rather than a warning label.
+ *
+ * This used to be an amber "mostly sample data" box. It was true, and it was
+ * the wrong shape: a homeowner who had just been shown a price read the next
+ * line as an admission that the calculator did not work. Nothing here is
+ * softened - materials are still reported as modelled and not observed, and the
+ * modelled share is computed from the dataset rather than asserted - but a
+ * reader can now see which parts are solid and what makes the rest improve.
+ *
+ * `compact` renders the one-line version for places where the full table would
+ * dominate the page.
+ */
+export function DataNotice({ className = "", compact = false }: {
+  className?: string; compact?: boolean;
+}) {
+  const status = getDataStatus();
+  const pct = Math.round(status.modelledShare * 100);
+
+  if (compact) {
+    return (
+      <p className={`text-[12.5px] leading-relaxed text-faint ${className}`}>
+        Labour comes from the {status.labourMetroCount}-metro Bureau of Labor
+        Statistics wage release. Materials and the smaller components, about{" "}
+        {pct}% of a typical re-roof, are still modelled rather than observed.{" "}
         <Link href="/data-sources" className="font-medium text-accent underline underline-offset-2">
-          data sources
-        </Link>{" "}
-        page.
+          What we use
+        </Link>
       </p>
+    );
+  }
+
+  return (
+    <div className={`rounded-xl border border-line bg-surface ${className}`}>
+      <div className="flex items-baseline justify-between gap-3 border-b border-line px-5 py-3.5">
+        <p className="text-[13px] font-semibold text-ink">How reliable is this?</p>
+        <p className="text-[12px] text-faint">Updated as data lands</p>
+      </div>
+
+      <dl className="divide-y divide-line/70">
+        {status.rows.map((row) => (
+          <div key={row.label} className="px-5 py-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <dt className="flex items-center gap-2 text-[13.5px] font-medium text-ink">
+                <StatusDot level={row.level} />
+                {row.label}
+              </dt>
+              <dd className="shrink-0 text-[13px] font-semibold text-ink-soft">{row.status}</dd>
+            </div>
+            <p className="mt-1 pl-[18px] text-[12.5px] leading-relaxed text-muted">{row.detail}</p>
+          </div>
+        ))}
+      </dl>
+
+      <div className="border-t border-line bg-sunken/60 px-5 py-3.5">
+        <p className="text-[12.5px] leading-relaxed text-muted">
+          About {pct}% of a typical re-roof is still priced from modelled rows,
+          so every estimate is capped at a confidence of 60 until that changes.
+          We would rather show you that than a confident-looking number we cannot
+          stand behind.{" "}
+          <Link href="/data-sources" className="font-medium text-accent underline underline-offset-2">
+            Sources and licences
+          </Link>
+        </p>
+      </div>
     </div>
   );
+}
+
+const STATUS_DOT: Record<StatusLevel, string> = {
+  real: "bg-positive",
+  partial: "bg-caution",
+  modelled: "bg-faint",
+};
+
+/** The diagnostic language, used only where it is actually true. */
+function StatusDot({ level }: { level: StatusLevel }) {
+  return <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[level]}`} aria-hidden />;
 }
 
 export function Field({ label, hint, children, htmlFor, suffix }: {

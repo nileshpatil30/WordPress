@@ -53,12 +53,35 @@ export function SiteHeader() {
   );
 }
 
+/**
+ * The mark: a roofline over a check.
+ *
+ * A roof chevron rather than a whole house, because the product is roofing
+ * first and almost every competitor draws a house. The check underneath is the
+ * diagnostic half - this site exists to test a number someone gave you, not
+ * just to produce one. Deliberately not a house with a dollar sign, a
+ * stethoscope or a medical cross: the name already carries the doctor idea and
+ * a literal reading of it would look like a clinic.
+ *
+ * The chevron is deliberately shallow. A steeper one reads as a caret or, with
+ * the check tucked under it, merges into a diamond at favicon size - both were
+ * tried and rendered at 64, 32 and 16px before this one was picked. The check
+ * is drawn heavier so that when the fine strokes start to merge, the shape that
+ * survives is the check.
+ */
 function Mark() {
   return (
     <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent" aria-hidden>
-      <svg width="17" height="17" viewBox="0 0 20 20" fill="none">
-        <path d="M2 12.5 10 4l8 8.5" stroke="white" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M6.5 16.5v-4M10 16.5v-6M13.5 16.5v-2.5" stroke="white" strokeWidth="1.9" strokeLinecap="round" opacity="0.75" />
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M2.4 7.6 10 3l7.6 4.6"
+          stroke="white" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"
+          opacity="0.9"
+        />
+        <path
+          d="m5.4 13 3.3 3.2 6-6.4"
+          stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+        />
       </svg>
     </span>
   );

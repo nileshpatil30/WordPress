@@ -55,13 +55,19 @@ export default async function HomePage() {
           <div>
             <Badge tone="accent">Phase 1 · Roof replacement · United States</Badge>
             <h1 className="display mt-5 text-[42px] font-semibold text-ink sm:text-[56px]">
-              Find out what your home project should really cost.
+              Know what your home project should cost.
             </h1>
-            <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-muted">
+            {/* The product in one sentence, including the thing nobody else
+                will say: you do not have to give us your phone number. */}
+            <p className="mt-6 max-w-xl text-[18px] leading-relaxed text-ink-soft">
+              Get an independent cost estimate, check a contractor&rsquo;s quote and
+              compare your options &mdash; without handing over your phone number.
+            </p>
+            <p className="mt-4 max-w-xl text-[15.5px] leading-relaxed text-muted">
               Not a national average. A modelled range for your ZIP code, your
-              roof size, your material and your site &mdash; with every line item
-              shown, every assumption stated, and a confidence score that goes
-              down when the data is thin.
+              roof size, your material and your site, with every line item shown,
+              every assumption stated, and a confidence score that goes down when
+              the data is thin.
             </p>
 
             <div className="mt-8 max-w-md">
@@ -70,8 +76,8 @@ export default async function HomePage() {
 
             <ul className="mt-8 grid gap-2.5 text-[14px] text-muted sm:grid-cols-2">
               {[
+                "Independent \u2014 no contractor required",
                 "Full cost breakdown, not one number",
-                "Check whether a quote is fair",
                 "Compare quotes on scope, not price",
                 "Every price is dated and sourced",
               ].map((t) => (
@@ -126,13 +132,45 @@ export default async function HomePage() {
                   </span>
                 </div>
                 <p className="mt-3 text-[12px] leading-relaxed text-faint">
-                  Capped because most of the prices behind it are still sample
-                  data rather than observed market pricing. We would rather show
-                  you that than a confident-looking number we cannot stand behind.
+                  Labour here is government wage data. Materials are still
+                  modelled, which is what holds the score down &mdash; and the
+                  score rises on its own as observed pricing lands.
                 </p>
               </div>
             </Card>
           )}
+        </div>
+      </section>
+
+      {/* ------------------------ The journey ------------------------ */}
+      {/* The whole product in one line. A homeowner arriving cold should be
+          able to see where this ends before deciding to start. */}
+      <section className="border-b border-line">
+        <div className="mx-auto max-w-6xl px-5 py-8">
+          <ol className="scroll-x flex items-stretch gap-2 md:grid md:grid-cols-5 md:gap-3">
+            {[
+              { n: "01", label: "Measure", body: "Work out your roof size", href: "/roof-calculator" },
+              { n: "02", label: "Estimate", body: "See what it should cost", href: "/roof-cost-calculator" },
+              { n: "03", label: "Check", body: "Test a quote against it", href: "/quote-check" },
+              { n: "04", label: "Compare", body: "Weigh quotes on scope", href: "/compare-quotes" },
+              { n: "05", label: "Hire", body: "Only when you want to", href: "/hire" },
+            ].map((step) => (
+              <li key={step.n} className="min-w-[9.5rem] flex-1">
+                <Link
+                  href={step.href}
+                  className="group flex h-full flex-col rounded-lg border border-line bg-surface px-3.5 py-3 transition-colors hover:border-accent-line"
+                >
+                  <span className="text-[11px] font-semibold tnum tracking-[0.1em] text-faint">
+                    {step.n}
+                  </span>
+                  <span className="mt-1 text-[14px] font-semibold text-ink group-hover:text-accent">
+                    {step.label}
+                  </span>
+                  <span className="mt-0.5 text-[12.5px] leading-snug text-muted">{step.body}</span>
+                </Link>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 

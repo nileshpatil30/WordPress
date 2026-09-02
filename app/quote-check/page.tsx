@@ -7,7 +7,7 @@ import { buildMetadata, JsonLd, faqJsonLd } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "Is my roofing quote fair? Quote checker",
   description:
-    "Compare a contractor's roof replacement quote against a modelled fair range for your ZIP code and project, and see which single assumption would explain any gap.",
+    "Compare a contractor's roof replacement quote against a modelled cost range for your ZIP code and project, and see which single assumption would explain any gap.",
   path: "/quote-check",
 });
 
@@ -50,7 +50,7 @@ export default async function QuoteCheckPage() {
         </p>
       </div>
 
-      <div className="mt-8"><DataNotice /></div>
+      <div className="mt-8"><DataNotice compact /></div>
 
       <div className="mt-8">
         <QuoteChecker

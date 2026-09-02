@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getStore } from "@/lib/data/store";
 import { buildLocalScenarios } from "@/lib/local-estimates";
 import { Badge, ButtonLink, Card, DataNotice, SectionHeading } from "@/components/ui";
+import { QuoteCheckCta } from "@/components/site/QuoteCheckCta";
 import { usd } from "@/lib/format";
 import { breadcrumbJsonLd, buildMetadata, JsonLd } from "@/lib/seo";
 
@@ -76,7 +77,8 @@ export default async function ServiceHubPage({
           </div>
         </div>
 
-        <div className="mt-9 max-w-3xl"><DataNotice /></div>
+        <QuoteCheckCta className="mt-9 max-w-3xl" />
+        <div className="mt-6 max-w-3xl"><DataNotice /></div>
 
         {national && (
           <>

@@ -138,7 +138,7 @@ export default async function SharedResultPage({ params }: {
         </div>
       </Card>
 
-      <div className="mt-6"><DataNotice /></div>
+      <div className="mt-6"><DataNotice compact /></div>
 
       <div className="mt-6">
         <Callout tone="neutral" title="What this link is">

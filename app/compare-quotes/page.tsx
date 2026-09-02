@@ -7,7 +7,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "Compare contractor roofing quotes side by side",
   description:
-    "Compare multiple roof replacement quotes on scope, warranty and adjusted cost - not just sticker price - against a modelled fair range for your project.",
+    "Compare multiple roof replacement quotes on scope, warranty and adjusted cost - not just sticker price - against a modelled cost range for your project.",
   path: "/compare-quotes",
 });
 
@@ -33,7 +33,21 @@ export default async function CompareQuotesPage() {
         </p>
       </div>
 
-      <div className="mt-8"><DataNotice /></div>
+      {/* Stated before the form, because the instinct being corrected here is
+          the one the user arrives with. */}
+      <div className="mt-7 max-w-3xl rounded-xl border border-accent-line bg-accent-soft/60 px-5 py-4">
+        <p className="text-[15px] font-semibold text-ink">
+          Don&rsquo;t compare quotes on price alone.
+        </p>
+        <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-soft">
+          An $18,000 quote is not automatically better than a $20,000 one. We
+          compare scope, included work, warranty and allowances, then price back
+          in what each quote leaves out &mdash; so a quote that is cheapest only
+          because it omits the tear-off stops looking cheapest.
+        </p>
+      </div>
+
+      <div className="mt-6"><DataNotice compact /></div>
 
       <div className="mt-8">
         <QuoteCompare
