@@ -74,18 +74,34 @@ describe("Northeast coverage: real pricing, no pages", () => {
     expect(labourOf(nyc)).toBeGreaterThan(labourOf(phx));
   });
 
-  it("publishes no Northeast city and no Northeast ZIP page", () => {
+  it("publishes every Northeast city, each with its own local editorial", () => {
+    // These shipped unpublished first, as pricing-only data preparation. They
+    // are published now because the editorial exists - which is the order rule
+    // R1 requires, and the reason this test changed rather than being deleted.
     for (const id of NORTHEAST_CITIES) {
       const city = seedDataset.cities.find((c) => c.id === id);
       expect(city, `${id} missing from the seed`).toBeTruthy();
-      expect(city!.isPublished, `${id} must stay unpublished until it has editorial`).toBe(false);
-
-      const zips = seedDataset.zipCodes.filter((z) => z.cityId === id);
-      expect(zips.length).toBeGreaterThan(0);
-      for (const z of zips) {
-        expect(z.pageEligible, `${z.code} must not be page-eligible`).toBe(false);
-      }
+      expect(city!.isPublished, `${id} should be published`).toBe(true);
+      expect(city!.content, `${id} is published with no content`).toBeTruthy();
+      expect(city!.content!.localFactors.length,
+        `${id} needs at least three local factors`).toBeGreaterThanOrEqual(3);
+      expect(city!.content!.faqs.length, `${id} needs FAQs`).toBeGreaterThanOrEqual(3);
     }
+  });
+
+  it("gives each Northeast city genuinely different editorial", () => {
+    // The failure mode this guards is a templated page with the city name
+    // swapped in. Newark and Cherry Hill are both New Jersey and both ours, and
+    // they are different roofing markets; the copy has to reflect that.
+    const summaries = NORTHEAST_CITIES.map((id) =>
+      seedDataset.cities.find((c) => c.id === id)!.content!.summary);
+    expect(new Set(summaries).size).toBe(NORTHEAST_CITIES.length);
+    for (const s of summaries) expect(s.length).toBeGreaterThan(400);
+
+    const titles = NORTHEAST_CITIES.flatMap((id) =>
+      seedDataset.cities.find((c) => c.id === id)!.content!.localFactors.map((f) => f.title));
+    // Some overlap between neighbouring markets is honest; wholesale reuse is not.
+    expect(new Set(titles).size).toBeGreaterThan(titles.length * 0.8);
   });
 
   it("never publishes a city that has no local editorial", () => {

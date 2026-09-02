@@ -270,26 +270,126 @@ export const cities: City[] = [
   {
     id: "city-newark", countryId: "us", stateId: "us-nj", metroId: "metro-nyc",
     name: "Newark", slug: "newark-nj", population: 311000,
-    latitude: 40.7357, longitude: -74.1724, isPublished: false,
+    latitude: 40.7357, longitude: -74.1724, isPublished: true,
+    content: {
+      summary:
+        "Newark roofing prices are set by three things that rarely appear together elsewhere: some of the highest roofing labour rates in the country, a housing stock that is mostly pre-war and mostly attached, and winters that make the work seasonal. The Bureau of Labor Statistics puts median roofer wages in the New York metro area well above the national figure, and Newark sits inside that market - a crew here costs what a crew in Newark costs, not what a national average says. The other local reality is roof shape. A large share of Newark homes are two- and three-family houses with low-slope or flat rear sections, which is a different trade from a sloped shingle roof and priced differently.",
+      localFactors: [
+        { title: "Attached and semi-attached houses change the job", body: "On a row or twin, one or both sides have no eave to work from and the neighbouring roof is often inches away. Tear-off debris cannot simply be dropped, staging is tighter, and party-wall flashing has to be detailed rather than run past. Expect that to show up as labour, not materials, and expect a wide spread between contractors who do this daily and those who do not." },
+        { title: "Flat and low-slope sections are common and priced separately", body: "Many Newark two- and three-families have a sloped front and a flat or near-flat rear. Those are two systems - shingles on one, a membrane or modified bitumen on the other - with different lifespans and different crews. A quote giving one price for the whole roof without separating them is hiding which part you are actually buying." },
+        { title: "Ice damming drives winter leaks, not wind", body: "Freeze-thaw cycles push meltwater back up under the shingles at the eaves. Codes in this climate zone generally require an ice-and-water barrier along the eaves, and a quote that does not mention one on a sloped roof is either omitting it or assuming you will not ask. It is a small material cost and the most common cause of a leak in a roof that is otherwise fine." },
+        { title: "New Jersey registers contractors rather than licensing roofers", body: "There is no state roofing trade licence. What exists is Home Improvement Contractor registration with the Division of Consumer Affairs, plus a commercial general liability requirement. Registration is a floor, not a quality signal - verify it, then verify insurance separately and directly with the insurer." },
+      ],
+      commonMaterials: ["asphalt-architectural", "modified-bitumen", "asphalt-3tab", "tpo-membrane"],
+      permitNotes:
+        "Re-roofing in Newark generally requires a permit through the city's Department of Economic and Housing Development, and inspections apply. Surrounding municipalities in Essex County each run their own building department with their own fees and scheduling, so confirm with the authority for your specific address rather than assuming Newark's process applies.",
+      seasonality:
+        "April through October is the practical installation window. Asphalt shingle sealant strips need warmth to bond, so a roof installed in a cold snap can look finished and still not be sealed until spring. Summer is the busiest and firmest on price; late autumn and early spring are where the negotiating room is, if the forecast cooperates.",
+      faqs: [
+        { q: "Why are Newark roofing quotes higher than the national averages I see online?", a: "Mostly labour. Median roofer wages in the New York metro area are among the highest in the country, and most national cost guides average that away. A number built on a national labour rate will understate a Newark job, which is why the estimate on this page uses the metro wage rather than a country-wide one." },
+        { q: "My house has a flat section at the back. Should that be a separate line?", a: "Yes. It is a different material system, a different crew skill and a different service life. A single lump sum for a mixed roof makes it impossible to tell whether the flat section is being properly replaced or just patched over." },
+        { q: "Is ice-and-water shield actually necessary here?", a: "For a sloped roof in this climate it is normal practice at the eaves and valleys, and generally required by code. If a quote is silent on it, ask where it is going and how far up from the eave - the answer tells you a lot about the contractor." },
+      ],
+    },
   },
   {
     id: "city-jersey-city", countryId: "us", stateId: "us-nj", metroId: "metro-nyc",
     name: "Jersey City", slug: "jersey-city-nj", population: 292000,
-    latitude: 40.7178, longitude: -74.0431, isPublished: false,
+    latitude: 40.7178, longitude: -74.0431, isPublished: true,
+    content: {
+      summary:
+        "Jersey City roofing is dominated by two building types with very different economics: pre-war row and brownstone-style houses with flat or very low-slope roofs, and newer or converted multi-family buildings. On a flat roof the question is not which shingle but which membrane and how the drainage and parapet details are handled - and those details, not the field of the roof, are where most flat-roof failures start. Labour is priced off the New York metro market, which is among the most expensive in the country.",
+      localFactors: [
+        { title: "Most of the housing stock is flat-roofed, so this is membrane work", body: "A flat roof is priced per square foot of surface, includes drainage and parapet detailing, and typically uses modified bitumen, TPO or EPDM. Comparing a flat-roof quote against a shingle cost guide is comparing two different trades. Ask which membrane, how many plies, and what the manufacturer warranty requires of the installer." },
+        { title: "Parapets, drains and scuppers are where flat roofs leak", body: "The membrane field rarely fails first. Termination at the parapet, the flashing around a drain, and the transition where the roof meets a neighbouring wall are the failure points. A quote that itemises the field and says nothing about terminations is quoting the easy half of the job." },
+        { title: "Access is genuinely constrained", body: "Narrow streets, no driveway, permit-only parking and attached neighbours mean material has to be lifted rather than carried, and the container has to go somewhere. That is a real cost and an honest contractor will name it. Ask specifically where the dumpster goes and whether a street permit is needed." },
+        { title: "Ponding water is a scope question, not a defect", body: "Low-slope roofs that hold water after rain will fail early regardless of the membrane. Correcting it means tapered insulation or reworking the drainage, which is a meaningful cost. If your existing roof ponds, a quote that does not address it is quoting a shorter-lived roof than you think you are buying." },
+      ],
+      commonMaterials: ["modified-bitumen", "tpo-membrane", "asphalt-architectural", "asphalt-3tab"],
+      permitNotes:
+        "Jersey City requires a construction permit for roof replacement, reviewed by the city's Division of Buildings and Construction. Multi-family and mixed-use buildings carry additional requirements. Confirm the scope with the city before signing, particularly if the building has more than two dwelling units.",
+      seasonality:
+        "Membrane work has a wider weather window than shingles but still needs dry, above-freezing conditions for adhesives and seams. April through October is the reliable season. Emergency flat-roof repair happens year-round; a full replacement in January generally should not.",
+      faqs: [
+        { q: "TPO, EPDM or modified bitumen - which should I get?", a: "All three are legitimate systems and the right answer depends on your roof, not on which one a contractor prefers. What matters more is the number of plies, how the terminations are detailed and whether the installer is certified for the manufacturer warranty they are quoting. Ask for that in writing." },
+        { q: "The quote says 'recover' rather than 'tear off'. Is that a problem?", a: "Not automatically - a recover over one sound existing layer is a legitimate, cheaper option. But it hides whatever is underneath, including wet insulation, and codes limit how many layers are permitted. Ask why recover was chosen and what happens if wet material is found." },
+        { q: "Why is my flat roof quote per square foot rather than per square?", a: "Flat roofing is conventionally priced per square foot; sloped roofing per square, which is 100 square feet. Neither is a trick, but converting between them is where people accidentally compare a number to one ten times its size." },
+      ],
+    },
   },
   {
     id: "city-cherry-hill", countryId: "us", stateId: "us-nj", metroId: "metro-phl",
     name: "Cherry Hill", slug: "cherry-hill-nj", population: 74000,
-    latitude: 39.9348, longitude: -75.0307, isPublished: false,
+    latitude: 39.9348, longitude: -75.0307, isPublished: true,
+    content: {
+      summary:
+        "Cherry Hill is a suburban South Jersey market inside the Philadelphia metro, and the roofing economics look nothing like Newark's despite being in the same state. The housing stock is largely post-war: split-levels, colonials and ranches from the 1950s through the 1970s, almost all sloped and almost all asphalt shingle. That makes it one of the more straightforward markets to price - and one where the spread between quotes usually comes down to material grade and scope rather than access difficulty.",
+      localFactors: [
+        { title: "Detached houses with working room, which keeps labour predictable", body: "Unlike the dense northern part of the state, most Cherry Hill homes have a driveway, a yard and eaves you can stage from. That removes the access premium that inflates urban quotes, and it means an unusually high labour line here deserves a question rather than a shrug." },
+        { title: "Post-war roof decks are usually plywood, occasionally plank", body: "Homes from the 1950s and earlier may have spaced plank sheathing rather than continuous plywood, which changes fastener holding and sometimes requires an overlay before shingles go down. That is discovered at tear-off, so ask for the per-sheet price up front rather than after the roof is open." },
+        { title: "Second-layer tear-off is common on 1960s-70s stock", body: "Houses of this era have often been re-roofed once already, sometimes as an overlay. Removing two layers is meaningfully more labour and more disposal tonnage than one. If a quote assumes one layer and your roof has two, the price will move - confirm which the contractor assumed." },
+        { title: "Freeze-thaw, not storms, sets the failure pattern", body: "This is a moderate climate zone: no hail belt, no hurricanes, but real winter. Ice damming at the eaves and granule loss from thermal cycling are what age a roof here. Ice-and-water barrier at the eaves is standard practice and should be itemised." },
+      ],
+      commonMaterials: ["asphalt-architectural", "asphalt-3tab", "asphalt-premium", "metal-standing-seam"],
+      permitNotes:
+        "Cherry Hill Township requires a permit for roof replacement through its Department of Community Development, with inspection. Neighbouring Camden County municipalities each set their own fees. Permits here are a small share of a typical re-roof and are usually included in the contractor's price - confirm which.",
+      seasonality:
+        "April through October is the comfortable window, with June through September the busiest. Late autumn still works in a mild year but shortens the days and raises the chance of a weather delay mid-job. Winter installation is possible but carries a real sealing risk on asphalt shingles.",
+      faqs: [
+        { q: "My roof has two layers. How much does that add?", a: "It roughly doubles the tear-off labour and the disposal tonnage, while changing nothing about the new material. Expect it to move the total by a meaningful amount, and expect an honest quote to state how many layers it assumed rather than discovering it on day one." },
+        { q: "Is architectural shingle worth it over three-tab?", a: "In this climate, usually yes - the weight and the longer warranty are real, and the price difference is smaller than the lifespan difference. It is not worth paying a premium-line price for a mid-line product, though, so get the exact product name in writing." },
+        { q: "Do I need a permit for a straight re-roof?", a: "In Cherry Hill Township, yes, and there is an inspection. Contractors who suggest skipping it are proposing that you carry the risk of unpermitted work when you sell the house." },
+      ],
+    },
   },
   {
     id: "city-philadelphia", countryId: "us", stateId: "us-pa", metroId: "metro-phl",
     name: "Philadelphia", slug: "philadelphia-pa", population: 1580000,
-    latitude: 39.9526, longitude: -75.1652, isPublished: false,
+    latitude: 39.9526, longitude: -75.1652, isPublished: true,
+    content: {
+      summary:
+        "Philadelphia roofing is row-house roofing. The dominant job in the city is not a sloped shingle replacement but a flat or very low-slope roof over an attached house, usually finished in modified bitumen or a coated membrane, and often replaced in sections over decades rather than all at once. That, plus a large stock of buildings old enough to sit in historic districts, makes Philadelphia one of the markets where a national cost-per-square figure is least useful.",
+      localFactors: [
+        { title: "The typical roof is flat, attached and reached from inside", body: "On a row house there is no eave, no driveway and often no rear access. Material goes up through the building or over a neighbour's roof with permission. That constrains crew size and is a legitimate reason a Philadelphia quote exceeds a suburban one for the same square footage." },
+        { title: "Silver-coated and cold-process systems are a local convention", body: "Modified bitumen with a reflective coating is the traditional Philadelphia flat roof and is still widely installed. Coatings are maintenance, not a roof: a coating over a failed membrane buys a season or two. Ask whether you are being quoted a new membrane or a recoat, because the price difference and the lifespan difference are both large." },
+        { title: "Party-wall and parapet flashing is the failure point", body: "Where your roof meets the neighbour's wall is the most common leak source in a row house, and the hardest thing to price from the street. A quote that does not mention party-wall or parapet flashing has not looked at the actual problem." },
+        { title: "Historic districts add review, not just cost", body: "Parts of the city fall under Historical Commission jurisdiction, where visible roofing material can require review before replacement. That is a schedule risk more than a price one, but discovering it after signing is expensive in time." },
+      ],
+      commonMaterials: ["modified-bitumen", "tpo-membrane", "asphalt-architectural", "natural-slate"],
+      permitNotes:
+        "Philadelphia requires a permit for roof replacement through the Department of Licenses and Inspections, and contractors must hold a city contractor licence in addition to any state registration. Verify the licence number with L&I directly rather than accepting a number printed on a quote.",
+      seasonality:
+        "April through October for full replacement. Cold-process and torch-applied systems both have temperature minimums, and a membrane installed below them may look correct and fail at the seams. Emergency repair runs year-round.",
+      faqs: [
+        { q: "A contractor offered to coat my roof for a fraction of a replacement. Is that a good deal?", a: "It depends entirely on the condition of what is underneath. A coating on a sound membrane is legitimate maintenance that extends life. A coating over a wet or failed membrane hides the problem and traps moisture. Ask what happens if it leaks in a year, and get the answer in writing." },
+        { q: "My house is over a hundred years old. Does that change the roof?", a: "Often yes. Older row houses may have multiple accumulated layers, original wood decking, and parapet conditions that need masonry work before roofing. None of that is unusual, but it should be inspected and priced rather than assumed." },
+        { q: "Why do quotes vary so much for the same row house?", a: "Access and scope, mostly. One contractor may be pricing a full tear-off to the deck with new parapet flashing; another a recover of the field only. They are different jobs. Comparing the totals without comparing the scope is the single most common mistake here." },
+      ],
+    },
   },
   {
     id: "city-boston", countryId: "us", stateId: "us-ma", metroId: "metro-bos",
     name: "Boston", slug: "boston-ma", population: 654000,
-    latitude: 42.3601, longitude: -71.0589, isPublished: false,
+    latitude: 42.3601, longitude: -71.0589, isPublished: true,
+    content: {
+      summary:
+        "Boston roofing is defined by snow load, ice damming and an unusually old housing stock. The triple-decker is the local archetype - three-family, often with a low-slope or flat rear section and a sloped front - and the surrounding neighbourhoods carry a real share of natural slate that is now well past its first century. Labour is among the more expensive in the country, and the installation season is genuinely short, which concentrates demand into a few months and firms up prices when everyone wants the same weeks.",
+      localFactors: [
+        { title: "Ice damming is the defining local failure", body: "Snow melts over a warm attic, refreezes at the cold eave, and backs water up under the roofing. It is the most common cause of interior water damage here and it is a ventilation and insulation problem as much as a roofing one. A quote that replaces the covering without addressing eave protection and attic ventilation is treating a symptom." },
+        { title: "Slate is real here, and replacing it with asphalt is a decision", body: "A genuine slate roof can last a century and is repairable rather than replaceable. Swapping it for asphalt is much cheaper up front and much shorter-lived, and on some streets it changes the character of the house. If a contractor proposes it without discussing repair, get a second opinion from someone who works in slate." },
+        { title: "The installation season is short and demand is concentrated", body: "April through October is the practical window, and June through September is when everyone books. Asphalt shingle sealant needs warmth to bond, so cold-weather installation carries a genuine quality risk rather than just discomfort. That short season is why lead times stretch in summer." },
+        { title: "Massachusetts requires both a licence and a registration", body: "A Construction Supervisor Licence covers the structural work, and Home Improvement Contractor registration is what gives a homeowner access to the state's arbitration programme and guaranty fund. A contractor with one and not the other is a meaningfully different risk. Verify both." },
+      ],
+      commonMaterials: ["asphalt-architectural", "natural-slate", "modified-bitumen", "asphalt-premium"],
+      permitNotes:
+        "Boston requires a permit for roof replacement through the Inspectional Services Department, and work must be performed under a licensed Construction Supervisor. Surrounding cities - Cambridge, Somerville, Newton - each run their own process. Confirm with the authority for your address, and confirm the permit is pulled in the contractor's name, not yours.",
+      seasonality:
+        "April through October, with June through September the peak. Book earlier than feels necessary for summer work. The softest pricing is generally late autumn and very early spring, when crews have capacity and the weather still cooperates - but those windows close quickly and a delayed start can push into conditions that should not be worked in.",
+      faqs: [
+        { q: "Every winter I get ice dams. Will a new roof fix that?", a: "Not on its own. Ice dams are driven by heat escaping into the attic and melting snow from below. A new roof with proper eave protection reduces the damage when it happens; attic insulation and ventilation reduce whether it happens. Any contractor who promises a new roof alone will solve it is overselling." },
+        { q: "My slate roof has a few broken tiles. Do I need a whole new roof?", a: "Very often not. Slate is repairable in a way asphalt is not, and a competent slater can replace individual tiles for a fraction of a replacement. Get an opinion from someone who actually works in slate before accepting a full-replacement quote." },
+        { q: "Should I wait for winter to get a cheaper price?", a: "No. What you would be buying is an installation in conditions where asphalt sealant may not bond until spring. The saving is real and so is the risk. Late autumn or very early spring is the sensible version of the same idea." },
+      ],
+    },
   },
 ];
