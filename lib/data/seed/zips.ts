@@ -387,6 +387,23 @@ const byCity: Record<string, { stateId: string; zips: ZipSeed[] }> = {
       { code: "02132", county: "Suffolk" }, { code: "02135", county: "Suffolk" },
     ],
   },
+
+  // -- Midwest ---------------------------------------------------------------
+  "city-chicago": {
+    stateId: "us-il",
+    zips: [
+      { code: "60614", county: "Cook" }, { code: "60618", county: "Cook" },
+      { code: "60622", county: "Cook" }, { code: "60629", county: "Cook" },
+      { code: "60647", county: "Cook" },
+    ],
+  },
+  "city-detroit": {
+    stateId: "us-mi",
+    zips: [
+      { code: "48201", county: "Wayne" }, { code: "48214", county: "Wayne" },
+      { code: "48221", county: "Wayne" }, { code: "48228", county: "Wayne" },
+    ],
+  },
 };
 
 export const zipCodes: ZipCode[] = Object.entries(byCity).flatMap(([cityId, cfg]) =>

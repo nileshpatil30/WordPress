@@ -3,6 +3,7 @@ import { ButtonLink } from "@/components/ui";
 
 const NAV = [
   { href: "/roofing-cost", label: "Roofing costs" },
+  { href: "/roof-calculator", label: "Roof calculator" },
   { href: "/quote-check", label: "Check a quote" },
   { href: "/compare-quotes", label: "Compare quotes" },
   { href: "/methodology", label: "Methodology" },

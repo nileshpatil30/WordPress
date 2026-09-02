@@ -72,6 +72,16 @@ export const states: State[] = [
     notes: "Pennsylvania has no statewide trade licence for roofing, but contractors must register as Home Improvement Contractors with the Office of Attorney General. Philadelphia additionally licenses contractors through L&I.",
   },
   {
+    id: "us-il", countryId: "us", code: "IL", name: "Illinois", slug: "illinois",
+    laborIndex: 1.22, materialIndex: 1.03, dataStatus: "sample",
+    notes: "Illinois has no statewide roofing licence for residential work in the way some states do, but roofing contractors must be licensed by the Illinois Department of Financial and Professional Regulation and carry insurance. Chicago additionally licenses contractors through the city.",
+  },
+  {
+    id: "us-mi", countryId: "us", code: "MI", name: "Michigan", slug: "michigan",
+    laborIndex: 1.08, materialIndex: 1.01, dataStatus: "sample",
+    notes: "Michigan requires a residential builder or maintenance and alteration contractor licence covering roofing, issued by LARA. Verify the licence number with the state rather than accepting one printed on a quote.",
+  },
+  {
     id: "us-ma", countryId: "us", code: "MA", name: "Massachusetts", slug: "massachusetts",
     laborIndex: 1.21, materialIndex: 1.05, dataStatus: "sample",
     notes: "Massachusetts requires both a Construction Supervisor Licence for structural work and Home Improvement Contractor registration. HIC registration is what gives a homeowner access to the state's arbitration and guaranty fund.",
@@ -97,4 +107,10 @@ export const metros: Metro[] = [
   { id: "metro-nyc", countryId: "us", stateId: "us-ny", name: "New York-Newark-Jersey City", slug: "new-york-newark-jersey-city", cbsaCode: "35620" },
   { id: "metro-phl", countryId: "us", stateId: "us-pa", name: "Philadelphia-Camden-Wilmington", slug: "philadelphia-camden-wilmington", cbsaCode: "37980" },
   { id: "metro-bos", countryId: "us", stateId: "us-ma", name: "Boston-Cambridge-Newton", slug: "boston-cambridge-newton", cbsaCode: "14460" },
+
+  // Midwest. Chicago is the highest-wage large metro in the 13-state BLS
+  // analysis - 3,900 roofers at a $39.47 median - and was the strongest market
+  // we did not cover.
+  { id: "metro-chi", countryId: "us", stateId: "us-il", name: "Chicago-Naperville-Elgin", slug: "chicago-naperville-elgin", cbsaCode: "16980" },
+  { id: "metro-det", countryId: "us", stateId: "us-mi", name: "Detroit-Warren-Dearborn", slug: "detroit-warren-dearborn", cbsaCode: "19820" },
 ];

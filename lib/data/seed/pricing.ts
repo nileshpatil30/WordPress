@@ -207,8 +207,8 @@ export const pricingFactors: PricingFactor[] = [
   // surface of a pitched plane is always that much larger than its footprint.
   factor("pitch.flat.area", "Flat / low slope (0:12-2:12) area factor", "all", 1.0,
     "Roof surface equals footprint. Exact geometry, not an estimate.", "verified"),
-  factor("pitch.low.area", "Low slope (3:12-4:12) area factor", "all", 1.054,
-    "sqrt(1 + (3.5/12)^2). Exact geometry for a 3.5:12 representative pitch.", "verified"),
+  factor("pitch.low.area", "Low slope (3:12-4:12) area factor", "all", 1.042,
+    "sqrt(1 + (3.5/12)^2) = 1.0417. Exact geometry for a 3.5:12 representative pitch, the midpoint of the band. Previously stored as 1.054, which is the 4:12 value and did not match the formula stated beside it - a row marked verified has to be reproducible from its own methodology.", "verified"),
   factor("pitch.moderate.area", "Moderate slope (5:12-7:12) area factor", "all", 1.118,
     "sqrt(1 + (6/12)^2). Exact geometry for a 6:12 representative pitch.", "verified"),
   factor("pitch.steep.area", "Steep slope (8:12-10:12) area factor", "all", 1.25,

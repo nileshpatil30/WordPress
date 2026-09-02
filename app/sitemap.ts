@@ -53,6 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = ([
     { url: siteUrl("/"), changeFrequency: "weekly", priority: 1 },
     { url: siteUrl("/roof-cost-calculator"), changeFrequency: "weekly", priority: 0.9 },
+    { url: siteUrl("/roof-calculator"), changeFrequency: "monthly", priority: 0.85 },
     { url: siteUrl("/quote-check"), changeFrequency: "weekly", priority: 0.9 },
     { url: siteUrl("/compare-quotes"), changeFrequency: "weekly", priority: 0.85 },
     { url: siteUrl("/contractor-questions"), changeFrequency: "monthly", priority: 0.7 },

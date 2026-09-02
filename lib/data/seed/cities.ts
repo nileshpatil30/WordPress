@@ -392,4 +392,54 @@ export const cities: City[] = [
       ],
     },
   },
+  {
+    id: "city-chicago", countryId: "us", stateId: "us-il", metroId: "metro-chi",
+    name: "Chicago", slug: "chicago-il", population: 2660000,
+    latitude: 41.8781, longitude: -87.6298, isPublished: true,
+    content: {
+      summary:
+        "Chicago has the highest median roofer wage of any large metro in our coverage - well above Phoenix or Dallas - and that single fact drives most of what makes local quotes look expensive against national cost guides. The housing stock compounds it: a great deal of the city is bungalows, two-flats and three-flats, many with flat or very low-slope roofs behind a parapet, which is membrane work rather than shingle work. Add a genuinely short installation season and lake-effect winters, and a national average is close to useless here.",
+      localFactors: [
+        { title: "The Chicago bungalow and two-flat are the local archetype", body: "Hundreds of thousands of these were built between 1910 and 1940, typically with a low-slope or flat roof behind a masonry parapet. That means membrane roofing, parapet flashing and drainage detailing rather than shingles - a different trade at a different price, and the reason shingle-based cost guides mislead here." },
+        { title: "Parapet and masonry condition is often the real cost", body: "On a flat-roofed brick building the roof meets the wall at a parapet, and deteriorated masonry or coping there will leak no matter how good the membrane is. Tuckpointing and coping repair are frequently discovered at tear-off. Ask whether the quote includes any masonry allowance or explicitly excludes it." },
+        { title: "Freeze-thaw and ice damming are severe", body: "Chicago runs through many freeze-thaw cycles a season. On sloped roofs that means ice damming at the eaves; on flat roofs it means water finding any gap and then expanding in it. Ice-and-water barrier at eaves and valleys is standard practice and should be itemised, not assumed." },
+        { title: "The season is short and the city licenses separately", body: "April through October is the practical window, and summer books out. Roofing contractors need a state licence through IDFPR and, for work in the city, a City of Chicago contractor licence. Two separate things - verify both, and confirm the permit is pulled in the contractor's name." },
+      ],
+      commonMaterials: ["modified-bitumen", "asphalt-architectural", "tpo-membrane", "asphalt-3tab"],
+      permitNotes:
+        "The City of Chicago requires a permit for roof replacement through the Department of Buildings, and contractors must hold a city licence in addition to their state licence. Suburban municipalities in Cook, DuPage and Lake counties each run their own permitting, so confirm with the authority for your address rather than assuming Chicago's rules apply.",
+      seasonality:
+        "April through October is the reliable installation window, with June through September the busiest and firmest on price. Asphalt shingle sealant needs warmth to bond and membrane adhesives have temperature minimums, so winter work carries genuine quality risk rather than just discomfort. Late autumn is where the negotiating room usually is.",
+      faqs: [
+        { q: "Why is a Chicago roof quote so much more than the national average I read?", a: "Labour, mostly. The BLS median roofer wage in the Chicago metro is the highest of any large metro we cover - materially above sunbelt markets - and national cost guides average that away. The estimate on this page uses the Chicago metro wage rather than a country-wide one, which is why it lands higher and closer to reality." },
+        { q: "My two-flat has a flat roof. Is that more or less expensive than shingles?", a: "Different, not simply more or less. Flat roofing is priced per square foot and includes drainage and parapet detailing; sloped roofing is priced per square. What usually decides the cost is the condition of the parapet and whether the existing layers have to come off, not the membrane itself." },
+        { q: "Can roofing be done in a Chicago winter?", a: "Emergency repair, yes. A full replacement, generally no - and a contractor offering a discount to do one in January is selling you the risk. Asphalt sealant may not bond until spring, and membrane seams installed cold are the ones that fail first." },
+      ],
+    },
+  },
+  {
+    id: "city-detroit", countryId: "us", stateId: "us-mi", metroId: "metro-det",
+    name: "Detroit", slug: "detroit-mi", population: 633000,
+    latitude: 42.3314, longitude: -83.0458, isPublished: true,
+    content: {
+      summary:
+        "Detroit roofing is mostly sloped asphalt on detached single-family houses, which makes it one of the more straightforward markets in our coverage to price - and one where the spread between quotes usually comes down to how many existing layers there are and whether the deck is sound. The housing stock skews old: a great deal of it is pre-war, and roofs that have been overlaid once or twice are common. Labour sits mid-range for the metros we cover, well below Chicago and well above the sunbelt.",
+      localFactors: [
+        { title: "Multiple existing layers are the norm, not the exception", body: "Overlaying rather than tearing off was common practice for decades. Two or even three layers on an older Detroit house is unremarkable, and each one adds tear-off labour and disposal tonnage without changing the new material at all. A quote that does not state how many layers it assumed will move once the roof is open." },
+        { title: "Deck condition on pre-war houses is a real variable", body: "Older homes here often have plank sheathing rather than continuous plywood, and decades of overlays can hide moisture damage. Get the per-sheet replacement price in writing before work starts - it is the single most common source of a mid-job change order in this market." },
+        { title: "Freeze-thaw drives the failure pattern", body: "Detroit runs through hard winters with repeated freeze-thaw. Ice damming at the eaves is the common cause of interior water damage, and eave protection plus adequate attic ventilation matter as much as the covering itself. A quote silent on both is treating a symptom." },
+        { title: "Michigan licenses builders, and the licence is verifiable", body: "Roofing falls under Michigan's residential builder or maintenance and alteration contractor licence, issued by LARA. That number can be checked with the state. Doing so takes a minute and separates established contractors from storm-chasers." },
+      ],
+      commonMaterials: ["asphalt-architectural", "asphalt-3tab", "modified-bitumen", "metal-standing-seam"],
+      permitNotes:
+        "The City of Detroit requires a permit for roof replacement through the Buildings, Safety Engineering and Environmental Department. Suburban Wayne, Oakland and Macomb county municipalities each run their own process with their own fees. Confirm with the authority for your address, and confirm the permit is pulled in the contractor's name.",
+      seasonality:
+        "April through October is the practical window, with midsummer the busiest. Asphalt shingle sealant needs warmth to bond properly, so a roof installed in a cold snap can look complete and not actually seal until spring. Early spring and late autumn tend to offer the best availability without the quality risk of true winter work.",
+      faqs: [
+        { q: "My roof has two layers. How much does removing both add?", a: "It roughly doubles the tear-off labour and the disposal tonnage while changing nothing about the new material. On an older Detroit house it is common enough that a quote assuming one layer deserves a direct question before you sign." },
+        { q: "Every winter I get ice dams. Will a new roof stop them?", a: "Not by itself. Ice dams come from heat escaping into the attic and melting snow from below. A new roof with proper eave protection limits the damage; attic insulation and ventilation reduce whether it happens at all. Treat any contractor who promises the roof alone will fix it with caution." },
+        { q: "How do I check a contractor is licensed in Michigan?", a: "Ask for the licence number and verify it directly with LARA rather than accepting what is printed on the quote. Roofing falls under the residential builder or maintenance and alteration licence, and verification is free." },
+      ],
+    },
+  },
 ];
