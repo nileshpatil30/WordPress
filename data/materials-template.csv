@@ -1,0 +1,5 @@
+material_slug,metric_key,unit,channel,low,median,high,source_name,source_ref,observed_date,geo_scope_type,geo_scope_id,sample_size,notes
+asphalt-architectural,material.per_square,square,retail,142,158,178,Example retailer,https://example.com/product-listing,2026-09-01,country,us,6,"Three bundles per square. Price recorded per bundle and multiplied by three before entry."
+asphalt-3tab,material.per_square,square,retail,108,120,136,Example retailer,https://example.com/product-listing,2026-09-01,country,us,4,
+metal-standing-seam,material.per_square,square,trade,410,480,560,Example distributor quote,phone quote 2026-09-01,2026-09-01,country,us,2,"Trade channel - no retail discount applied."
+concrete-tile,material.per_square,square,benchmark,300,360,430,Competitor published range,https://example.com/guide,2026-09-01,country,us,,"Benchmark only. Never becomes a priced record - recorded so we can see whether our own number is in the right area."

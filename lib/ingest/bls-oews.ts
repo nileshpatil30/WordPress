@@ -1,4 +1,5 @@
 import type { PricingFactor, PricingRecord, Metro } from "@/lib/types";
+import { resolveFactor } from "./factors";
 
 /**
  * BLS Occupational Employment and Wage Statistics -> pricing_records.
@@ -74,27 +75,6 @@ function intOrNull(value: string | undefined): number | undefined {
   if (!value) return undefined;
   const n = Number(value.replace(/[,]/g, ""));
   return Number.isFinite(n) ? n : undefined;
-}
-
-/**
- * Resolve a factor through the geographic chain, most specific first. Mirrors
- * how prices resolve, so a state-scoped burden multiplier beats the global one.
- */
-export function resolveFactor(
-  factors: PricingFactor[], factorKey: string, scope: { stateId?: string; countryId?: string },
-): PricingFactor | null {
-  const chain: [PricingFactor["geoScopeType"], string | undefined][] = [
-    ["state", scope.stateId],
-    ["country", scope.countryId],
-    ["global", "global"],
-  ];
-  for (const [type, id] of chain) {
-    if (!id) continue;
-    const hit = factors.find(
-      (f) => f.factorKey === factorKey && f.geoScopeType === type && f.geoScopeId === id);
-    if (hit) return hit;
-  }
-  return null;
 }
 
 export function transformOewsRows(

@@ -26,6 +26,13 @@ export const pricingSources: PricingSource[] = [
       "Our own derivation. Shipped so the application is functional before real feeds are connected. Must not be presented to users as observed market pricing.",
   },
   {
+    id: "src-observed-materials", name: "Observed material prices",
+    sourceType: "public_market", reliabilityWeight: 0.7, isActive: true,
+    lastReviewedAt: SEED_COLLECTED_DATE,
+    licenseNotes:
+      "Prices we observed ourselves from publicly listed retail and distributor sources, each row recording its own source, URL and observation date. We publish the derived cost range, never a third party's dataset. Where a competitor's published range is recorded it is marked as a benchmark and never becomes a priced record.",
+  },
+  {
     id: "src-bls-oes", name: "BLS Occupational Employment and Wage Statistics",
     url: "https://www.bls.gov/oes/", sourceType: "government",
     reliabilityWeight: 0.92, isActive: false,
@@ -294,6 +301,20 @@ export const pricingFactors: PricingFactor[] = [
   // the most expensive classifications there is, and its cost varies enormously
   // by state.
   // ---------------------------------------------------------------------
+  // ---------------------------------------------------------------------
+  // Retail to trade
+  //
+  // A homeowner sees a shelf price; a contractor buys the same product from a
+  // distributor by the pallet and pays less. Ingesting retail prices without
+  // this conversion produces estimates that are too high - the mirror of the
+  // error the large cost guides are known for, and no more useful. This is a
+  // modelled assumption, not an observation, and every record it touches names
+  // it in the methodology.
+  // ---------------------------------------------------------------------
+  scopedFactor("material.trade_discount", "Retail to contractor material cost", "material", 0.78,
+    "Applied to an observed retail price to approximate what a roofing contractor pays a distributor for the same product. Roofing materials are typically bought on trade terms by the pallet rather than the bundle. Retune from real supplier quotes as they become available; until then this is our assumption and is marked modeled rather than verified.",
+    "global", "global"),
+
   scopedFactor("labor.burden_multiplier", "Labour burden - national default", "labor", 1.8,
     "Applied to a published hourly wage to reach an employer's fully burdened crew cost. Excludes profit.",
     "global", "global"),

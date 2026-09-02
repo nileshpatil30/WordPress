@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { parseCsv, parseCsvRecords } from "@/lib/ingest/csv";
-import { resolveFactor, transformOewsRows } from "@/lib/ingest/bls-oews";
+import { transformOewsRows } from "@/lib/ingest/bls-oews";
+import { resolveFactor } from "@/lib/ingest/factors";
 import { seedDataset } from "@/lib/data/seed";
 
 const csvText = fs.readFileSync(
