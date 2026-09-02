@@ -1,7 +1,15 @@
-# Deployment bundles built from costsignal/ with `npm run build`.
-#
-# Generated output, not source: reproducible at any time, ~28MB each, and stale
-# the moment anything changes. Git keeps every blob forever, so committing these
-# would permanently bloat the clone for something nobody should be deploying
-# from twice. Rebuild instead - costsignal/docs/deployment.md has the steps.
+# Deployment bundles built with `npm run build`. Generated output, not source:
+# reproducible any time, ~28MB each, and stale the moment anything changes.
 *-deploy.zip
+
+node_modules/
+.next/
+out/
+build/
+.env
+.env.local
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+/.data/
+coverage/
