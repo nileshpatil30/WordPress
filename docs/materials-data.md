@@ -4,6 +4,11 @@ Materials, disposal, equipment and permits are still sample data — roughly 70%
 of a typical re-roof. Labour is real (BLS OEWS, 15 metros). This is the gap that
 matters most, and this is how to close it without buying anything.
 
+For the full survey of where material prices can legitimately come from — every
+source researched, priced and classified — see
+[materials-data-sources.md](./materials-data-sources.md). This file is the
+operating manual; that one is the research behind it.
+
 ## Why not just license RSMeans
 
 Eventually, maybe. Not first. It costs money before there is any traffic to
