@@ -26,7 +26,12 @@ export function Card({ children, className = "", as: As = "div" }: {
   children: ReactNode; className?: string; as?: "div" | "section" | "article";
 }) {
   return (
-    <As className={`rounded-[14px] border border-line bg-surface ${className}`}>{children}</As>
+    <As
+      className={"rounded-[14px] border border-line bg-surface "
+        + "shadow-[0_1px_2px_rgba(16,42,67,0.04)] " + className}
+    >
+      {children}
+    </As>
   );
 }
 

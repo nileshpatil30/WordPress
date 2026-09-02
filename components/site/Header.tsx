@@ -1,24 +1,38 @@
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui";
+import { Logo } from "./Logo";
 
+/**
+ * "Check a quote" is deliberately an action, not a nav link.
+ *
+ * Any site can tell you a roof costs about $20,000. What separates this one is
+ * taking the $26,000 quote already sitting in someone's inbox and explaining
+ * the gap - so the header carries it as a button beside the primary call to
+ * action rather than as the third of five text links, where nobody found it.
+ */
 const NAV = [
   { href: "/roofing-cost", label: "Roofing costs" },
   { href: "/roof-calculator", label: "Roof calculator" },
-  { href: "/quote-check", label: "Check a quote" },
   { href: "/compare-quotes", label: "Compare quotes" },
   { href: "/methodology", label: "Methodology" },
 ];
 
+/** Mobile keeps the quote checker in the row too, since there is no button space. */
+const MOBILE_NAV = [
+  NAV[0], NAV[1],
+  { href: "/quote-check", label: "Check a quote" },
+  NAV[2], NAV[3],
+];
+
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-3.5">
-        <Link href="/" className="flex items-center gap-2.5" aria-label="Home Cost Doctor home">
-          <Mark />
-          <span className="whitespace-nowrap text-[17px] font-semibold tracking-[-0.02em] text-ink">Home Cost Doctor</span>
+    <header className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-3">
+        <Link href="/" aria-label="Home Cost Doctor home">
+          <Logo />
         </Link>
 
-        <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
+        <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
           {NAV.map((item) => (
             <Link
               key={item.href}
@@ -30,16 +44,29 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Wrapped rather than given `hidden` directly: the button class also
+              sets `inline-flex`, and which of the two display utilities wins
+              depends on stylesheet order, not attribute order. On a 390px
+              viewport it lost, and the wordmark wrapped to three lines to make
+              room. The quote checker is still one tap away in the row below. */}
+          <span className="hidden sm:block">
+            <ButtonLink href="/quote-check" variant="secondary" size="sm" className="whitespace-nowrap">
+              Check a quote
+            </ButtonLink>
+          </span>
+          {/* The full label plus the wordmark overflows a 390px viewport, so the
+              smallest screens get the short one. */}
           <ButtonLink href="/roof-cost-calculator" size="sm" className="whitespace-nowrap">
-            Calculate my roof cost
+            <span className="sm:hidden">Calculate</span>
+            <span className="hidden sm:inline">Calculate my roof cost</span>
           </ButtonLink>
         </div>
       </div>
 
-      {/* Mobile nav: a single scrollable row beats a hamburger for four links. */}
-      <div className="scroll-x flex gap-1 border-t border-line px-4 py-2 md:hidden">
-        {NAV.map((item) => (
+      {/* Mobile nav: a single scrollable row beats a hamburger for five links. */}
+      <div className="scroll-x flex gap-1 border-t border-line px-4 py-2 lg:hidden">
+        {MOBILE_NAV.map((item) => (
           <Link
             key={item.href}
             href={item.href}
@@ -50,39 +77,5 @@ export function SiteHeader() {
         ))}
       </div>
     </header>
-  );
-}
-
-/**
- * The mark: a roofline over a check.
- *
- * A roof chevron rather than a whole house, because the product is roofing
- * first and almost every competitor draws a house. The check underneath is the
- * diagnostic half - this site exists to test a number someone gave you, not
- * just to produce one. Deliberately not a house with a dollar sign, a
- * stethoscope or a medical cross: the name already carries the doctor idea and
- * a literal reading of it would look like a clinic.
- *
- * The chevron is deliberately shallow. A steeper one reads as a caret or, with
- * the check tucked under it, merges into a diamond at favicon size - both were
- * tried and rendered at 64, 32 and 16px before this one was picked. The check
- * is drawn heavier so that when the fine strokes start to merge, the shape that
- * survives is the check.
- */
-function Mark() {
-  return (
-    <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent" aria-hidden>
-      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-        <path
-          d="M2.4 7.6 10 3l7.6 4.6"
-          stroke="white" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"
-          opacity="0.9"
-        />
-        <path
-          d="m5.4 13 3.3 3.2 6-6.4"
-          stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-        />
-      </svg>
-    </span>
   );
 }

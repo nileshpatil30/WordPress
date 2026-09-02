@@ -2,8 +2,11 @@ import Link from "next/link";
 import { getStore } from "@/lib/data/store";
 import { isError, runEstimate } from "@/lib/api";
 import { Badge, ButtonLink, Card, DataNotice, SectionHeading } from "@/components/ui";
+import {
+  IconCalculator, IconClipboard, IconLock, IconMagnifier, IconMailOff, IconPhoneOff,
+  IconPin, IconScales, IconShieldCheck, IconSliders, IconTrendUp, IconUpload, IconUsers,
+} from "@/components/ui/Icons";
 import { PriceRangeBar } from "@/components/estimate/EstimateView";
-import { ZipStart } from "@/components/site/ZipStart";
 import { usd } from "@/lib/format";
 import { buildMetadata, JsonLd, SITE_NAME, siteUrl } from "@/lib/seo";
 
@@ -12,9 +15,19 @@ export const metadata = buildMetadata({
   // so the brand is added explicitly here.
   title: "Roof replacement cost calculator and quote checker | Home Cost Doctor",
   description:
-    "Personalised roof replacement estimates by ZIP code, with a full cost breakdown, a confidence score, a contractor quote fairness check and side-by-side quote comparison.",
+    "Independent roof replacement cost estimates by ZIP code, with a full cost breakdown, a confidence score, a contractor quote check and side-by-side quote comparison. No phone number required.",
   path: "/",
 });
+
+/**
+ * Optional hero photograph.
+ *
+ * Drop the file in public/ and put its path here. Left null on purpose until
+ * there is one: an empty slot is better than a placeholder, and the estimate
+ * card carries the hero on its own because it is a real server-computed number
+ * rather than a picture of a house.
+ */
+const HERO_ART: string | null = null;
 
 export default async function HomePage() {
   const store = await getStore();
@@ -36,6 +49,40 @@ export default async function HomePage() {
   const sample = isError(demo) ? null : demo.estimate;
   const planned = services.filter((s) => s.status === "planned");
 
+  // Real ranges on the city cards. A card that shows a number a reader can act
+  // on is worth more than one that says "local cost factors", and these come
+  // from the same engine as every other price on the site.
+  const [states, allMaterials] = await Promise.all([
+    store.listStates(),
+    store.listMaterials((await store.getServiceBySlug("roofing"))!.id),
+  ]);
+  const cityCards = (await Promise.all(cities.map(async (c) => {
+    const zips = await store.listZipCodes({ cityId: c.id });
+    const zip = zips[0]?.code;
+    if (!zip) return null;
+    // The locally common material, not a national default - tile in Phoenix,
+    // membrane in Jersey City. That makes the number locally true and the cards
+    // NOT comparable to each other, which is why each card names its material.
+    // A grid of bare numbers would read as "Las Vegas costs double Austin" when
+    // what it actually says is "tile costs double asphalt".
+    const slug = c.content?.commonMaterials?.[0] ?? "asphalt-architectural";
+    const r = await runEstimate({
+      serviceSlug: "roofing",
+      input: {
+        zip, areaMode: "roof", roofAreaSqft: 2000, stories: 1, material: slug,
+        pitch: "moderate", complexity: "moderate", existingLayers: 1,
+      },
+    });
+    if (isError(r)) return null;
+    return {
+      id: c.id, name: c.name, slug: c.slug,
+      code: states.find((s) => s.id === c.stateId)?.code ?? "",
+      low: r.estimate.range.low, high: r.estimate.range.high,
+      material: allMaterials.find((m) => m.slug === slug)?.name ?? slug,
+      note: c.content?.localFactors[0]?.title ?? "",
+    };
+  }))).filter((c): c is NonNullable<typeof c> => c !== null);
+
   return (
     <>
       <JsonLd data={{
@@ -46,174 +93,223 @@ export default async function HomePage() {
         applicationCategory: "FinanceApplication",
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
         description:
-          "Local roof replacement cost estimates, contractor quote fairness checks and quote comparison for US homeowners.",
+          "Independent roof replacement cost estimates, contractor quote checks and quote comparison for US homeowners.",
       }} />
 
       {/* ---------------------------- Hero ---------------------------- */}
       <section className="border-b border-line bg-surface">
-        <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:py-24">
+        <div className="mx-auto grid max-w-6xl gap-12 px-5 py-14 lg:grid-cols-[1.02fr_1fr] lg:items-center lg:py-20">
           <div>
-            <Badge tone="accent">Phase 1 · Roof replacement · United States</Badge>
-            <h1 className="display mt-5 text-[42px] font-semibold text-ink sm:text-[56px]">
-              Know what your home project should cost.
+            <Badge tone="accent">Independent · Transparent · Built for homeowners</Badge>
+            <h1 className="display mt-5 text-[40px] font-semibold text-ink sm:text-[54px]">
+              Know what your home project{" "}
+              <span className="text-accent">should cost.</span>
             </h1>
-            {/* The product in one sentence, including the thing nobody else
-                will say: you do not have to give us your phone number. */}
-            <p className="mt-6 max-w-xl text-[18px] leading-relaxed text-ink-soft">
+            <p className="mt-5 max-w-xl text-[17.5px] leading-relaxed text-ink-soft">
               Get an independent cost estimate, check a contractor&rsquo;s quote and
-              compare your options &mdash; without handing over your phone number.
-            </p>
-            <p className="mt-4 max-w-xl text-[15.5px] leading-relaxed text-muted">
-              Not a national average. A modelled range for your ZIP code, your
-              roof size, your material and your site, with every line item shown,
-              every assumption stated, and a confidence score that goes down when
-              the data is thin.
+              compare your options &mdash; without giving us your phone number.
             </p>
 
-            <div className="mt-8 max-w-md">
-              <ZipStart />
+            <div className="mt-7 flex flex-wrap gap-3">
+              <ButtonLink href="/roof-cost-calculator" size="lg" className="gap-2">
+                <IconCalculator size={18} /> Calculate my roof cost
+              </ButtonLink>
+              <ButtonLink href="/quote-check" variant="secondary" size="lg" className="gap-2">
+                <IconUpload size={18} /> Check a quote
+              </ButtonLink>
             </div>
 
-            <ul className="mt-8 grid gap-2.5 text-[14px] text-muted sm:grid-cols-2">
+            <ul className="mt-8 grid gap-4 sm:grid-cols-3">
               {[
-                "Independent \u2014 no contractor required",
-                "Full cost breakdown, not one number",
-                "Compare quotes on scope, not price",
-                "Every price is dated and sourced",
-              ].map((t) => (
-                <li key={t} className="flex items-start gap-2">
-                  <CheckIcon />
-                  <span>{t}</span>
+                { Icon: IconPhoneOff, title: "No phone required", body: "Free estimates" },
+                { Icon: IconShieldCheck, title: "Independent", body: "We work for you" },
+                { Icon: IconClipboard, title: "Transparent", body: "See how we calculate" },
+              ].map(({ Icon, title, body }) => (
+                <li key={title} className="flex items-start gap-2.5">
+                  <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+                    <Icon size={17} />
+                  </span>
+                  <span>
+                    <span className="block text-[13.5px] font-semibold text-ink">{title}</span>
+                    <span className="block text-[12.5px] text-muted">{body}</span>
+                  </span>
                 </li>
               ))}
             </ul>
           </div>
 
           {sample && (
-            <Card className="overflow-hidden shadow-[0_1px_2px_rgba(16,22,20,0.04),0_12px_40px_-12px_rgba(16,22,20,0.14)]">
-              <div className="border-b border-line px-6 py-4">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-faint">
-                    Live example
+            <div className="relative">
+              {HERO_ART && (
+                // Decorative only: the estimate card is the evidence.
+                <img
+                  src={HERO_ART} alt="" aria-hidden
+                  className="pointer-events-none absolute -left-6 top-1/2 hidden w-[62%] -translate-y-1/2 select-none lg:block"
+                />
+              )}
+              <Card className="relative overflow-hidden shadow-[0_2px_4px_rgba(16,42,67,0.04),0_18px_50px_-16px_rgba(16,42,67,0.18)]">
+                <div className="border-b border-line px-6 py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-faint">
+                      Estimated range
+                    </p>
+                    <Badge tone="neutral">Phoenix, AZ 85018</Badge>
+                  </div>
+                  <p className="display mt-2 text-[32px] font-semibold text-ink">
+                    {usd(sample.range.low)} <span className="text-faint">&ndash;</span> {usd(sample.range.high)}
                   </p>
-                  <Badge tone="neutral">Phoenix, AZ 85018</Badge>
-                </div>
-                <p className="mt-1.5 text-[13px] text-muted">
-                  2,000 sq ft roof · architectural shingle · 2 storeys · 1 layer to tear off
-                </p>
-              </div>
-
-              <div className="px-6 py-6">
-                <p className="display text-[34px] font-semibold text-ink">
-                  {usd(sample.range.low)} <span className="text-faint">–</span> {usd(sample.range.high)}
-                </p>
-                <div className="mt-4">
-                  <PriceRangeBar low={sample.range.low} typical={sample.range.typical} high={sample.range.high} />
+                  <div className="mt-3">
+                    <PriceRangeBar low={sample.range.low} typical={sample.range.typical} high={sample.range.high} />
+                  </div>
                 </div>
 
-                <div className="mt-6 space-y-2 border-t border-line pt-5">
-                  {sample.subtotals.map((s) => (
-                    <div key={s.component} className="flex items-baseline justify-between gap-3">
-                      <span className="text-[13.5px] text-muted">{s.label}</span>
-                      <span className="text-[14px] font-semibold tnum text-ink">{usd(s.typical)}</span>
+                <div className="px-6 py-5">
+                  <div className="space-y-2">
+                    {sample.subtotals.map((s) => (
+                      <div key={s.component} className="flex items-baseline justify-between gap-3">
+                        <span className="text-[13.5px] text-muted">{s.label}</span>
+                        <span className="text-[14px] font-semibold tnum text-ink">{usd(s.typical)}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 border-t border-line pt-4">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="text-[13px] text-muted">Confidence</span>
+                      <span className="text-[15px] font-semibold tnum text-ink">
+                        {sample.confidence.score}<span className="text-faint">/100</span>
+                      </span>
                     </div>
-                  ))}
+                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-sunken">
+                      <div
+                        className="h-full rounded-full bg-accent"
+                        style={{ width: `${sample.confidence.score}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-[12px] text-faint">
+                      {sample.confidence.band} &mdash; labour is government wage data,
+                      materials are still modelled.
+                    </p>
+                  </div>
                 </div>
-
-                <div className="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4">
-                  <span className="text-[13px] text-muted">Confidence</span>
-                  <span className="flex items-center gap-2">
-                    <span className="text-[15px] font-semibold tnum text-ink">
-                      {sample.confidence.score}/100
-                    </span>
-                    <Badge tone={sample.confidence.band === "High" ? "positive" : "caution"}>
-                      {sample.confidence.band}
-                    </Badge>
-                  </span>
-                </div>
-                <p className="mt-3 text-[12px] leading-relaxed text-faint">
-                  Labour here is government wage data. Materials are still
-                  modelled, which is what holds the score down &mdash; and the
-                  score rises on its own as observed pricing lands.
-                </p>
-              </div>
-            </Card>
+              </Card>
+            </div>
           )}
         </div>
       </section>
 
-      {/* ------------------------ The journey ------------------------ */}
-      {/* The whole product in one line. A homeowner arriving cold should be
-          able to see where this ends before deciding to start. */}
-      <section className="border-b border-line">
-        <div className="mx-auto max-w-6xl px-5 py-8">
-          <ol className="scroll-x flex items-stretch gap-2 md:grid md:grid-cols-5 md:gap-3">
-            {[
-              { n: "01", label: "Measure", body: "Work out your roof size", href: "/roof-calculator" },
-              { n: "02", label: "Estimate", body: "See what it should cost", href: "/roof-cost-calculator" },
-              { n: "03", label: "Check", body: "Test a quote against it", href: "/quote-check" },
-              { n: "04", label: "Compare", body: "Weigh quotes on scope", href: "/compare-quotes" },
-              { n: "05", label: "Hire", body: "Only when you want to", href: "/hire" },
-            ].map((step) => (
-              <li key={step.n} className="min-w-[9.5rem] flex-1">
-                <Link
-                  href={step.href}
-                  className="group flex h-full flex-col rounded-lg border border-line bg-surface px-3.5 py-3 transition-colors hover:border-accent-line"
-                >
-                  <span className="text-[11px] font-semibold tnum tracking-[0.1em] text-faint">
-                    {step.n}
-                  </span>
-                  <span className="mt-1 text-[14px] font-semibold text-ink group-hover:text-accent">
-                    {step.label}
-                  </span>
-                  <span className="mt-0.5 text-[12.5px] leading-snug text-muted">{step.body}</span>
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </div>
+      {/* ------------------------- How it works ------------------------- */}
+      <section className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
+        <SectionHeading eyebrow="How it works" title="Five simple steps to a smarter decision" />
+        <ol className="scroll-x mt-9 flex items-start gap-2 md:grid md:grid-cols-5 md:gap-4">
+          {[
+            { n: "01", Icon: IconCalculator, label: "Calculate", body: "Tell us about your project and get an estimated cost range.", href: "/roof-cost-calculator" },
+            { n: "02", Icon: IconUpload, label: "Check", body: "Upload your contractor's quote and we'll compare it with the modelled range.", href: "/quote-check" },
+            { n: "03", Icon: IconMagnifier, label: "Understand", body: "See what is driving the price and where the quote differs.", href: "/methodology" },
+            { n: "04", Icon: IconScales, label: "Compare", body: "Compare multiple quotes on scope, price and value.", href: "/compare-quotes" },
+            { n: "05", Icon: IconUsers, label: "Hire", body: "Request local roofing quotes when you're ready.", href: "/hire" },
+          ].map(({ n, Icon, label, body, href }) => (
+            <li key={n} className="min-w-[13rem] flex-1">
+              <Link href={href} className="group block">
+                <span className="grid h-12 w-12 place-items-center rounded-xl border border-accent-line bg-accent-soft text-accent transition-colors group-hover:bg-accent group-hover:text-white">
+                  <Icon size={22} />
+                </span>
+                <span className="mt-4 block text-[12px] font-semibold tnum tracking-[0.1em] text-faint">{n}</span>
+                <span className="mt-0.5 block text-[16px] font-semibold text-ink group-hover:text-accent">{label}</span>
+                <span className="mt-1.5 block text-[13.5px] leading-relaxed text-muted">{body}</span>
+              </Link>
+            </li>
+          ))}
+        </ol>
       </section>
 
       {/* -------------------- The three questions -------------------- */}
-      <section className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
-        <SectionHeading
-          eyebrow="What this is for"
-          title="Three questions, answered properly"
-          description="Directories send you to contractors. Cost guides give you a national average. Neither tells you whether the number in front of you makes sense."
-        />
-        <div className="mt-9 grid gap-4 md:grid-cols-3">
-          <FeatureCard
-            href="/roof-cost-calculator"
-            step="01"
-            title="What should my roof cost?"
-            body="Answer three questions for a first range, then refine any assumption &mdash; pitch, layers, decking allowance, access &mdash; and watch the price move. Every line item shows how it was calculated."
-            cta="Open the calculator"
+      <section className="border-y border-line bg-surface">
+        <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
+          <SectionHeading
+            eyebrow="Three questions, answered properly"
+            title="Not another roofing calculator"
+            description="Directories send you to contractors. Cost guides give you a national average. Neither tells you whether the number in front of you makes sense."
           />
-          <FeatureCard
-            href="/quote-check"
-            step="02"
-            title="Is my contractor's quote fair?"
-            body="Compare a real quote to the modelled range. If it sits outside, we re-run the model changing one assumption at a time and tell you which single change would account for the gap."
-            cta="Check a quote"
-          />
-          <FeatureCard
-            href="/compare-quotes"
-            step="03"
-            title="How do my quotes compare?"
-            body="Enter several quotes with their scope. We price back in what each one leaves out, so a quote that is cheapest only because it omits the tear-off stops looking cheapest."
-            cta="Compare quotes"
-          />
+          <div className="mt-9 grid gap-4 md:grid-cols-3">
+            <FeatureCard
+              href="/roof-cost-calculator" Icon={IconCalculator}
+              title="What should my roof cost?"
+              body="Answer three questions for a first range, then refine any assumption &mdash; pitch, layers, decking allowance, access &mdash; and watch the price move. Every line item shows how it was calculated."
+              cta="Open the calculator"
+            />
+            <FeatureCard
+              href="/quote-check" Icon={IconUpload} highlight
+              title="Is my contractor's quote fair?"
+              body="Compare a real quote to the modelled range. If it sits outside, we re-run the model changing one assumption at a time and tell you which single change would account for the gap."
+              cta="Check a quote"
+            />
+            <FeatureCard
+              href="/compare-quotes" Icon={IconScales}
+              title="How do my quotes compare?"
+              body="Enter several quotes with their scope. We price back in what each one leaves out, so a quote that is cheapest only because it omits the tear-off stops looking cheapest."
+              cta="Compare quotes"
+            />
+          </div>
         </div>
+      </section>
+
+      {/* ---------------------------- Cities ---------------------------- */}
+      <section className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <SectionHeading
+            eyebrow="Local pricing that makes sense"
+            title="Roofing costs, city by city"
+            description="Local costs vary with labour, climate, permitting and the materials that are actually common there. A city gets a page when we have something specific and true to say about it."
+          />
+          <ButtonLink href="/roofing-cost" variant="secondary" size="sm" className="whitespace-nowrap">
+            View all cities &rarr;
+          </ButtonLink>
+        </div>
+
+        <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {cityCards.map((c) => (
+            <Link
+              key={c.id}
+              href={`/roofing-cost/${c.slug}`}
+              className="group flex flex-col rounded-xl border border-line bg-surface p-5 transition-colors hover:border-accent-line"
+            >
+              <p className="text-[15.5px] font-semibold text-ink group-hover:text-accent">
+                {c.name}{c.code && `, ${c.code}`}
+              </p>
+              <p className="mt-1 text-[15px] font-semibold tnum text-accent">
+                {usd(c.low)} &ndash; {usd(c.high)}
+              </p>
+              <p className="mt-0.5 text-[12px] text-faint">{c.material} &middot; 2,000 sq ft</p>
+              <p className="mt-2 line-clamp-2 text-[12.5px] leading-relaxed text-muted">{c.note}</p>
+            </Link>
+          ))}
+          <Link
+            href="/roofing-cost"
+            className="group flex flex-col justify-center rounded-xl border border-dashed border-line-strong p-5 transition-colors hover:border-accent-line"
+          >
+            <span className="text-accent"><IconPin size={22} /></span>
+            <span className="mt-2 text-[15.5px] font-semibold text-ink group-hover:text-accent">All cities</span>
+            <span className="mt-1 text-[12.5px] text-muted">See every location we cover</span>
+          </Link>
+        </div>
+        <p className="mt-4 text-[12.5px] text-faint">
+          Each range is a representative 2,000 sq ft single-storey roof in that
+          city, priced in the material most common there &mdash; so Phoenix and
+          Las Vegas are tile while Austin is asphalt, and the cards are not
+          directly comparable to one another. Your roof is not the representative
+          one either; the calculator prices yours.
+        </p>
       </section>
 
       {/* ------------------------- Transparency ------------------------- */}
       <section className="border-y border-line bg-surface">
         <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
-          <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-start">
+          <div className="grid gap-12 lg:grid-cols-[1fr_1.05fr] lg:items-start">
             <div>
               <SectionHeading
-                eyebrow="Why you can argue with it"
-                title="The estimate shows its working"
+                eyebrow="Transparent methodology"
+                title="We show our work"
                 description="An estimate you cannot interrogate is just a number someone made up. Ours breaks into the same components a contractor uses to build a price, and tells you where each one came from."
               />
               <div className="mt-8 space-y-5">
@@ -235,62 +331,68 @@ export default async function HomePage() {
                 />
               </div>
               <div className="mt-8 flex flex-wrap gap-3">
-                <ButtonLink href="/methodology" variant="secondary">Read the methodology</ButtonLink>
+                <ButtonLink href="/methodology" variant="secondary">See how we calculate it</ButtonLink>
                 <ButtonLink href="/data-sources" variant="ghost">Data sources and licences</ButtonLink>
               </div>
             </div>
 
             <div className="space-y-4">
               <DataNotice />
-              {sample && (
-                <Card className="p-6">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-faint">
-                    Confidence, itemised
-                  </p>
-                  <ul className="mt-4 space-y-3">
-                    {sample.confidence.breakdown.map((b) => (
-                      <li key={b.key}>
-                        <div className="flex items-baseline justify-between gap-3">
-                          <span className="text-[13.5px] font-medium text-ink-soft">{b.label}</span>
-                          <span className="shrink-0 text-[13px] tnum text-muted">{b.earned}/{b.max}</span>
-                        </div>
-                        <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-sunken">
-                          <div className="h-full rounded-full bg-accent/60" style={{ width: `${(b.earned / b.max) * 100}%` }} />
-                        </div>
-                        <p className="mt-1 text-[12px] leading-snug text-faint">{b.detail}</p>
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              )}
+              <Card className="p-6">
+                <span className="grid h-10 w-10 place-items-center rounded-lg bg-accent-soft text-accent">
+                  <IconTrendUp size={20} />
+                </span>
+                <p className="mt-3.5 text-[17px] font-semibold text-ink">Always improving</p>
+                <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
+                  We combine public government data, observed market prices and
+                  homeowner submissions to keep the numbers current. Every price is
+                  anchored to a date and carried forward on a published index, so
+                  the estimate you get today is not last year&rsquo;s number in a
+                  new wrapper.
+                </p>
+                <Link href="/data-sources" className="mt-4 inline-block text-[13.5px] font-semibold text-accent hover:underline">
+                  Learn about our data &rarr;
+                </Link>
+              </Card>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ---------------------------- Cities ---------------------------- */}
+      {/* --------------------------- Privacy --------------------------- */}
       <section className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
-        <SectionHeading
-          eyebrow="Local pages"
-          title="Roofing costs, city by city"
-          description="A city gets a page when we have something specific and true to say about it - local code, climate, permitting, materials that are actually common there. Not because the keyword has volume."
-        />
-        <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {cities.map((c) => (
-            <Link
-              key={c.id}
-              href={`/roofing-cost/${c.slug}`}
-              className="group rounded-xl border border-line bg-surface p-5 transition-colors hover:border-accent-line"
-            >
-              <p className="text-[16px] font-semibold text-ink group-hover:text-accent">
-                {c.name} roofing costs
+        <Card className="p-7 sm:p-9">
+          <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+            <div>
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-accent-soft text-accent">
+                <IconLock size={22} />
+              </span>
+              <h2 className="mt-4 text-2xl font-semibold tracking-[-0.02em] text-ink sm:text-[28px]">
+                Your data is yours.
+              </h2>
+              <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted">
+                The estimate, the quote check and the comparison all work without
+                a phone number, an email address or an account. We only ask for
+                contact details at the point where you tell us you want local
+                contractors to call you &mdash; because that is the only step
+                where somebody has to.
               </p>
-              <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted">
-                {c.content?.localFactors[0]?.title ?? "Local cost factors and calculator"}
-              </p>
-            </Link>
-          ))}
-        </div>
+            </div>
+            <ul className="grid gap-4 sm:grid-cols-3 lg:gap-3">
+              {[
+                { Icon: IconMailOff, title: "No spam", body: "We don't sell your details." },
+                { Icon: IconPhoneOff, title: "No pressure", body: "No contractor calls unless you ask." },
+                { Icon: IconSliders, title: "You're in control", body: "Nothing is shared without your say-so." },
+              ].map(({ Icon, title, body }) => (
+                <li key={title} className="rounded-xl border border-line bg-sunken/50 p-4">
+                  <span className="text-accent"><Icon size={20} /></span>
+                  <span className="mt-2.5 block text-[14px] font-semibold text-ink">{title}</span>
+                  <span className="mt-1 block text-[12.5px] leading-relaxed text-muted">{body}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Card>
       </section>
 
       {/* ---------------------------- Roadmap ---------------------------- */}
@@ -311,13 +413,19 @@ export default async function HomePage() {
   );
 }
 
-function FeatureCard({ href, step, title, body, cta }: {
-  href: string; step: string; title: string; body: string; cta: string;
+function FeatureCard({ href, Icon, title, body, cta, highlight = false }: {
+  href: string; Icon: (p: { size?: number }) => React.ReactElement;
+  title: string; body: string; cta: string; highlight?: boolean;
 }) {
   return (
-    <Card className="flex flex-col p-6 transition-colors hover:border-accent-line">
-      <span className="text-[12px] font-semibold tnum tracking-[0.1em] text-accent">{step}</span>
-      <h3 className="mt-3 text-[19px] font-semibold tracking-[-0.02em] text-ink">{title}</h3>
+    <Card
+      className={`flex flex-col p-6 transition-colors hover:border-accent-line ${
+        highlight ? "border-accent-line bg-accent-soft/40" : ""}`}
+    >
+      <span className="grid h-11 w-11 place-items-center rounded-xl bg-accent-soft text-accent">
+        <Icon size={21} />
+      </span>
+      <h3 className="mt-4 text-[18.5px] font-semibold tracking-[-0.02em] text-ink">{title}</h3>
       <p
         className="mt-2.5 flex-1 text-[14px] leading-relaxed text-muted"
         dangerouslySetInnerHTML={{ __html: body }}
@@ -335,14 +443,5 @@ function Detail({ title, body }: { title: string; body: string }) {
       <p className="text-[15px] font-semibold text-ink">{title}</p>
       <p className="mt-1 text-[14px] leading-relaxed text-muted">{body}</p>
     </div>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mt-1 shrink-0" aria-hidden>
-      <circle cx="8" cy="8" r="7.25" stroke="#B9D4CB" strokeWidth="1.5" />
-      <path d="m5 8.2 2.1 2.1L11 6.4" stroke="#0C6B58" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
   );
 }

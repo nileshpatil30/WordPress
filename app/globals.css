@@ -1,33 +1,42 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   CostSignal design tokens.
-   A restrained, data-first palette: warm neutral ground, white cards, one deep
-   green accent, and semantic colours reserved for actual signal (caution on a
-   quote, positive on a match). Numbers are the loudest thing on the page.
+   Home Cost Doctor design tokens.
+
+   Navy for text and dark surfaces, one green for action and emphasis, a cool
+   near-white ground. Semantic colours are reserved for actual signal - amber
+   where a quote needs a second look, red for an error - so that when the page
+   does raise its voice it means something. Numbers stay the loudest thing on
+   the page.
+
+   Contrast: ink 14.5:1, muted 6.5:1 and accent 5.4:1 on white, all clear of
+   WCAG AA. `faint` sits at 4.1:1 and is for captions and eyebrow labels only,
+   never for anything a reader has to be able to act on.
 --------------------------------------------------------------------------- */
 @theme {
-  --color-ink: #101614;
-  --color-ink-soft: #2C3733;
-  --color-muted: #5F6B66;
-  --color-faint: #8A948F;
-  --color-bg: #F6F5F2;
+  --color-ink: #102A43;
+  --color-ink-soft: #24425F;
+  --color-muted: #4A6072;
+  --color-faint: #667E8F;
+  --color-bg: #F7F9FB;
   --color-surface: #FFFFFF;
-  --color-sunken: #F0EFEA;
-  --color-line: #E2E1DA;
-  --color-line-strong: #CFCEC5;
+  --color-sunken: #EFF3F7;
+  --color-line: #E3EAF1;
+  --color-line-strong: #C7D5E0;
 
-  --color-accent: #0C6B58;
-  --color-accent-hover: #0A5747;
-  --color-accent-soft: #E7F0ED;
-  --color-accent-line: #B9D4CB;
+  --color-accent: #157A4F;
+  --color-accent-hover: #106340;
+  --color-accent-soft: #E9F6EF;
+  --color-accent-line: #B4DFC7;
+  /* The dark green ground used by the footer and inverted panels. */
+  --color-accent-deep: #0E3D2C;
 
-  --color-caution: #9A5714;
-  --color-caution-soft: #FBF1E4;
+  --color-caution: #8A5312;
+  --color-caution-soft: #FCF3E6;
   --color-danger: #9C2F2F;
   --color-danger-soft: #FAECEA;
-  --color-positive: #1C7A50;
-  --color-positive-soft: #E8F3ED;
+  --color-positive: #157A4F;
+  --color-positive-soft: #E9F6EF;
 
   --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
     "Inter", "Helvetica Neue", Arial, sans-serif;
