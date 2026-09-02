@@ -9,6 +9,12 @@ import { SEED_COLLECTED_DATE } from "@/lib/data/seed";
  * no separate list to keep in sync, so we can never advertise a URL that 404s
  * or a thin page we decided not to publish.
  */
+/**
+ * Prerendered at build time. Both builds already treat this as static; saying
+ * so explicitly is what lets `output: export` emit it as a plain file.
+ */
+export const dynamic = "force-static";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const store = await getStore();
   const [services, cities, zips] = await Promise.all([

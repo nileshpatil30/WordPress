@@ -7,9 +7,11 @@ import { roofingSteps } from "@/lib/engine/roofing/schema";
 import { EstimateResultView } from "@/components/estimate/EstimateView";
 import { Badge, Button, Card } from "@/components/ui";
 import { StepFields, type FieldOptions } from "@/components/calculator/Fields";
-import { sessionId, track } from "@/lib/analytics";
+import { track } from "@/lib/analytics";
 import { ShareButton } from "@/components/estimate/ShareButton";
 import { encodeShare } from "@/lib/share";
+import { estimateLocally } from "@/lib/engine/local";
+import { readInitialValuesFromLocation } from "@/lib/calculator-params";
 import { usd } from "@/lib/format";
 
 type Values = Record<string, unknown>;
@@ -21,6 +23,18 @@ const NUMERIC = new Set([
 
 const WIZARD_STEPS = roofingSteps.filter((s) => !s.advanced);
 const ADVANCED_STEPS = roofingSteps.filter((s) => s.advanced);
+
+/**
+ * Query-string prefill is read here rather than on the server.
+ *
+ * A page that awaits `searchParams` must render per request, which a static
+ * export cannot do. Reading the address bar on mount keeps `?zip=85018` links
+ * working while letting every page prerender to a file.
+ */
+function urlPrefill(): Values {
+  if (typeof window === "undefined") return {};
+  return readInitialValuesFromLocation();
+}
 
 export function RoofCalculator({
   materials, projectTypes, initialValues, autoStart = false,
@@ -39,9 +53,16 @@ export function RoofCalculator({
     warranty: "standard", includePermit: true, includeDisposal: true,
     skylights: 0, chimneys: 0, addons: [],
     ...initialValues,
+    // Explicit props win over the URL: a city page already knows its own ZIP.
+    ...(initialValues?.zip ? {} : urlPrefill()),
   }));
 
-  const [stepIndex, setStepIndex] = useState(autoStart ? WIZARD_STEPS.length : 0);
+  const [stepIndex, setStepIndex] = useState(() => {
+    if (autoStart) return WIZARD_STEPS.length;
+    // A shared or prefilled link should land on the result, not on step one.
+    const fromUrl = urlPrefill();
+    return /^\d{5}$/.test(String(fromUrl.zip ?? "")) ? WIZARD_STEPS.length : 0;
+  });
   const [estimate, setEstimate] = useState<EstimateResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -71,36 +92,37 @@ export function RoofCalculator({
 
   const zipValid = /^\d{5}$/.test(String(values.zip ?? ""));
 
-  const compute = useCallback(async (signal?: AbortSignal) => {
+  /**
+   * Priced in the browser, not on a server.
+   *
+   * The engine is pure computation over reference data that ships in the
+   * bundle, so there is no request to make, nothing to abort, and no network
+   * failure mode. It also means the whole site can be served as static files
+   * from a host with no Node runtime.
+   *
+   * The one thing given up is the demand logging the API route performs -
+   * which ZIPs people ask about. `/api/estimate` still does that wherever a
+   * server is available; the maths is identical on both paths.
+   */
+  const compute = useCallback(() => {
     if (!zipValid) return;
     setPending(true);
-    try {
-      const res = await fetch("/api/estimate", {
-        method: "POST", signal,
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          serviceSlug: "roofing", input: payload, sessionId: sessionId(),
-          path: typeof window !== "undefined" ? window.location.pathname : undefined,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error ?? "Could not calculate an estimate"); return; }
+    const result = estimateLocally(payload, "roofing");
+    if (result.ok) {
       setError(null);
-      setEstimate(data.estimate);
-    } catch (err) {
-      if ((err as Error)?.name !== "AbortError") setError("Network error - please try again.");
-    } finally {
-      setPending(false);
+      setEstimate(result.estimate);
+    } else {
+      setError(result.error);
     }
+    setPending(false);
   }, [payload, zipValid]);
 
-  // Live recalculation while the result is on screen. Debounced so typing in a
-  // number field does not fire a request per keystroke.
+  // Live recalculation while the result is on screen. Still debounced: the
+  // maths is fast but re-rendering the whole result panel per keystroke is not.
   useEffect(() => {
     if (!showingResult || !zipValid) return;
-    const ctrl = new AbortController();
-    const t = setTimeout(() => void compute(ctrl.signal), 220);
-    return () => { clearTimeout(t); ctrl.abort(); };
+    const t = setTimeout(compute, 220);
+    return () => clearTimeout(t);
   }, [showingResult, compute, zipValid]);
 
   useEffect(() => {
@@ -127,7 +149,7 @@ export function RoofCalculator({
     setStepIndex(next);
     if (next >= WIZARD_STEPS.length) {
       track("calculator_completed");
-      void compute();
+      compute();
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
     }
   }

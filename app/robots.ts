@@ -1,6 +1,12 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/seo";
 
+/**
+ * Prerendered at build time. Both builds already treat this as static; saying
+ * so explicitly is what lets `output: export` emit it as a plain file.
+ */
+export const dynamic = "force-static";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [

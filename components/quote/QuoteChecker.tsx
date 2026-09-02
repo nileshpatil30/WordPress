@@ -12,7 +12,8 @@ import { QuoteUpload } from "@/components/quote/QuoteUpload";
 import { QuestionsCard } from "@/components/quote/QuestionsCard";
 import { PriceRangeBar } from "@/components/estimate/EstimateView";
 import { Badge, Button, Callout, Card, Field, inputClass } from "@/components/ui";
-import { sessionId, track } from "@/lib/analytics";
+import { track } from "@/lib/analytics";
+import { checkQuoteLocally } from "@/lib/engine/local";
 import { ShareButton } from "@/components/estimate/ShareButton";
 import { encodeShare } from "@/lib/share";
 import { pct, usd } from "@/lib/format";
@@ -77,17 +78,19 @@ export function QuoteChecker({ materials, projectTypes, initialValues }: {
     if (!ready) return;
     setPending(true);
     try {
-      const res = await fetch("/api/quote-check", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          serviceSlug: "roofing", input: payload,
-          quotedPrice: Number(quotedPrice), sessionId: sessionId(),
-          extraction: extraction ?? undefined,
-        }),
+      // Checked in the browser. Same functions the API route calls, so the
+      // verdict is identical - it just needs no server, which is what lets the
+      // whole site be served as static files.
+      const local = checkQuoteLocally({
+        serviceSlug: "roofing", input: payload,
+        quotedPrice: Number(quotedPrice),
+        extraction: extraction ?? undefined,
       });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error ?? "Could not check this quote"); return; }
+      if (!local.ok) { setError(local.error); return; }
+      const data = {
+        estimate: local.estimate, assessment: local.assessment,
+        variance: local.variance, questions: local.questions,
+      };
       setError(null);
       setResult(data);
       track("quote_check_completed", {

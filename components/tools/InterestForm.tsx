@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { isStaticBuild } from "@/lib/deployment";
 import { Button, Callout, Card, Field, inputClass, selectClass } from "@/components/ui";
 import { track } from "@/lib/analytics";
 
@@ -12,6 +13,18 @@ import { track } from "@/lib/analytics";
  * returned by the API rather than a fake confirmation.
  */
 export function InterestForm() {
+  if (isStaticBuild) {
+    return (
+      <Callout tone="caution" title="Not available on this deployment">
+        This build of the site is served as static files, so there is nowhere to
+        securely store your details. Nothing you typed would be saved, and a form
+        that quietly discards what you enter is worse than no form. Contractor
+        matching is not live anywhere yet in any case.
+      </Callout>
+    );
+  }
+
+
   const [form, setForm] = useState({ contactName: "", email: "", phone: "", zip: "", timeline: "3-6 months" });
   const [consent, setConsent] = useState(false);
   const [state, setState] = useState<{ status: "idle" | "sending" | "done" | "error"; message?: string }>({ status: "idle" });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { isStaticBuild } from "@/lib/deployment";
 import { Badge, Button, Callout, Card } from "@/components/ui";
 import { sessionId, track } from "@/lib/analytics";
 import { usd } from "@/lib/format";
@@ -49,6 +50,19 @@ export function QuoteUpload({ zip, onExtracted }: {
   zip?: string;
   onExtracted: (e: Extraction) => void;
 }) {
+  if (isStaticBuild) {
+    return (
+      <Callout tone="caution" title="Upload is not available on this deployment">
+        Reading a quote PDF needs a server to hold the API key. On a static build
+        that key would ship to your browser, where anyone could read it — so the
+        feature is off rather than insecure. Enter your quote below by hand
+        instead; the checking, the questions and the comparison all work exactly
+        the same.
+      </Callout>
+    );
+  }
+
+
   const inputRef = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<"idle" | "reading" | "done" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);

@@ -20,8 +20,20 @@ const DEFAULT_TERMS: Term[] = [
  * we cannot honour would be worse than useless, and a finance referral dressed
  * up as a calculator is exactly the pattern this product exists to avoid.
  */
+/**
+ * `?amount=18500` is read from the address bar rather than passed from the
+ * server, so the page can prerender to a static file while links from an
+ * estimate still arrive with the right figure filled in.
+ */
+function amountFromUrl(): number | undefined {
+  if (typeof window === "undefined") return undefined;
+  const raw = new URLSearchParams(window.location.search).get("amount");
+  const n = Number(raw);
+  return raw && Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
 export function FinanceCalculator({ initialAmount }: { initialAmount?: number }) {
-  const [amount, setAmount] = useState(String(initialAmount ?? 18000));
+  const [amount, setAmount] = useState(() => String(initialAmount ?? amountFromUrl() ?? 18000));
   const [down, setDown] = useState("2000");
   const [terms, setTerms] = useState<Term[]>(DEFAULT_TERMS);
 

@@ -8,7 +8,8 @@ import { SCOPE_ITEMS } from "@/lib/engine/quote";
 import { roofingSteps } from "@/lib/engine/roofing/schema";
 import { StepFields } from "@/components/calculator/Fields";
 import { Badge, Button, Callout, Card, Field, inputClass } from "@/components/ui";
-import { sessionId, track } from "@/lib/analytics";
+import { track } from "@/lib/analytics";
+import { compareQuotesLocally } from "@/lib/engine/local";
 import { usd } from "@/lib/format";
 
 type Values = Record<string, unknown>;
@@ -87,20 +88,18 @@ export function QuoteCompare({ materials, projectTypes, initialValues }: {
     if (!ready) return;
     setPending(true);
     try {
-      const res = await fetch("/api/quote-compare", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          serviceSlug: "roofing", input: payload, sessionId: sessionId(),
-          quotes: priced.map((q) => ({
-            id: q.id, label: q.label, totalPrice: Number(q.totalPrice),
-            warrantyWorkmanshipYears: q.warrantyWorkmanshipYears ? Number(q.warrantyWorkmanshipYears) : undefined,
-            scope: q.scope, notes: q.notes || undefined,
-          })),
-        }),
+      // Compared in the browser, using the same comparison function the API
+      // route calls. No server needed, so this works on static hosting.
+      const local = compareQuotesLocally({
+        serviceSlug: "roofing", input: payload,
+        quotes: priced.map((q) => ({
+          id: q.id, label: q.label, totalPrice: Number(q.totalPrice),
+          warrantyWorkmanshipYears: q.warrantyWorkmanshipYears ? Number(q.warrantyWorkmanshipYears) : undefined,
+          scope: q.scope, notes: q.notes || undefined,
+        })),
       });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error ?? "Could not compare these quotes"); return; }
+      if (!local.ok) { setError(local.error); return; }
+      const data = { estimate: local.estimate, comparison: local.comparison };
       setError(null);
       setResult(data);
       track("quote_comparison_completed", { quoteCount: priced.length, spreadPct: data.comparison.spreadPct });

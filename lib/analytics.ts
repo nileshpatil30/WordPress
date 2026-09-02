@@ -1,6 +1,7 @@
 "use client";
 
 import type { EventName } from "./events";
+import { isStaticBuild } from "@/lib/deployment";
 
 /**
  * Minimal first-party analytics.
@@ -30,6 +31,11 @@ export function sessionId(): string {
 
 export function track(eventName: EventName, properties: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
+  // A static build has no /api/events to post to. Firing anyway would put a
+  // failed request in the console on every interaction and teach the developer
+  // to ignore red network entries. Google Analytics still records page views;
+  // what is lost is our own first-party funnel data, which needs a server.
+  if (isStaticBuild) return;
   const body = JSON.stringify({
     sessionId: sessionId(), eventName, properties, path: window.location.pathname,
   });

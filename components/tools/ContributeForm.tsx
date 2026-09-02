@@ -1,12 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import { isStaticBuild } from "@/lib/deployment";
 import type { Material } from "@/lib/types";
 import { CONSENT_TEXT } from "@/lib/consent";
 import { Button, Callout, Card, Field, inputClass, selectClass } from "@/components/ui";
 import { sessionId, track } from "@/lib/analytics";
 
 export function ContributeForm({ materials }: { materials: Material[] }) {
+  if (isStaticBuild) {
+    return (
+      <Callout tone="caution" title="Contributions are paused on this deployment">
+        This build is served as static files, so there is no database to write a
+        contributed project cost into. We would rather say that than accept your
+        figures and lose them.
+      </Callout>
+    );
+  }
+
+
   const [form, setForm] = useState<Record<string, string>>({
     zip: "", amountPaid: "", projectMonth: "", materialId: "", roofAreaSqft: "",
     stories: "1", quotesReceived: "", quotesReceivedLow: "", quotesReceivedHigh: "",

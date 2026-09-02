@@ -11,19 +11,16 @@ export const metadata = buildMetadata({
   path: "/roof-cost-calculator",
 });
 
-export default async function CalculatorPage({
-  searchParams,
-}: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const sp = await searchParams;
+export default async function CalculatorPage() {
   const store = await getStore();
   const service = await store.getServiceBySlug("roofing");
   const [materials, projectTypes] = await Promise.all([
     store.listMaterials(service!.id),
     store.listProjectTypes(service!.id),
   ]);
-
-  const initialValues = readInitialValues(sp);
-  const autoStart = typeof initialValues.zip === "string" && /^\d{5}$/.test(initialValues.zip);
+  // Prefill and auto-start are both decided in the browser from the address
+  // bar, so this page prerenders to a static file and `?zip=85018` still jumps
+  // straight to a result. See lib/calculator-params.ts.
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
@@ -46,8 +43,6 @@ export default async function CalculatorPage({
         <RoofCalculator
           materials={materials}
           projectTypes={projectTypes}
-          initialValues={initialValues}
-          autoStart={autoStart}
         />
       </div>
     </div>

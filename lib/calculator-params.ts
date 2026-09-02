@@ -35,3 +35,21 @@ export function readInitialValues(sp: Record<string, string | string[] | undefin
   }
   return out;
 }
+
+/**
+ * The same decode, but from the browser's own address bar.
+ *
+ * Reading query parameters on the server forces a page to render per request,
+ * which a static export cannot do. Doing it on the client instead means the
+ * page prerenders to a file and still honours `?zip=85018` links - the values
+ * are applied on mount rather than baked into the HTML.
+ *
+ * Returns nothing during server rendering, so callers get the empty prefill and
+ * fill it in once hydrated.
+ */
+export function readInitialValuesFromLocation(): Record<string, unknown> {
+  if (typeof window === "undefined") return {};
+  const sp: Record<string, string> = {};
+  new URLSearchParams(window.location.search).forEach((v, k) => { sp[k] = v; });
+  return readInitialValues(sp);
+}

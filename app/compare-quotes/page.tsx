@@ -11,10 +11,7 @@ export const metadata = buildMetadata({
   path: "/compare-quotes",
 });
 
-export default async function CompareQuotesPage({
-  searchParams,
-}: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const sp = await searchParams;
+export default async function CompareQuotesPage() {
   const store = await getStore();
   const service = await store.getServiceBySlug("roofing");
   const [materials, projectTypes] = await Promise.all([
@@ -42,7 +39,7 @@ export default async function CompareQuotesPage({
         <QuoteCompare
           materials={materials}
           projectTypes={projectTypes}
-          initialValues={readInitialValues(sp)}
+          initialValues={{}}
         />
       </div>
     </div>

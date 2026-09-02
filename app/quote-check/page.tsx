@@ -26,10 +26,7 @@ const FAQS = [
   },
 ];
 
-export default async function QuoteCheckPage({
-  searchParams,
-}: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const sp = await searchParams;
+export default async function QuoteCheckPage() {
   const store = await getStore();
   const service = await store.getServiceBySlug("roofing");
   const [materials, projectTypes] = await Promise.all([
@@ -59,7 +56,7 @@ export default async function QuoteCheckPage({
         <QuoteChecker
           materials={materials}
           projectTypes={projectTypes}
-          initialValues={readInitialValues(sp)}
+          initialValues={{}}
         />
       </div>
 

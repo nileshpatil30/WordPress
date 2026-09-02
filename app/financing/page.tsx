@@ -9,12 +9,7 @@ export const metadata = buildMetadata({
   path: "/financing",
 });
 
-export default async function FinancingPage({
-  searchParams,
-}: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const sp = await searchParams;
-  const raw = Array.isArray(sp.amount) ? sp.amount[0] : sp.amount;
-  const initialAmount = raw && Number.isFinite(Number(raw)) ? Number(raw) : undefined;
+export default async function FinancingPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-10 sm:py-14">
@@ -31,7 +26,7 @@ export default async function FinancingPage({
       </div>
 
       <div className="mt-9">
-        <FinanceCalculator initialAmount={initialAmount} />
+        <FinanceCalculator  />
       </div>
 
       <Card className="mt-8 p-6">
