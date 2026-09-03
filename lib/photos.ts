@@ -40,3 +40,9 @@ export const dataIllustration = (): string | null =>
 /** How many of the given slugs have a photo. Used to hide an empty gallery. */
 export const countPhotos = (slugs: string[]): number =>
   slugs.filter((s) => materialPhoto(s) !== null).length;
+
+/** A photograph of one stage of the work, or null when we have none. */
+export function processPhoto(slug: string): string | null {
+  const rel = `process/${slug}.webp`;
+  return exists(rel) ? `/${rel}` : null;
+}

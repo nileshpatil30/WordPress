@@ -1,5 +1,6 @@
 import { QuestionChecklist, type QuestionGroup } from "@/components/tools/QuestionChecklist";
 import { buildMetadata, JsonLd, faqJsonLd } from "@/lib/seo";
+import { processPhoto } from "@/lib/photos";
 
 export const metadata = buildMetadata({
   title: "Questions to ask a roofing contractor before you sign",
@@ -75,6 +76,21 @@ const FAQS = [
   { q: "What is the single most useful question on this list?", a: "The decking one. Deck condition is unknown until tear-off, and a stated allowance plus a stated per-sheet price converts the most common source of mid-job disputes into a predictable number." },
 ];
 
+/**
+ * The four stages the scope questions are actually about.
+ *
+ * A homeowner ticking "is full tear-off included?" has usually never seen a
+ * tear-off. The decking one earns its place most: question s3 is the single
+ * question that resolves the most disputes, and a photograph of a rotted deck
+ * explains in one glance why an allowance matters.
+ */
+const STAGES: { slug: string; title: string; body: string }[] = [
+  { slug: "tear-off", title: "Tear-off", body: "Stripping the old covering to bare deck. Two layers roughly doubles the labour and the disposal tonnage." },
+  { slug: "decking-rot", title: "Deck condition", body: "Nobody knows what is under the old roof until it is off. This is what an allowance and a per-sheet price protect you from." },
+  { slug: "underlayment", title: "Underlayment", body: "Goes down over the bare deck before the covering. Synthetic or felt is a line item worth naming in the contract." },
+  { slug: "ridge-vent", title: "Ventilation", body: "A ridge vent runs the length of the peak under the cap shingles. Often quoted vaguely, and it affects how long the roof lasts." },
+];
+
 export default function ContractorQuestionsPage() {
   return (
     <div className="mx-auto max-w-4xl px-5 py-10 sm:py-14">
@@ -93,7 +109,28 @@ export default function ContractorQuestionsPage() {
         </p>
       </div>
 
-      <div className="mt-9">
+      <section className="mt-10">
+        <h2 className="text-[15px] font-semibold text-ink">What the scope questions are about</h2>
+        <ul className="scroll-x mt-4 flex gap-3 md:grid md:grid-cols-4">
+          {STAGES.filter((st) => processPhoto(st.slug)).map((st) => (
+            <li key={st.slug} className="w-[240px] shrink-0 md:w-auto">
+              <figure className="h-full overflow-hidden rounded-xl border border-line bg-surface">
+                <img
+                  src={processPhoto(st.slug)!} alt={st.title} width={640} height={480}
+                  loading="lazy" decoding="async"
+                  className="w-full object-cover" style={{ aspectRatio: "4 / 3" }}
+                />
+                <figcaption className="px-4 py-3">
+                  <span className="block text-[14px] font-semibold text-ink">{st.title}</span>
+                  <span className="mt-1 block text-[12.5px] leading-relaxed text-muted">{st.body}</span>
+                </figcaption>
+              </figure>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div className="mt-10">
         <QuestionChecklist groups={GROUPS} />
       </div>
 
