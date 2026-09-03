@@ -1,0 +1,11 @@
+import { chromium } from "playwright-core";
+const [,, url, out, y, w, h] = process.argv;
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });
+const p = await b.newPage({ viewport: { width: Number(w), height: Number(h) }, deviceScaleFactor: 2 });
+await p.goto(url, { waitUntil: "networkidle" });
+await p.evaluate(async () => { await new Promise(r => { let y=0; const s=()=>{window.scrollBy(0,900); y+=900;
+  if (y < document.body.scrollHeight) setTimeout(s,80); else {window.scrollTo(0,0); setTimeout(r,300);} }; s(); }); });
+if (y) await p.evaluate((v) => window.scrollTo(0, Number(v)), y);
+await p.waitForTimeout(500);
+await p.screenshot({ path: out });
+await b.close();

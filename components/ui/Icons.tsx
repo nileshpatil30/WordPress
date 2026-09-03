@@ -135,3 +135,62 @@ export const IconSliders = (p: IconProps) => (
     <path d="M2.75 14h4.5M9.75 8h4.5M16.75 13.75h4.5" />
   </Svg>
 );
+
+// -- Service roadmap ---------------------------------------------------------
+// One glyph per vertical. Roofing is live; the rest are planned, and showing
+// them as real icons rather than text badges is the quiet claim that this is a
+// home-project cost platform that happens to start with roofs.
+
+export const IconRoofing = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M2.75 11.5 12 4l9.25 7.5" />
+    <path d="M5.5 10.2V20.25h13V10.2" />
+    <path d="M9.5 20.25v-5.5h5v5.5" />
+  </Svg>
+);
+
+export const IconSolar = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="2.75" y="6.5" width="18.5" height="11" rx="1.5" />
+    <path d="M2.75 12h18.5M8.9 6.5 7.4 17.5M15.1 6.5l1.5 11" />
+    <path d="M12 3.75V2.5M12 21.5v-1.25" />
+  </Svg>
+);
+
+export const IconHvac = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="2.75" y="4.75" width="18.5" height="10" rx="2" />
+    <path d="M6.25 8.25h11.5M6.25 11.25h11.5" />
+    <path d="M8 17.5v1.4M12 17.5v2.6M16 17.5v1.4" />
+  </Svg>
+);
+
+export const IconWindows = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3.75" y="3.25" width="16.5" height="17.5" rx="1.5" />
+    <path d="M12 3.25v17.5M3.75 12h16.5" />
+  </Svg>
+);
+
+export const IconSiding = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="2.75" y="4.5" width="18.5" height="15" rx="1.5" />
+    <path d="M2.75 9.5h18.5M2.75 14.5h18.5" />
+  </Svg>
+);
+
+export const IconKitchen = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3.25" y="3.75" width="17.5" height="16.5" rx="2" />
+    <path d="M3.25 10.5h17.5" />
+    <path d="M8 6.5h.01M8 14.5v2.5M14 14.5v2.5" />
+  </Svg>
+);
+
+export const IconBathroom = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3.25 12.5h17.5v1.75a5 5 0 0 1-5 5H8.25a5 5 0 0 1-5-5z" />
+    <path d="M6.5 12.5V5.75a2 2 0 0 1 4 0v.75" />
+    <path d="M7 19.25 6 21.5M17 19.25l1 2.25" />
+  </Svg>
+);

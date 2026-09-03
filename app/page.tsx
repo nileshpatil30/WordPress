@@ -3,9 +3,14 @@ import { getStore } from "@/lib/data/store";
 import { isError, runEstimate } from "@/lib/api";
 import { Badge, ButtonLink, Card, DataNotice, SectionHeading } from "@/components/ui";
 import {
-  IconCalculator, IconClipboard, IconLock, IconMagnifier, IconMailOff, IconPhoneOff,
-  IconPin, IconScales, IconShieldCheck, IconSliders, IconTrendUp, IconUpload, IconUsers,
+  IconBathroom, IconCalculator, IconClipboard, IconHvac, IconKitchen, IconLock,
+  IconMagnifier, IconMailOff, IconPhoneOff, IconPin, IconRoofing, IconScales,
+  IconShieldCheck, IconSiding, IconSliders, IconSolar, IconTrendUp, IconUpload,
+  IconUsers, IconWindows,
 } from "@/components/ui/Icons";
+import { MaterialPhoto } from "@/components/site/MaterialPhoto";
+import { materialPhoto } from "@/lib/photos";
+import { assessQuote } from "@/lib/engine/quote";
 import { PriceRangeBar } from "@/components/estimate/EstimateView";
 import { usd } from "@/lib/format";
 import { buildMetadata, JsonLd, SITE_NAME, siteUrl } from "@/lib/seo";
@@ -42,6 +47,15 @@ export default async function HomePage() {
   const hero = heroPhoto();
   const illustration = dataIllustration();
 
+
+  // Two quotes against the hero estimate, scored by the same function the
+  // quote checker uses. Illustrative prices, real verdicts - a hand-written
+  // "Fair" badge would be a picture of the product rather than the product.
+  const quoteDemo = sample && {
+    a: { price: Math.round((sample.range.typical * 0.97) / 50) * 50, ...assessQuote(Math.round((sample.range.typical * 0.97) / 50) * 50, sample) },
+    b: { price: Math.round((sample.range.high * 1.04) / 50) * 50, ...assessQuote(Math.round((sample.range.high * 1.04) / 50) * 50, sample) },
+  };
+
   // Real ranges on the city cards. A card that shows a number a reader can act
   // on is worth more than one that says "local cost factors", and these come
   // from the same engine as every other price on the site.
@@ -49,6 +63,7 @@ export default async function HomePage() {
     store.listStates(),
     store.listMaterials((await store.getServiceBySlug("roofing"))!.id),
   ]);
+  const materialTiles = allMaterials.filter((m) => materialPhoto(m.slug));
   const cityCards = (await Promise.all(cities.map(async (c) => {
     const zips = await store.listZipCodes({ cityId: c.id });
     const zip = zips[0]?.code;
@@ -197,6 +212,30 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* -------------------------- Materials -------------------------- */}
+      {/* Directly under the hero because it answers the question a homeowner
+          has before they have a budget: what are my options and what do they
+          even look like. The photographs were previously only on a secondary
+          page. */}
+      {materialTiles.length > 0 && (
+        <section className="border-b border-line bg-surface">
+          <ul className="scroll-x flex gap-px bg-line">
+            {materialTiles.map((m) => (
+              <li key={m.id} className="relative w-[220px] shrink-0 sm:w-[16.6%] sm:min-w-[190px]">
+                <Link href="/roofing-cost" className="group block">
+                  <MaterialPhoto src={materialPhoto(m.slug)} name={m.name} className="w-full" />
+                  <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/85 via-ink/45 to-transparent px-3 pb-3 pt-8">
+                    <span className="block text-[12.5px] font-semibold leading-snug text-white">
+                      {m.name}
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* ------------------------- How it works ------------------------- */}
       <section className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
         <SectionHeading eyebrow="How it works" title="Five simple steps to a smarter decision" />
@@ -208,8 +247,14 @@ export default async function HomePage() {
             { n: "04", Icon: IconScales, label: "Compare", body: "Compare multiple quotes on scope, price and value.", href: "/compare-quotes" },
             { n: "05", Icon: IconUsers, label: "Hire", body: "Request local roofing quotes when you're ready.", href: "/hire" },
           ].map(({ n, Icon, label, body, href }) => (
-            <li key={n} className="min-w-[13rem] flex-1">
-              <Link href={href} className="group block">
+            <li key={n} className="relative min-w-[13rem] flex-1">
+              {/* Connector, drawn between tiles rather than after the last. */}
+              {n !== "05" && (
+                <span aria-hidden className="absolute left-[3.6rem] top-6 hidden h-px w-[calc(100%-3.6rem)] bg-line md:block">
+                  <span className="absolute right-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rotate-45 border-r border-t border-line-strong" />
+                </span>
+              )}
+              <Link href={href} className="group relative block">
                 <span className="grid h-12 w-12 place-items-center rounded-xl border border-accent-line bg-accent-soft text-accent transition-colors group-hover:bg-accent group-hover:text-white">
                   <Icon size={22} />
                 </span>
@@ -252,6 +297,85 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ------------------------ Quote comparison ------------------------ */}
+      {/* The clearest possible statement of what this site is for: the same
+          roof, two prices, and the reason they differ. The verdicts come from
+          assessQuote - the same function the quote checker runs - so this is
+          the product working, not a picture of it. */}
+      {quoteDemo && (
+        <section className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
+          <SectionHeading
+            eyebrow="Compare properly"
+            title="Two quotes for the same roof"
+            description="The cheaper quote is not automatically the better one. We compare what each includes and price back in what it leaves out, so the difference stops being a mystery."
+          />
+          <div className="mt-9 grid gap-4 lg:grid-cols-[1fr_1fr_0.9fr]">
+            {([
+              { label: "Contractor A", q: quoteDemo.a, scope: [
+                ["Tear-off and disposal", true], ["New underlayment", true],
+                ["Lifetime material warranty", true], ["Ridge vent", true],
+                ["Decking allowance", false],
+              ] },
+              { label: "Contractor B", q: quoteDemo.b, scope: [
+                ["Tear-off and disposal", true], ["New underlayment", true],
+                ["Lifetime material warranty", true], ["Ridge vent", true],
+                ["Decking allowance", true],
+              ] },
+            ] as const).map(({ label, q, scope }) => {
+              const high = q.verdict === "above" || q.verdict === "well-above";
+              return (
+                <Card key={label} className="p-6">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[13.5px] font-semibold text-muted">{label}</p>
+                    <Badge tone={high ? "caution" : "positive"}>
+                      {high ? "Above range" : "Within range"}
+                    </Badge>
+                  </div>
+                  <p className="display mt-2 text-[30px] font-semibold text-ink">{usd(q.price)}</p>
+                  <p className="mt-1 text-[12.5px] text-faint">
+                    {q.deltaVsTypicalPct > 0 ? "+" : ""}{q.deltaVsTypicalPct}% against our typical figure
+                  </p>
+                  <ul className="mt-4 space-y-2 border-t border-line pt-4">
+                    {scope.map(([item, included]) => (
+                      <li key={item} className="flex items-start gap-2 text-[13.5px]">
+                        <span className={`mt-[3px] shrink-0 ${included ? "text-accent" : "text-caution"}`}>
+                          {included ? <TickIcon /> : <PlusIcon />}
+                        </span>
+                        <span className={included ? "text-ink-soft" : "text-caution"}>
+                          {item}{included ? "" : " — not stated"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              );
+            })}
+
+            <Card className="flex flex-col justify-center bg-sunken/60 p-6">
+              <p className="text-[15px] font-semibold text-ink">
+                So which one is actually cheaper?
+              </p>
+              <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
+                A is {usd(quoteDemo.b.price - quoteDemo.a.price)} less and says
+                nothing about the decking. If the deck needs work that becomes a
+                change order after the tear-off, when you have no leverage. B
+                includes an allowance &mdash; but an allowance is worth perhaps
+                two thousand on a roof this size, so it explains part of the gap,
+                not all of it. The rest is a question for B.
+              </p>
+              <p className="mt-3 text-[12.5px] leading-relaxed text-faint">
+                Scope shown is illustrative. The prices and verdicts are computed
+                by the same engine as the rest of the site, against the estimate
+                at the top of this page.
+              </p>
+              <ButtonLink href="/compare-quotes" variant="secondary" size="sm" className="mt-5 self-start">
+                Compare your own quotes
+              </ButtonLink>
+            </Card>
+          </div>
+        </section>
+      )}
 
       {/* ---------------------------- Cities ---------------------------- */}
       <section className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
@@ -411,10 +535,28 @@ export default async function HomePage() {
             title="Roofing first, done properly"
             description="Launching twenty categories at once produces twenty shallow ones. Each new service arrives as a data set plus one engine module, so the calculator, quote tools and local pages work for it on day one."
           />
-          <div className="mt-8 flex flex-wrap gap-2">
-            <Badge tone="accent">Roofing · live</Badge>
-            {planned.map((s) => <Badge key={s.id}>{s.shortName} · planned</Badge>)}
-          </div>
+          <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+            {[{ id: "live-roofing", shortName: "Roofing", live: true }, ...planned.map((p) => ({ ...p, live: false }))]
+              .map((svc) => {
+                const Icon = SERVICE_ICON[svc.shortName] ?? IconRoofing;
+                return (
+                  <li
+                    key={svc.id}
+                    className={`rounded-xl border px-3 py-4 text-center ${
+                      svc.live ? "border-accent-line bg-accent-soft" : "border-line bg-surface"}`}
+                  >
+                    <span className={`inline-flex ${svc.live ? "text-accent" : "text-faint"}`}>
+                      <Icon size={24} />
+                    </span>
+                    <span className="mt-2 block text-[13.5px] font-semibold text-ink">{svc.shortName}</span>
+                    <span className={`mt-1 block text-[10.5px] font-semibold uppercase tracking-[0.1em] ${
+                      svc.live ? "text-accent" : "text-faint"}`}>
+                      {svc.live ? "Live" : "Planned"}
+                    </span>
+                  </li>
+                );
+              })}
+          </ul>
         </div>
       </section>
     </>
@@ -442,6 +584,30 @@ function FeatureCard({ href, Icon, title, body, cta, highlight = false }: {
         {cta} &rarr;
       </Link>
     </Card>
+  );
+}
+
+const SERVICE_ICON: Record<string, (p: { size?: number }) => React.ReactElement> = {
+  Roofing: IconRoofing, Solar: IconSolar, HVAC: IconHvac, Windows: IconWindows,
+  Siding: IconSiding, Kitchen: IconKitchen, Bathroom: IconBathroom,
+};
+
+function TickIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="m3 8.4 3.1 3.1L13 4.6" stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Not a cross: a missing line item is an open question, not a failure. */
+function PlusIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M8 4.8v6.4M4.8 8h6.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
   );
 }
 
