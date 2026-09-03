@@ -9,6 +9,7 @@ import {
 import { PriceRangeBar } from "@/components/estimate/EstimateView";
 import { usd } from "@/lib/format";
 import { buildMetadata, JsonLd, SITE_NAME, siteUrl } from "@/lib/seo";
+import { dataIllustration, heroPhoto } from "@/lib/photos";
 
 export const metadata = buildMetadata({
   // The root layout's title template does not apply to its own segment,
@@ -18,16 +19,6 @@ export const metadata = buildMetadata({
     "Independent roof replacement cost estimates by ZIP code, with a full cost breakdown, a confidence score, a contractor quote check and side-by-side quote comparison. No phone number required.",
   path: "/",
 });
-
-/**
- * Optional hero photograph.
- *
- * Drop the file in public/ and put its path here. Left null on purpose until
- * there is one: an empty slot is better than a placeholder, and the estimate
- * card carries the hero on its own because it is a real server-computed number
- * rather than a picture of a house.
- */
-const HERO_ART: string | null = null;
 
 export default async function HomePage() {
   const store = await getStore();
@@ -48,6 +39,8 @@ export default async function HomePage() {
   });
   const sample = isError(demo) ? null : demo.estimate;
   const planned = services.filter((s) => s.status === "planned");
+  const hero = heroPhoto();
+  const illustration = dataIllustration();
 
   // Real ranges on the city cards. A card that shows a number a reader can act
   // on is worth more than one that says "local cost factors", and these come
@@ -140,14 +133,20 @@ export default async function HomePage() {
 
           {sample && (
             <div className="relative">
-              {HERO_ART && (
-                // Decorative only: the estimate card is the evidence.
+              {hero && (
+                // Decorative. The estimate card below is the evidence, so the
+                // photograph is cropped short and hidden on small screens where
+                // the number matters more than the mood.
                 <img
-                  src={HERO_ART} alt="" aria-hidden
-                  className="pointer-events-none absolute -left-6 top-1/2 hidden w-[62%] -translate-y-1/2 select-none lg:block"
+                  src={hero} alt="" aria-hidden width={1448} height={1086}
+                  fetchPriority="high" decoding="async"
+                  className="hidden h-[220px] w-full select-none rounded-2xl object-cover object-[50%_38%] lg:block"
                 />
               )}
-              <Card className="relative overflow-hidden shadow-[0_2px_4px_rgba(16,42,67,0.04),0_18px_50px_-16px_rgba(16,42,67,0.18)]">
+              <Card
+                className={`relative overflow-hidden shadow-[0_2px_4px_rgba(16,42,67,0.04),0_18px_50px_-16px_rgba(16,42,67,0.18)] ${
+                  hero ? "lg:-mt-10 lg:w-[94%]" : ""}`}
+              >
                 <div className="border-b border-line px-6 py-4">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-faint">
@@ -338,7 +337,15 @@ export default async function HomePage() {
 
             <div className="space-y-4">
               <DataNotice />
-              <Card className="p-6">
+              <Card className="overflow-hidden">
+                {illustration && (
+                  <img
+                    src={illustration} alt="" aria-hidden width={800} height={600}
+                    loading="lazy" decoding="async"
+                    className="h-32 w-full border-b border-line bg-white object-contain p-4"
+                  />
+                )}
+                <div className="p-6">
                 <span className="grid h-10 w-10 place-items-center rounded-lg bg-accent-soft text-accent">
                   <IconTrendUp size={20} />
                 </span>
@@ -353,6 +360,7 @@ export default async function HomePage() {
                 <Link href="/data-sources" className="mt-4 inline-block text-[13.5px] font-semibold text-accent hover:underline">
                   Learn about our data &rarr;
                 </Link>
+                </div>
               </Card>
             </div>
           </div>

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getStore } from "@/lib/data/store";
 import { buildLocalScenarios } from "@/lib/local-estimates";
 import { Badge, ButtonLink, Card, DataNotice, SectionHeading } from "@/components/ui";
+import { MaterialPhoto } from "@/components/site/MaterialPhoto";
+import { materialPhoto, materialThumb } from "@/lib/photos";
 import { QuoteCheckCta } from "@/components/site/QuoteCheckCta";
 import { usd } from "@/lib/format";
 import { breadcrumbJsonLd, buildMetadata, JsonLd } from "@/lib/seo";
@@ -113,7 +115,35 @@ export default async function ServiceHubPage({
                 title="What the material choice actually costs you"
                 description="Same 2,000 sq ft roof, same everything else. Service life matters as much as price: the cheapest roof per dollar is rarely the cheapest per year."
               />
-              <div className="scroll-x mt-7">
+              {/* A homeowner choosing between "architectural asphalt" and
+                  "standing seam" is choosing between two things they have
+                  probably never looked at closely. The gallery is the one place
+                  on this site where a photograph carries information the text
+                  cannot. */}
+              <ul className="scroll-x mt-7 flex gap-3">
+                {/* The whole catalogue, not just the four in the national
+                    comparison below - someone scanning for "what does standing
+                    seam even look like" wants every option, and the strip
+                    scrolls. */}
+                {materials
+                  .filter((material) => materialPhoto(material.slug))
+                  .map((material) => (
+                    <li key={material.id} className="w-[210px] shrink-0">
+                      <figure className="overflow-hidden rounded-xl border border-line bg-surface">
+                        <MaterialPhoto
+                          src={materialPhoto(material.slug)}
+                          name={material.name}
+                          className="w-full"
+                        />
+                        <figcaption className="px-3 py-2.5 text-[13px] font-semibold leading-snug text-ink">
+                          {material.name}
+                        </figcaption>
+                      </figure>
+                    </li>
+                  ))}
+              </ul>
+
+              <div className="scroll-x mt-6">
                 <table className="w-full min-w-[640px] border-collapse text-left">
                   <thead>
                     <tr className="border-b border-line-strong text-[11px] uppercase tracking-[0.08em] text-faint">
@@ -130,9 +160,19 @@ export default async function ServiceHubPage({
                       return (
                         <tr key={material.id} className="border-b border-line align-top">
                           <td className="py-3 pr-4">
-                            <span className="text-[14.5px] font-medium text-ink">{material.name}</span>
-                            <span className="mt-0.5 block max-w-md text-[12.5px] leading-snug text-faint">
-                              {material.notes}
+                            <span className="flex items-start gap-3">
+                              <MaterialPhoto
+                                src={materialThumb(material.slug)}
+                                name={material.name}
+                                size="thumb"
+                                className="mt-0.5 w-14 rounded-md"
+                              />
+                              <span>
+                                <span className="block text-[14.5px] font-medium text-ink">{material.name}</span>
+                                <span className="mt-0.5 block max-w-md text-[12.5px] leading-snug text-faint">
+                                  {material.notes}
+                                </span>
+                              </span>
                             </span>
                           </td>
                           <td className="py-3 pr-4 text-right text-[14px] tnum text-ink">
