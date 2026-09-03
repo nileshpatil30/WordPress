@@ -9,6 +9,7 @@ import {
 } from "@/lib/geometry";
 import { Badge, Button, Card, Field, inputClass, selectClass } from "@/components/ui";
 import { num } from "@/lib/format";
+import { PitchDiagram, RoofShape, type RoofShapeKind } from "./RoofDiagrams";
 
 type Mode = "area" | "squares" | "pitch" | "shingles";
 
@@ -20,6 +21,9 @@ const MODES: { id: Mode; label: string; blurb: string }[] = [
 ];
 
 const PITCHES = Array.from({ length: 17 }, (_, i) => i);
+
+/** Parallel to WASTE_GUIDANCE, which runs simplest to most cut-up. */
+const SHAPE_ORDER: RoofShapeKind[] = ["simple", "moderate", "complex", "very-complex"];
 
 /**
  * Four geometry tools behind one page.
@@ -157,6 +161,23 @@ export function RoofGeometry() {
               ]}
               note={PITCH_BAND_NOTE[band]}
             />
+            <div className="mt-6 flex flex-col items-center gap-5 rounded-xl border border-line bg-surface p-5 sm:flex-row sm:items-center">
+              <PitchDiagram
+                risePer12={riseN}
+                multiplier={pitchMultiplier(riseN)}
+                angle={pitchAngleDegrees(riseN)}
+              />
+              <p className="text-[13.5px] leading-relaxed text-muted">
+                The green line is the roof surface &mdash; the part you pay to
+                cover. The flat line beneath it is the ground it sits over. They
+                are never the same length, which is why a {riseN}:12 roof needs{" "}
+                <span className="font-semibold text-ink">
+                  {Math.round((pitchMultiplier(riseN) - 1) * 100)}% more material
+                </span>{" "}
+                than its footprint suggests.
+              </p>
+            </div>
+
             <p className="mt-4 rounded-lg bg-sunken px-4 py-3 text-[13px] leading-relaxed text-muted">
               The multiplier is exact geometry, not an estimate:{" "}
               <span className="font-mono text-[12.5px] text-ink">√(1 + (rise ÷ 12)²)</span>.
@@ -173,12 +194,32 @@ export function RoofGeometry() {
                 <input className={inputClass} inputMode="decimal" value={shingleSquares}
                   onChange={(e) => setShingleSquares(e.target.value)} />
               </Field>
-              <Field label="Waste factor (%)" hint="How cut-up the roofline is">
-                <select className={selectClass} value={waste} onChange={(e) => setWaste(e.target.value)}>
-                  {WASTE_GUIDANCE.map((w) => (
-                    <option key={w.pct} value={w.pct}>{w.label} — {w.pct}%</option>
-                  ))}
-                </select>
+              <Field label="Waste factor (%)" hint="Pick the roofline that looks like yours">
+                <input type="hidden" value={waste} readOnly />
+                {/* Shapes rather than a dropdown: complexity is the input people
+                    guess at most, and it drives the waste factor. Looking down
+                    at four outlines and picking the match is a recognition task;
+                    choosing between the words "moderate" and "complex" is not. */}
+                <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Waste factor">
+                  {WASTE_GUIDANCE.map((w, i) => {
+                    const active = Number(waste) === w.pct;
+                    return (
+                      <button
+                        key={w.pct} type="button" role="radio" aria-checked={active}
+                        onClick={() => setWaste(String(w.pct))}
+                        className={`rounded-lg border p-2 text-center transition-colors ${
+                          active ? "border-accent bg-accent-soft" : "border-line bg-surface hover:border-line-strong"}`}
+                      >
+                        <RoofShape kind={SHAPE_ORDER[i]} />
+                        <span className={`mt-1.5 block text-[11px] font-semibold leading-tight ${
+                          active ? "text-accent" : "text-muted"}`}>
+                          {w.label}
+                        </span>
+                        <span className="block text-[11px] tnum text-faint">{w.pct}%</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </Field>
             </div>
             <Result

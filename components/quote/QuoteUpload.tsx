@@ -46,23 +46,42 @@ const SCOPE_LABEL: Record<string, string> = {
  * also where the first-party data comes from, as a byproduct of the tool being
  * useful rather than as a favour we ask for.
  */
-export function QuoteUpload({ zip, onExtracted }: {
+export function QuoteUpload(props: { zip?: string; onExtracted: (e: Extraction) => void }) {
+  // Branching here, before any hook, so the form below can use hooks
+  // unconditionally. `isStaticBuild` never changes at runtime, but an early
+  // return above a useState is still a rules-of-hooks violation waiting to be
+  // enforced.
+  return isStaticBuild ? <ManualOnlyNotice /> : <QuoteUploadForm {...props} />;
+}
+
+/**
+ * Shown when the build has no server to hold the API key.
+ *
+ * Deliberately not an amber warning titled "Upload is not available". That
+ * framed our hosting choice as the homeowner's problem and made the page look
+ * broken before they had used it - nothing here is broken, and every part of
+ * the check works. So: lead with what to do, and demote the reason to the
+ * footnote it deserves.
+ */
+function ManualOnlyNotice() {
+  return (
+    <Callout title="Enter your quote below">
+      Type the contractor&rsquo;s total and describe the project. The comparison,
+      the confidence score and the questions to ask all work exactly the same
+      &mdash; reading the PDF only ever saved you the typing.
+      <span className="mt-2 block text-[12.5px] text-faint">
+        PDF reading needs a server to hold an API key. This build is static
+        files, where that key would ship to your browser for anyone to read, so
+        the feature is off rather than insecure.
+      </span>
+    </Callout>
+  );
+}
+
+function QuoteUploadForm({ zip, onExtracted }: {
   zip?: string;
   onExtracted: (e: Extraction) => void;
 }) {
-  if (isStaticBuild) {
-    return (
-      <Callout tone="caution" title="Upload is not available on this deployment">
-        Reading a quote PDF needs a server to hold the API key. On a static build
-        that key would ship to your browser, where anyone could read it — so the
-        feature is off rather than insecure. Enter your quote below by hand
-        instead; the checking, the questions and the comparison all work exactly
-        the same.
-      </Callout>
-    );
-  }
-
-
   const inputRef = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<"idle" | "reading" | "done" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
