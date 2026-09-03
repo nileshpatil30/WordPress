@@ -155,12 +155,14 @@ export default async function HomePage() {
                 <img
                   src={hero} alt="" aria-hidden width={1448} height={1086}
                   fetchPriority="high" decoding="async"
-                  className="hidden h-[220px] w-full select-none rounded-2xl object-cover object-[50%_38%] lg:block"
+                  className="hidden aspect-[16/10] w-full select-none rounded-2xl object-cover object-[50%_42%] lg:block"
                 />
               )}
               <Card
+                // Overlaps the photograph's bottom edge only. The first version
+                // used a 220px band and swallowed the house almost entirely.
                 className={`relative overflow-hidden shadow-[0_2px_4px_rgba(16,42,67,0.04),0_18px_50px_-16px_rgba(16,42,67,0.18)] ${
-                  hero ? "lg:-mt-10 lg:w-[94%]" : ""}`}
+                  hero ? "lg:-mt-14 lg:ml-auto lg:w-[93%]" : ""}`}
               >
                 <div className="border-b border-line px-6 py-4">
                   <div className="flex items-center justify-between gap-3">

@@ -48,8 +48,15 @@ export function buildMetadata(opts: {
     openGraph: {
       title: opts.title, description: opts.description, url,
       siteName: SITE_NAME, type: "website",
+      // Without this, every share on WhatsApp, Slack, LinkedIn and iMessage
+      // renders as a bare text card - and declaring summary_large_image with
+      // no image to fill it is worse than declaring nothing.
+      images: [{ url: siteUrl("/og-image.png"), width: 1200, height: 630, alt: SITE_NAME }],
     },
-    twitter: { card: "summary_large_image", title: opts.title, description: opts.description },
+    twitter: {
+      card: "summary_large_image", title: opts.title, description: opts.description,
+      images: [siteUrl("/og-image.png")],
+    },
   };
 }
 
