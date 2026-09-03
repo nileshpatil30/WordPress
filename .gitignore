@@ -16,3 +16,11 @@ next-env.d.ts
 /.data/
 coverage/
 .static-build/
+
+# Throwaway tooling written at the repo root so it can resolve node_modules -
+# screenshot drivers, overflow checks, one-off probes. `git add -A` will
+# otherwise sweep these into a commit, which is how .shot.mjs got in once.
+/.shot.mjs
+/.overflow.mjs
+/.smoke*.mjs
+
