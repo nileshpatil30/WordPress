@@ -55,13 +55,44 @@ describe("index escalation", () => {
     expect(escalate(record())).toBeNull();
   });
 
-  it("is inert on the dataset we actually ship today", () => {
-    // Until a real BLS series is ingested, nothing in the product moves. This
-    // test is what makes the feature safe to ship ahead of the data.
+  it("ships a real, usable index rather than a placeholder", () => {
+    // This assertion used to read "is inert on the dataset we ship", and it
+    // passed because the only series was a sample. A real BLS series is
+    // ingested now, so the same expectation would still pass - for an entirely
+    // different reason - and would quietly stop guarding anything. What matters
+    // now is that the series is real and wired in.
+    const series = seedDataset.priceIndexSeries;
+    expect(series).toHaveLength(1);
+    expect(series[0].dataStatus).not.toBe("sample");
+    expect(series[0].appliesTo).toContain("material");
+    expect(seedDataset.priceIndexPoints.length).toBeGreaterThan(12);
+  });
+
+  it("moves a material price anchored before the latest index reading", () => {
+    // The wiring proof. Every shipped anchor currently postdates the index, so
+    // nothing escalates in practice - but that is the forward-only rule, not a
+    // broken connection, and this distinguishes the two.
     const escalate = buildEscalator({
       series: seedDataset.priceIndexSeries, points: seedDataset.priceIndexPoints,
     });
-    for (const r of seedDataset.pricingRecords) expect(escalate(r)).toBeNull();
+    const first = seedDataset.priceIndexPoints[0];
+    const aged = { ...record({ effectiveDate: first.periodStart }), component: "material" as const };
+    const e = escalate(aged);
+    expect(e, "a material anchored at the start of the index must escalate").not.toBeNull();
+    expect(e!.multiplier).toBeGreaterThan(1);
+    expect(e!.seriesKey).toBe(seedDataset.priceIndexSeries[0].seriesKey);
+  });
+
+  it("leaves every shipped record alone, because each anchor postdates the index", () => {
+    const escalate = buildEscalator({
+      series: seedDataset.priceIndexSeries, points: seedDataset.priceIndexPoints,
+    });
+    const latest = seedDataset.priceIndexPoints.at(-1)!.periodStart;
+    for (const r of seedDataset.pricingRecords) {
+      if (escalate(r) !== null) {
+        expect(r.effectiveDate < latest, `${r.id} escalated, so it must predate ${latest}`).toBe(true);
+      }
+    }
   });
 
   it("only moves the components the index actually measures", () => {

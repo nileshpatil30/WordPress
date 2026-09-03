@@ -1,3 +1,4 @@
+import { ppiPoints, ppiSeries } from "./ppi";
 import type {
   PriceIndexPoint, PriceIndexSeries, PricingFactor, PricingRecord, PricingSource,
 } from "@/lib/types";
@@ -48,9 +49,9 @@ export const pricingSources: PricingSource[] = [
   {
     id: "src-bls-ppi", name: "BLS Producer Price Index - roofing materials",
     url: "https://www.bls.gov/ppi/", sourceType: "government",
-    reliabilityWeight: 0.9, isActive: false,
+    reliabilityWeight: 0.9, isActive: true, lastReviewedAt: SEED_COLLECTED_DATE,
     licenseNotes:
-      "US federal government work, generally in the public domain. Intended use: material cost trend and the price history series. Not yet ingested.",
+      "US federal government work, generally in the public domain. Ingested: series WPU1361, prepared asphalt and tar roofing and siding products, via scripts/ingest-ppi.ts. Used for the published price history and to carry anchored material prices forward. The index measures producer price movement and is not itself a price.",
     license: "Public domain (US federal government work).",
     redistributable: true,
   },
@@ -356,27 +357,12 @@ export const pricingFactors: PricingFactor[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Price history. We ship ONE clearly-labelled sample series so the chart
-// component is exercised. Any city without a series renders an honest empty
-// state rather than an invented trend line.
+// Price history. Real, as of the BLS ingest: a sample series used to live here
+// so the chart component could be built, and it has been retired now that
+// scripts/ingest-ppi.ts has produced the genuine one. The series is the only
+// `verified` pricing data in the project apart from the pitch geometry - a
+// federal statistic transcribed unchanged, with no modelling of ours in
+// between. What we DERIVE from it (lib/escalation.ts) is modelled again.
 // ---------------------------------------------------------------------------
-export const priceIndexSeries: PriceIndexSeries[] = [
-  {
-    id: "pis-us-roofing-material", seriesKey: "us.roofing.material_index",
-    name: "US roofing material cost index (sample)",
-    geoScopeType: "country", geoScopeId: "us", sourceId: "src-internal-model",
-    unit: "index (2024-01 = 100)", dataStatus: "sample",
-    methodology:
-      "SAMPLE SERIES. Illustrative only, so the history component can be developed and reviewed. Replace with BLS Producer Price Index series for asphalt shingle and coating materials before this is shown to users as fact.",
-  },
-];
-
-export const priceIndexPoints: PriceIndexPoint[] = [
-  ["2024-01-01", 100.0, undefined], ["2024-07-01", 102.4, undefined],
-  ["2025-01-01", 104.9, 4.9], ["2025-07-01", 107.6, 5.1],
-  ["2026-01-01", 110.3, 5.1], ["2026-07-01", 112.1, 4.2],
-].map(([period, value, yoy], i) => ({
-  id: `pip-${i}`, seriesId: "pis-us-roofing-material",
-  periodStart: period as string, value: value as number,
-  pctChangeYoy: yoy as number | undefined,
-}));
+export const priceIndexSeries: PriceIndexSeries[] = [ppiSeries];
+export const priceIndexPoints: PriceIndexPoint[] = ppiPoints;
