@@ -1,0 +1,107 @@
+# Pull the month's new BLS Producer Price Index reading, rebuild the site, and
+# leave a ready-to-upload zip attached to the run.
+#
+# Why this exists: the site is static. Prices are baked into the HTML at build
+# time, so nothing on homecostdoctor.com changes until somebody re-runs the
+# ingest, rebuilds and re-uploads. Left to a human that is a monthly chore that
+# quietly stops happening, and the escalation index goes stale without anyone
+# noticing.
+#
+# Deliberately NOT a deploy. It uploads no FTP credentials anywhere and touches
+# the live site not at all - it opens a pull request with the refreshed index
+# and attaches the built zip to the run. Downloading that zip and extracting it
+# into public_html stays a decision a person makes, which is the right shape
+# while materials are still modelled.
+#
+# If a month brings no new reading the job stops after step 4 and costs nothing.
+
+name: Monthly data refresh
+
+on:
+  schedule:
+    # 20th of the month, 06:00 UTC. BLS publishes PPI mid-month for the month
+    # before, so the 20th is comfortably after the release without waiting a
+    # further four weeks.
+    - cron: "0 6 20 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Fetch the current PPI series
+        run: npm run ingest:ppi -- --series WPU1361 --fetch --emit-seed lib/data/seed/ppi.ts
+
+      - name: Stop unless BLS published something new
+        id: changed
+        run: |
+          if git diff --quiet -- lib/data/seed/ppi.ts; then
+            echo "No new reading since the last run."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git --no-pager diff --stat -- lib/data/seed/ppi.ts
+          fi
+
+      # The tests are the gate, not a formality: transformIndexObservations
+      # drops M13 annual averages and the escalation rules refuse to run
+      # backwards, and a malformed release should fail here rather than reach
+      # a build.
+      - name: Test
+        if: steps.changed.outputs.changed == 'true'
+        run: npm test
+
+      - name: Build
+        if: steps.changed.outputs.changed == 'true'
+        run: npm run build:static
+
+      - name: Package for Hostinger
+        if: steps.changed.outputs.changed == 'true'
+        run: cd out && zip -qr ../homecostdoctor-static.zip .
+
+      - uses: actions/upload-artifact@v4
+        if: steps.changed.outputs.changed == 'true'
+        with:
+          name: homecostdoctor-static
+          path: homecostdoctor-static.zip
+          retention-days: 30
+
+      # A pull request rather than a push to the default branch: this changes
+      # every published price by whatever the index moved, and that deserves a
+      # human glance even when it is a percent.
+      #
+      # The body lives in .github/ppi-refresh-pr-body.md rather than inline. A
+      # heredoc inside a YAML block scalar cannot work: the shell needs its
+      # terminator at column zero, and YAML needs every line indented.
+      - name: Open a pull request with the refreshed index
+        if: steps.changed.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          BRANCH="data/ppi-$(date -u +%Y-%m)"
+          TITLE="Refresh the PPI index for $(date -u +'%B %Y')"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add lib/data/seed/ppi.ts
+          git commit -m "$TITLE"
+          git push -u origin "$BRANCH"
+          if gh pr view "$BRANCH" >/dev/null 2>&1; then
+            echo "A pull request for $BRANCH already exists."
+          else
+            gh pr create --title "$TITLE" --body-file .github/ppi-refresh-pr-body.md
+          fi
