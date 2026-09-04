@@ -159,3 +159,62 @@ describe("source quality scoring", () => {
     expect(sources.detail).toMatch(/Weighted by contribution/);
   });
 });
+
+/**
+ * Data quality has to move the number people act on, not just the badge beside
+ * it. A line item's low/high describes market variation at a known price; it
+ * says nothing about whether the price is known. Before this, a sample row was
+ * published with exactly the same band as a government-backed one - the
+ * confidence score fell, and the figure a homeowner would take to a contractor
+ * did not move at all.
+ */
+describe("uncertainty about the data widens the published range", () => {
+  const inputs = {
+    zip: "85018", areaMode: "roof" as const, roofAreaSqft: 2000, stories: 2,
+    material: "asphalt-architectural", pitch: "moderate" as const,
+    complexity: "moderate" as const, existingLayers: 1,
+  };
+  const store = new JsonStore();
+  const engine = getEngine("roofing")!;
+
+  /** Re-runs the estimate with every model-uncertainty factor forced to `k`. */
+  async function withUncertainty(k: number | null) {
+    const ctx = (await buildEngineContext(store, "roofing", inputs.zip))!;
+    const factors = k === null ? ctx.factors
+      : ctx.factors.map((f) => f.factorKey.startsWith("uncertainty.") ? { ...f, multiplier: k } : f);
+    const parsed = engine.parse(inputs as never);
+    if (!parsed.ok) throw new Error(parsed.error);
+    return engine.estimate(parsed.value, { ...ctx, factors });
+  }
+
+  const width = (r: { range: { low: number; high: number } }) => r.range.high - r.range.low;
+
+  it("publishes a wider range than the market spread alone", async () => {
+    const marketOnly = await withUncertainty(1);
+    const asPublished = await withUncertainty(null);
+    expect(width(asPublished)).toBeGreaterThan(width(marketOnly));
+  });
+
+  it("never moves the midpoint", async () => {
+    // Widening is a statement about our confidence, not a different guess at
+    // the price. Shifting the centre would be exactly the dishonesty this is
+    // meant to prevent.
+    const marketOnly = await withUncertainty(1);
+    const asPublished = await withUncertainty(null);
+    expect(asPublished.range.typical).toBe(marketOnly.range.typical);
+  });
+
+  it("narrows on its own as the data improves", async () => {
+    // The property that matters long-term: nobody has to remember to tighten
+    // the range when real prices land. Better data does it by itself.
+    const poor = await withUncertainty(1.6);
+    const good = await withUncertainty(1.05);
+    expect(width(good)).toBeLessThan(width(poor));
+  });
+
+  it("still contains the midpoint inside the range", async () => {
+    const r = await withUncertainty(null);
+    expect(r.range.low).toBeLessThan(r.range.typical);
+    expect(r.range.high).toBeGreaterThan(r.range.typical);
+  });
+});

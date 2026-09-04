@@ -1,4 +1,4 @@
-import type { CostComponent, PricingSource } from "@/lib/types";
+import type { CostComponent, DataStatus, PricingSource } from "@/lib/types";
 import { formatMonth } from "@/lib/format";
 import type { ProvenanceEntry } from "../types";
 import { addTriples, makeFactorLookup, makePriceLookup, scale } from "../geo";
@@ -22,6 +22,25 @@ const COMPONENT_LABEL: Record<CostComponent, string> = {
 };
 
 const round50 = (n: number) => Math.round(n / 50) * 50;
+
+/**
+ * How much to widen a line item's band for our own uncertainty about its
+ * centre, over and above the market variation the band already describes.
+ *
+ * Each is sqrt(1 + k^2), where k is our uncertainty as a fraction of the market
+ * spread - the two combined in quadrature, the same way the components are.
+ *   verified  k=0    a published figure; the band is the market's, not ours
+ *   modeled   k=0.5  observed input, our derivation on top of it
+ *   sample    k=1    we are as unsure of the centre as the market is wide
+ *
+ * Overridable per service and geography through pricing_factors, like every
+ * other multiplier here.
+ */
+const DEFAULT_MODEL_UNCERTAINTY: Record<DataStatus, number> = {
+  verified: 1,
+  modeled: 1.118,
+  sample: 1.414,
+};
 
 /**
  * The roofing cost model.
@@ -293,9 +312,24 @@ export function estimateRoofing(
   // which assumes they are partly independent - the same reasoning an estimator
   // uses when they do not stack contingencies. The straight-sum bounds are kept
   // for the breakdown table, where a per-component range is what you want.
+  //
+  // A line item's low and high describe how much real jobs vary AT A KNOWN
+  // PRICE. They say nothing about whether we know that price. For a sample row
+  // we do not, and publishing it with the same band as a government-backed row
+  // understates the risk to whoever acts on the number - the confidence score
+  // drops, but the figure they actually use does not move.
+  //
+  // So model uncertainty is combined in quadrature with the market spread,
+  // scaled by how much the row behind it can be trusted. The centre never
+  // moves; only the band widens. And it narrows on its own as real data
+  // replaces sample rows, with no code change and no one remembering to do it.
   const straightSum = addTriples(...lineItems.map((l) => ({ low: l.low, typical: l.typical, high: l.high })));
-  const devLowSq = lineItems.reduce((a, l) => a + (l.typical - l.low) ** 2, 0);
-  const devHighSq = lineItems.reduce((a, l) => a + (l.high - l.typical) ** 2, 0);
+  const spreadOf = (l: LineItem) => {
+    const status = l.sourceRef?.dataStatus ?? "sample";
+    return factor(`uncertainty.${status}`, DEFAULT_MODEL_UNCERTAINTY[status]);
+  };
+  const devLowSq = lineItems.reduce((a, l) => a + ((l.typical - l.low) * spreadOf(l)) ** 2, 0);
+  const devHighSq = lineItems.reduce((a, l) => a + ((l.high - l.typical) * spreadOf(l)) ** 2, 0);
   const directCost: PriceTriple = {
     low: straightSum.typical - Math.sqrt(devLowSq),
     typical: straightSum.typical,
@@ -343,7 +377,7 @@ export function estimateRoofing(
     { label: "Waste factor", value: `${Math.round((wasteFactor - 1) * 100)}%`, assumed: !provided.has("complexity"), note: `Applied to covering and underlayment for a ${input.complexity.replace("-", " ")} roofline.` },
     { label: "Crew hours", value: `${laborHours.toFixed(0)} hours`, note: "Install, tear-off and detail work combined, after site factors." },
     { label: "Overhead and profit", value: `${Math.round((oh.low - 1) * 100)}% to ${Math.round((oh.high - 1) * 100)}%`, note: "A real cost of a licensed, insured, warrantied contractor - not a negotiating margin." },
-    { label: "How the range is built", value: "Combined in quadrature", note: "Component uncertainties are combined assuming partial independence rather than stacked, because no real job comes in worst-case on every single line at once." },
+    { label: "How the range is built", value: "Combined in quadrature", note: "Component uncertainties are combined assuming partial independence rather than stacked, because no real job comes in worst-case on every single line at once. Where a line rests on modelled or sample data, the band is widened further for our own uncertainty about the price - the midpoint is unchanged, but the range is wider than the market alone would make it." },
   );
   if (input.warranty !== "standard") {
     assumptions.push({ label: "Warranty", value: warrantyLabel(input.warranty), note: `Adds about ${Math.round((warrantyMult - 1) * 100)}% to the job.` });

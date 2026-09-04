@@ -332,6 +332,13 @@ export const pricingFactors: PricingFactor[] = [
   // modelled assumption, not an observation, and every record it touches names
   // it in the methodology.
   // ---------------------------------------------------------------------
+  factor("uncertainty.verified", "Model uncertainty - verified data", "all", 1,
+    "A published figure transcribed unchanged. The band around it is the market's variation, not our doubt, so it is not widened.", "modeled"),
+  factor("uncertainty.modeled", "Model uncertainty - modelled data", "all", 1.118,
+    "sqrt(1 + 0.5^2). An observed input with our own derivation on top: we take our uncertainty about the centre as roughly half the market spread, and combine the two in quadrature.", "modeled"),
+  factor("uncertainty.sample", "Model uncertainty - sample data", "all", 1.414,
+    "sqrt(1 + 1^2). A placeholder we wrote ourselves: we are about as unsure of the centre as the market is wide. Widening the published range is the honest response - a confidence score alone does not change the number anyone acts on.", "modeled"),
+
   scopedFactor("material.trade_discount", "Retail to contractor material cost", "material", 0.78,
     "Applied to an observed retail price to approximate what a roofing contractor pays a distributor for the same product. Roofing materials are typically bought on trade terms by the pallet rather than the bundle. Retune from real supplier quotes as they become available; until then this is our assumption and is marked modeled rather than verified.",
     "global", "global"),
