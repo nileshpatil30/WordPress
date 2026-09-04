@@ -10,8 +10,17 @@
 
 export interface Listing {
   materialSlug: string;
-  /** What was on the page, e.g. 42.97. */
+  /** What was on the page for a single unit, e.g. 42.97. */
   price: number;
+  /**
+   * The retailer's publicly listed volume price, where it shows one - e.g.
+   * "$35.97 each when you buy 36 or more". Preferred over the shelf price when
+   * present, because it is what a contractor buying for a job actually pays,
+   * and it needs no modelled discount on top.
+   */
+  bulkPrice?: number;
+  /** How many units the volume price starts at, recorded for the provenance. */
+  bulkQty?: number;
   /** What that price buys, in square feet. A shingle bundle is 33.33. */
   coverageSqft: number;
   store: string;
@@ -34,6 +43,12 @@ export interface MaterialRange {
   notes: string;
   /** True when the band is a stated assumption rather than an observed spread. */
   bandIsAssumed: boolean;
+  /**
+   * Which channel these prices came from. `retail_bulk` when every listing had
+   * a volume price, `retail` otherwise - mixing the two in one range would
+   * average two different channels together.
+   */
+  channel: "retail" | "retail_bulk";
 }
 
 /** A roofing square is 100 sq ft, whatever the packaging happens to be. */
@@ -73,11 +88,16 @@ export function summariseListings(listings: Listing[]): MaterialRange[] {
   }
 
   return [...byMaterial].sort(([a], [b]) => a.localeCompare(b)).map(([slug, group]) => {
-    const vals = group.map((l) => perSquare(l.price, l.coverageSqft));
+    // Use volume pricing only when every listing has it. A range that mixes a
+    // shelf price with a bulk one is not a range, it is two channels averaged.
+    const allBulk = group.every((l) => (l.bulkPrice ?? 0) > 0);
+    const priceOf = (l: Listing) => (allBulk ? l.bulkPrice! : l.price);
+    const vals = group.map((l) => perSquare(priceOf(l), l.coverageSqft));
     const mid = median(vals);
     const stores = [...new Set(group.map((l) => l.store))];
-    const describe = (l: Listing) =>
-      `${l.store} ${l.product} at $${l.price}/unit covering ${l.coverageSqft} sq ft`;
+    const describe = (l: Listing) => allBulk
+      ? `${l.store} ${l.product} at $${l.bulkPrice}/unit buying ${l.bulkQty ?? "bulk"}+, covering ${l.coverageSqft} sq ft each`
+      : `${l.store} ${l.product} at $${l.price}/unit covering ${l.coverageSqft} sq ft`;
 
     // The floor wins wherever the listings are too alike to describe a market.
     const floorLow = mid * (1 - MIN_BAND);
@@ -87,9 +107,10 @@ export function summariseListings(listings: Listing[]): MaterialRange[] {
     const bandIsAssumed = low === floorLow || high === floorHigh;
 
     const spreadPct = Math.round((Math.max(...vals) / Math.min(...vals) - 1) * 1000) / 10;
+    const kind = allBulk ? "volume-priced listing" : "retail listing";
     const source = group.length === 1
-      ? `Converted from a single retail listing: ${describe(group[0])}.`
-      : `Converted from ${group.length} retail listings: ${group.map(describe).join("; ")}.`;
+      ? `Converted from a single ${kind}: ${describe(group[0])}.`
+      : `Converted from ${group.length} ${kind}s: ${group.map(describe).join("; ")}.`;
     const bandNote = bandIsAssumed
       ? ` Those listings span ${spreadPct}%, which is too narrow to describe a market`
         + `${stores.length === 1 ? " and they are all from one retailer" : ""}, so the published band is a `
@@ -108,6 +129,7 @@ export function summariseListings(listings: Listing[]): MaterialRange[] {
       urls: [...new Set(group.map((l) => l.url))].join(" | "),
       date: group.map((l) => l.date).sort()[0],
       bandIsAssumed,
+      channel: allBulk ? "retail_bulk" : "retail",
       notes: source + bandNote,
     };
   });

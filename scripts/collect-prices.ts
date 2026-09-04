@@ -25,6 +25,7 @@ import { summariseListings, type Listing } from "../lib/ingest/worksheet";
 interface Row {
   material_slug: string; what_to_search_for: string; store: string;
   price: string; price_unit: string; coverage_sqft: string; url: string; date: string;
+  bulk_price: string; bulk_qty: string;
 }
 
 const arg = (n: string) => {
@@ -105,6 +106,8 @@ function main() {
     .map((r) => ({
       materialSlug: r.material_slug, price: Number(r.price),
       coverageSqft: Number(r.coverage_sqft),
+      bulkPrice: Number(r.bulk_price) > 0 ? Number(r.bulk_price) : undefined,
+      bulkQty: Number(r.bulk_qty) > 0 ? Number(r.bulk_qty) : undefined,
       store: r.store, product: r.what_to_search_for, url: r.url.trim(), date: r.date.trim(),
     }));
 
@@ -115,19 +118,20 @@ function main() {
 
   const summaries = summariseListings(listings);
   const lines = ["material_slug,metric_key,unit,channel,low,median,high,source_name,source_ref,observed_date,geo_scope_type,geo_scope_id,sample_size,notes"];
-  console.log("Dollars per roofing square, before the retail-to-trade discount:\n");
+  console.log("Dollars per roofing square, as observed:\n");
 
   for (const m of summaries) {
     lines.push([
-      m.materialSlug, "material.per_square", "square", "retail",
+      m.materialSlug, "material.per_square", "square", m.channel,
       String(m.low), String(m.median), String(m.high),
       m.stores, m.urls, m.date, "country", "us", String(m.sampleSize), m.notes,
     ].map(csvCell).join(","));
 
     console.log(
       `  ${m.materialSlug.padEnd(26)} $${m.low.toFixed(2).padStart(8)} $${m.median.toFixed(2).padStart(8)} `
-      + `$${m.high.toFixed(2).padStart(8)}   from ${m.sampleSize} listing${m.sampleSize === 1 ? "" : "s"}`
-      + (m.bandIsAssumed ? "   (band assumed, not observed)" : ""));
+      + `$${m.high.toFixed(2).padStart(8)}   ${m.sampleSize} listing${m.sampleSize === 1 ? "" : "s"}`
+      + (m.channel === "retail_bulk" ? ", volume priced (no discount applied)" : ", shelf priced (discount applies)")
+      + (m.bandIsAssumed ? "   [band assumed]" : ""));
   }
 
   writeFileSync(out, lines.join("\n") + "\n", "utf8");

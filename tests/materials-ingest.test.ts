@@ -93,3 +93,27 @@ describe("material price ingestion", () => {
     expect(records[0].medianPrice).toBeCloseTo(158 * factor!.multiplier, 2);
   });
 });
+
+describe("volume pricing is not discounted again", () => {
+  it("passes a retail_bulk price through untouched", () => {
+    // A publicly listed volume price already contains most of the gap the trade
+    // discount exists to model. Applying it again produced $99/square when
+    // every observable contractor price was $108-$122.
+    const { records } = run([obs({ channel: "retail_bulk", low: 108, median: 112, high: 118 })]);
+    expect(records[0].medianPrice).toBe(112);
+    expect(records[0].methodology).toMatch(/no further discount is applied/i);
+  });
+
+  it("still discounts a single-unit shelf price", () => {
+    const { records } = run([obs({ channel: "retail" })]);
+    expect(records[0].medianPrice).toBeLessThan(158);
+  });
+
+  it("rates a volume price between a shelf price and a distributor quote", () => {
+    const shelf = run([obs({ channel: "retail" })]).records[0];
+    const bulk = run([obs({ channel: "retail_bulk" })]).records[0];
+    const trade = run([obs({ channel: "trade" })]).records[0];
+    expect(bulk.confidenceScore!).toBeGreaterThan(shelf.confidenceScore!);
+    expect(bulk.confidenceScore!).toBeLessThan(trade.confidenceScore!);
+  });
+});

@@ -28,7 +28,7 @@ import { resolveFactor } from "./factors";
  * real, the conversion to a contractor's cost is ours.
  */
 
-export type PriceChannel = "retail" | "trade" | "benchmark";
+export type PriceChannel = "retail" | "retail_bulk" | "trade" | "benchmark";
 
 /** One observed price, as collected. Nothing here is derived. */
 export interface MaterialObservation {
@@ -39,10 +39,15 @@ export interface MaterialObservation {
   unit: string;
   /**
    * Where the number came from.
-   *   retail    - a shelf or listed consumer price
-   *   trade     - a distributor or contractor-channel price
-   *   benchmark - a published cost range from a third party, used for
-   *               comparison rather than as our own observation
+   *   retail      - a shelf or listed consumer price, one unit at a time
+   *   retail_bulk - a publicly listed volume price at the same retailer, e.g.
+   *                 "$35.97 each when you buy 36 or more". A contractor buying
+   *                 for a job pays this, not the shelf price, and it already
+   *                 contains most of the gap the trade discount exists to
+   *                 model - so no further discount is applied to it.
+   *   trade       - a distributor or contractor-channel price
+   *   benchmark   - a published cost range from a third party, used for
+   *                 comparison rather than as our own observation
    */
   channel: PriceChannel;
   low: number;
@@ -123,6 +128,9 @@ export function transformMaterialObservations(opts: {
 
     // Retail needs converting to what a contractor actually pays. Trade prices
     // are already in the right channel and pass through at 1.0.
+    // Only a single-unit shelf price needs converting. A volume price is one a
+    // contractor can actually transact at, and a distributor quote is already
+    // in the right channel; discounting either would double-count.
     const discount = o.channel === "retail"
       ? resolveFactor(opts.factors, "material.trade_discount", {
         stateId: scopeType === "state" ? scopeId : undefined,
@@ -131,9 +139,12 @@ export function transformMaterialObservations(opts: {
       : 1;
     discountsApplied[o.channel] = discount;
 
-    const channelNote = o.channel === "retail"
-      ? `Observed retail price, multiplied by a trade discount factor of ${discount} to approximate what a roofing contractor pays a distributor for the same product. Retail shelf pricing overstates contractor material cost; that factor is our modelled assumption and is editable in pricing_factors.`
-      : "Observed in the contractor supply channel, so no retail-to-trade conversion is applied.";
+    const channelNote = {
+      retail: `Observed single-unit retail price, multiplied by a trade discount factor of ${discount} to approximate what a roofing contractor pays for the same product. Shelf pricing overstates contractor material cost; that factor is our modelled assumption and is editable in pricing_factors.`,
+      retail_bulk: "Observed at the retailer's publicly listed volume price - what a contractor buying enough for a job actually pays. That price already contains most of the gap between shelf and trade, so no further discount is applied.",
+      trade: "Observed in the contractor supply channel, so no retail-to-trade conversion is applied.",
+      benchmark: "",
+    }[o.channel];
 
     records.push({
       id: `pr-mat-${o.materialSlug}-${scopeId}`,
@@ -154,7 +165,11 @@ export function transformMaterialObservations(opts: {
       sampleSize: o.sampleSize,
       // Observed input, modelled conversion. Not as strong as a published
       // government series, considerably stronger than a placeholder.
-      confidenceScore: o.channel === "trade" ? 80 : 70,
+      // A distributor quote is the real thing. A public volume price is one a
+      // contractor can genuinely transact at, but at a big-box retailer rather
+      // than the distribution channel most of them buy through. A single-unit
+      // shelf price needs our conversion applied before it means anything.
+      confidenceScore: { trade: 80, retail_bulk: 75, retail: 70, benchmark: 0 }[o.channel],
       methodology: [
         `${o.sourceName} (${o.sourceRef}), observed ${o.observedDate}.`,
         channelNote,

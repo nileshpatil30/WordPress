@@ -25,7 +25,7 @@ const arg = (name: string) => {
   return i >= 0 ? process.argv[i + 1] : undefined;
 };
 
-const CHANNELS: PriceChannel[] = ["retail", "trade", "benchmark"];
+const CHANNELS: PriceChannel[] = ["retail", "retail_bulk", "trade", "benchmark"];
 const num = (v: string | undefined) => (v == null || v === "" ? NaN : Number(v));
 
 function main() {

@@ -47,6 +47,31 @@ describe("summarising several listings into a range", () => {
     expect(out[0].high).toBeGreaterThan(perSquare(46.25, 33.33));
   });
 
+  it("prefers a volume price over the shelf price", () => {
+    // The shelf price needs a modelled discount before it means anything. A
+    // publicly listed volume price is what a contractor buying for a job
+    // actually pays, so it goes in as observed and skips the assumption.
+    const [m] = summariseListings([
+      listing({ price: 42.97, bulkPrice: 35.97, bulkQty: 36 }),
+      listing({ price: 40.97, bulkPrice: 34.5, bulkQty: 36 }),
+    ]);
+    expect(m.channel).toBe("retail_bulk");
+    expect(m.median).toBeCloseTo(perSquare((35.97 + 34.5) / 2, 33.33), 1);
+    expect(m.notes).toMatch(/volume-priced/i);
+    expect(m.notes).toMatch(/buying 36\+/);
+  });
+
+  it("will not average a volume price together with a shelf price", () => {
+    // Mixing the two is not a range, it is two channels averaged into one
+    // number that describes neither.
+    const [m] = summariseListings([
+      listing({ price: 42.97, bulkPrice: 35.97, bulkQty: 36 }),
+      listing({ price: 40.97 }),
+    ]);
+    expect(m.channel).toBe("retail");
+    expect(m.median).toBeCloseTo(perSquare((42.97 + 40.97) / 2, 33.33), 1);
+  });
+
   it("refuses to call identical listings a range", () => {
     // Three colours of one product line at one store are three listings and one
     // price. The observed spread is zero, and publishing low = median = high

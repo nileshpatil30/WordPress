@@ -88,7 +88,22 @@ methodology, and the engine's model uncertainty widens it again on top. Two more
 products replace that with a real observed spread. Three per material is the
 target.
 
-**Retail is not what a contractor pays.** The ingester applies the documented
+**Record the volume price, not the shelf price.** Home Depot and Lowe's publish
+a volume price on the same product page - "$35.97 each when you buy 36 or more".
+That is what a contractor buying enough for a job actually pays, and putting it
+in `bulk_price` skips the modelled discount entirely: the row goes in as
+`retail_bulk`, undiscounted, at confidence 75.
+
+Why that matters more than it sounds. Applying the 0.78 trade discount to a
+big-box *shelf* price produced $99 per square for architectural shingles, while
+Home Depot's own volume price was $108 and a distributor was charging $122. The
+discount assumes contractors buy well below retail; on commodity shingles, big-box
+shelf pricing is already close to trade, so discounting it again lands below any
+price a roofer could actually transact at. The volume price removes the
+assumption instead of re-tuning it.
+
+**A single-unit shelf price is still not what a contractor pays.** Where no
+volume price is shown, the ingester applies the documented
 `material.trade_discount` afterwards, and the resulting rows land `modeled` with
 confidence 70 - better than the sample rows they replace, and honestly below the
 80 a real trade quote earns. If you can get even two or three phone quotes
