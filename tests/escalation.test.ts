@@ -208,7 +208,7 @@ describe("index escalation", () => {
 });
 
 const GEO: GeoResolution = {
-  zip: "00000", zipRecord: null, city: null, state: null,
+  zip: "00000", zipRecord: null, city: null, metro: null, state: null,
   bestLevel: "country", label: "United States (national)", isFallback: true,
 };
 

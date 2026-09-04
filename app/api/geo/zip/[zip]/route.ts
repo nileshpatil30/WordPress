@@ -25,7 +25,7 @@ export async function GET(
     });
   }
 
-  const city = await store.getCityById(zipRecord.cityId);
+  const city = zipRecord.cityId ? await store.getCityById(zipRecord.cityId) : null;
   const state = (await store.listStates()).find((s) => s.id === zipRecord.stateId);
 
   return NextResponse.json({

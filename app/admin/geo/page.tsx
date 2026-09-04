@@ -95,7 +95,7 @@ export default async function AdminGeoPage() {
               {zips.map((z) => (
                 <tr key={z.id} className="border-b border-line align-top">
                   <td className="py-3 pr-4 font-mono text-[13px] text-ink">{z.code}</td>
-                  <td className="py-3 pr-4 text-[13px] text-muted">{cityName.get(z.cityId)}</td>
+                  <td className="py-3 pr-4 text-[13px] text-muted">{z.cityId ? cityName.get(z.cityId) : "\u2014"}</td>
                   <td className="py-3 pr-4 text-[13px] text-muted">{z.county}</td>
                   <td className="py-3 pr-4">
                     <Badge tone={z.content ? "positive" : "neutral"}>{z.content ? "written" : "none"}</Badge>

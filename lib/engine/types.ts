@@ -1,5 +1,5 @@
 import type {
-  City, CostComponent, DataStatus, Material, PricingFactor, PricingRecord, ProjectType,
+  City, CostComponent, DataStatus, Material, Metro, PricingFactor, PricingRecord, ProjectType,
   Service, State, ZipCode,
 } from "@/lib/types";
 
@@ -47,6 +47,8 @@ export interface GeoResolution {
   zip: string;
   zipRecord: ZipCode | null;
   city: City | null;
+  /** Resolved from the city when there is one, otherwise from the ZIP itself. */
+  metro: Metro | null;
   state: State | null;
   /** The finest level at which we actually found pricing for this location. */
   bestLevel: GeoLevel;

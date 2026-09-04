@@ -19,7 +19,8 @@
     "build:static": "node scripts/build-static.mjs",
     "ingest:materials": "tsx scripts/ingest-materials.ts",
     "ingest:ppi": "tsx scripts/ingest-ppi.ts",
-    "collect:prices": "tsx scripts/collect-prices.ts"
+    "collect:prices": "tsx scripts/collect-prices.ts",
+    "expand:geo": "tsx scripts/expand-geography.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

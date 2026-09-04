@@ -99,8 +99,15 @@ npx tsx -e 'import {getDataStatus} from "./lib/data-status"; console.log(getData
 
 In priority order, and the order matters more than the list:
 
-**1. Materials. This is the 68%, and it blocks the value of everything below
-it.** Eight verified retail observations are collected in
+**1. Materials.** Asphalt is done: both shingle rows are priced from observed
+pallet prices, with no trade-discount assumption in between. The remaining
+twelve - tile, slate, metal, cedar, the low-slope membranes - are still
+modelled, and `data/price-worksheet-round2.csv` names three search targets for
+each. Two of them need care: metal panels are priced by *covering* width, which
+is less than panel width because they overlap, and membranes come in rolls
+whose coverage is printed on the wrapper.
+
+**Historical note, kept because the reasoning still applies.** Eight verified retail observations are collected in
 `data/price-worksheet.csv` and *none are ingested*. Three things stand in the
 way: Home Depot bulk or pallet prices on the seven product pages already
 visited; a sourced retail-to-trade factor, because the 0.78 in `pricing_factors`
@@ -115,10 +122,19 @@ the production model on the strength of the retail observations alone.
 
 **2. Index freshness.** See the section above. One command, then a rebuild.
 
-**3. Geography.** 17 cities and 15 metros is thin for a national site. BLS OEWS
-publishes wages for roughly 380 metro areas, it is public domain, and
-`npm run ingest:bls` already parses the file - so this is mechanical rather than
-hard, and it is the largest coverage gain per hour of work after materials.
+**3. Geography.** Unblocked, and now waiting on two downloads rather than on
+code. Coverage used to be capped by editorial effort: every ZIP had to belong
+to a hand-written city, so Portland and Denver - metros BLS publishes roofer
+wages for - fell to the national figure because nobody had written the page.
+A ZIP now carries its own metro, so it prices at metro scope with or without an
+article about it.
+
+    npm run expand:geo -- --oews <MSA csv> --crosswalk <ZIP_CBSA csv>
+
+Dry run by default. The OEWS metro file is at bls.gov/oes/tables.htm and the
+ZIP-to-CBSA crosswalk at huduser.gov; both are public domain. Add --emit-seed,
+then run `npm run ingest:bls` so the new metros get real wages rather than the
+national fallback. Roughly 380 metros and 40,000 ZIPs are reachable this way.
 
 **4. More countries** (UK, Australia, Netherlands, Poland have been asked
 about). Larger than it looks. The engine is geography-generic, but the data

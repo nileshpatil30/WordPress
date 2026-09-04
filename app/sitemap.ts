@@ -79,9 +79,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const zipPages = services.flatMap((s) =>
     zips
-      .filter((z) => cityById.has(z.cityId))
+      .filter((z) => z.cityId !== undefined && cityById.has(z.cityId))
       .map((z) => ({
-        url: siteUrl(`/${s.costPathSlug}/${cityById.get(z.cityId)!.slug}/${z.code}`),
+        url: siteUrl(`/${s.costPathSlug}/${cityById.get(z.cityId!)!.slug}/${z.code}`),
         lastModified: cityChanged, changeFrequency: "monthly" as const, priority: 0.6,
       })));
 

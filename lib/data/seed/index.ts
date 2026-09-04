@@ -10,6 +10,7 @@ import type { Dataset } from "@/lib/types";
  */
 import { blsLaborRecords } from "./bls-labor";
 import { observedMaterialRecords } from "./materials";
+import { expandedMetros, expandedStates, expandedZipCodes } from "./geo-expanded";
 import { countries, metros, states } from "./geo";
 import { cities } from "./cities";
 import { zipCodes } from "./zips";
@@ -56,8 +57,20 @@ const allRecords = observedMaterialRecords.length
   ]
   : labourRecords;
 
+/**
+ * Hand-written geography first, generated geography after.
+ *
+ * The expander never emits a metro, state or ZIP we already carry, so these
+ * concatenations cannot collide - but order still matters for anything that
+ * takes the first match, and the curated rows are the ones with real names,
+ * stable ids and city pages pointing at them.
+ */
+const allStates = [...states, ...expandedStates];
+const allMetros = [...metros, ...expandedMetros];
+const allZips = [...zipCodes, ...expandedZipCodes];
+
 export const seedDataset: Dataset = {
-  countries, states, metros, cities, zipCodes,
+  countries, states: allStates, metros: allMetros, cities, zipCodes: allZips,
   services, projectTypes, materials,
   pricingSources, pricingRecords: allRecords, pricingFactors,
   priceIndexSeries, priceIndexPoints,

@@ -11,19 +11,42 @@ import { NO_ESCALATION, type Escalation, type Escalator } from "@/lib/escalation
  */
 export async function resolveGeo(store: DataStore, zip: string): Promise<GeoResolution> {
   const zipRecord = await store.getZipByCode(zip);
-  const city = zipRecord ? await store.getCityById(zipRecord.cityId) : null;
+  const city = zipRecord?.cityId ? await store.getCityById(zipRecord.cityId) : null;
+
+  // A city is editorial; a metro is data. Prefer the city's metro when there
+  // is a city, and fall back to the one the ZIP crosswalk carries - that is
+  // what lets a ZIP nobody has written about still price at metro scope.
+  const metroId = city?.metroId ?? zipRecord?.metroId;
+  const metro = metroId
+    ? (await store.listMetros()).find((m) => m.id === metroId) ?? null
+    : null;
+
+  const stateId = city?.stateId ?? zipRecord?.stateId;
   const states = await store.listStates();
-  const state = city ? states.find((s) => s.id === city.stateId) ?? null : null;
+  const state = stateId ? states.find((s) => s.id === stateId) ?? null : null;
 
   return {
     zip,
     zipRecord,
     city,
+    metro,
     state,
     bestLevel: "country", // replaced by the first lookup that finds data
-    label: city && state ? `${city.name}, ${state.code}` : "United States (national)",
-    isFallback: !zipRecord,
+    label: label(city, metro, state),
+    // Placed at all, not placed in a city. A ZIP resolving to a metro is using
+    // that metro's wage data, which is the opposite of a national fallback.
+    isFallback: !state,
   };
+}
+
+/** "Phoenix, AZ" with a city, "Portland metro area, OR" without one. */
+export function label(
+  city: { name: string } | null, metro: { name: string } | null, state: { code: string } | null,
+): string {
+  if (!state) return "United States (national)";
+  if (city) return `${city.name}, ${state.code}`;
+  if (metro) return `${metro.name} metro area, ${state.code}`;
+  return `${state.code} (statewide)`;
 }
 
 const LEVEL_ORDER: GeoLevel[] = ["zip", "city", "metro", "state", "country", "global"];
@@ -54,7 +77,7 @@ export function makePriceLookup(
   const scopeIds: Partial<Record<GeoLevel, string | undefined>> = {
     zip: geo.zipRecord?.id,
     city: geo.city?.id,
-    metro: geo.city?.metroId,
+    metro: geo.metro?.id,
     state: geo.state?.id,
     country: geo.state ? geo.state.countryId : "us",
     global: "global",
@@ -139,7 +162,7 @@ export function makeFactorLookup(factors: PricingFactor[], geo: GeoResolution) {
   const scopeIds: Partial<Record<GeoLevel, string | undefined>> = {
     zip: geo.zipRecord?.id,
     city: geo.city?.id,
-    metro: geo.city?.metroId,
+    metro: geo.metro?.id,
     state: geo.state?.id,
     country: geo.state ? geo.state.countryId : "us",
     global: "global",

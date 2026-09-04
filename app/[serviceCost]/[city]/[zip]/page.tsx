@@ -30,8 +30,10 @@ export async function generateStaticParams() {
 
   return services.flatMap((s) =>
     zips
-      .filter((z) => byId.has(z.cityId))
-      .map((z) => ({ serviceCost: s.costPathSlug, city: byId.get(z.cityId)!.slug, zip: z.code })));
+      // A ZIP with no cityId is one the crosswalk placed in a metro we have
+      // not written a city page for. It prices fine; it has no page here.
+      .filter((z) => z.cityId !== undefined && byId.has(z.cityId))
+      .map((z) => ({ serviceCost: s.costPathSlug, city: byId.get(z.cityId!)!.slug, zip: z.code })));
 }
 
 export async function generateMetadata({ params }: {

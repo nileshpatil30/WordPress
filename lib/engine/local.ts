@@ -1,4 +1,5 @@
 import { seedDataset } from "@/lib/data/seed";
+import { label } from "./geo";
 import { getEngine } from "./registry";
 import type { EngineContext, EstimateResult, GeoResolution } from "./types";
 
@@ -27,23 +28,29 @@ import type { EngineContext, EstimateResult, GeoResolution } from "./types";
 
 function resolveGeoLocal(zip: string): GeoResolution {
   const zipRecord = seedDataset.zipCodes.find((z) => z.code === zip) ?? null;
-  const city = zipRecord
+  const city = zipRecord?.cityId
     ? seedDataset.cities.find((c) => c.id === zipRecord.cityId) ?? null
     : null;
-  const state = city
-    ? seedDataset.states.find((s) => s.id === city.stateId) ?? null
-    : null;
+
+  // Same precedence as the server resolver, and it has to stay that way: the
+  // static build runs this one and the two must not disagree about where a
+  // ZIP is. See resolveGeo in ./geo.
+  const metroId = city?.metroId ?? zipRecord?.metroId;
+  const metro = metroId ? seedDataset.metros.find((m) => m.id === metroId) ?? null : null;
+  const stateId = city?.stateId ?? zipRecord?.stateId;
+  const state = stateId ? seedDataset.states.find((s) => s.id === stateId) ?? null : null;
 
   return {
     zip,
     zipRecord,
     city,
+    metro,
     state,
     // Replaced by the first price lookup that finds data, exactly as the
     // server-side resolver does.
     bestLevel: "country",
-    label: city && state ? `${city.name}, ${state.code}` : "United States (national)",
-    isFallback: !zipRecord,
+    label: label(city, metro, state),
+    isFallback: !state,
   };
 }
 

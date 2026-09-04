@@ -119,7 +119,18 @@ export interface ZipCode {
   id: string;
   countryId: string;
   stateId: string;
-  cityId: string;
+  /**
+   * The city page this ZIP belongs to, when we have written one.
+   *
+   * Optional because a city is editorial and a ZIP is not. Requiring one made
+   * "we have wage data for your area" depend on "we have written an article
+   * about your city", which capped the calculator at the 17 cities somebody
+   * had found time to write. A ZIP with a metro and no city still prices at
+   * metro scope; it simply has no page of its own to link to.
+   */
+  cityId?: string;
+  /** Set directly from a ZIP-to-CBSA crosswalk when there is no city. */
+  metroId?: string;
   code: string;
   county?: string;
   latitude?: number;
