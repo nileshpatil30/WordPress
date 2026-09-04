@@ -235,23 +235,48 @@ export default async function HomePage() {
       {/* Directly under the hero because it answers the question a homeowner
           has before they have a budget: what are my options and what do they
           even look like. The photographs were previously only on a secondary
-          page. */}
+          page.
+
+          It used to run full-bleed at 220px a tile, which made a supporting
+          strip the loudest thing on the page and broke the 6xl rhythm every
+          other section keeps. Now it sits in the container at 150px, with the
+          name underneath in body text rather than reversed out of a gradient -
+          smaller type over a photograph is exactly where legibility goes, and
+          the longest names were being clipped by the tile edge. */}
       {materialTiles.length > 0 && (
         <section className="border-b border-line bg-surface">
-          <ul className="scroll-x flex gap-px bg-line">
-            {materialTiles.map((m) => (
-              <li key={m.id} className="relative w-[220px] shrink-0 sm:w-[16.6%] sm:min-w-[190px]">
-                <Link href="/roofing-cost" className="group block">
-                  <MaterialPhoto src={materialPhoto(m.slug)} name={m.name} className="w-full" />
-                  <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/85 via-ink/45 to-transparent px-3 pb-3 pt-8">
-                    <span className="block text-[12.5px] font-semibold leading-snug text-white">
+          <div className="mx-auto max-w-6xl px-5 py-10 sm:py-12">
+            <div className="flex items-baseline justify-between gap-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
+                Materials we price
+              </p>
+              <Link
+                href="/roofing-cost"
+                className="whitespace-nowrap text-[13px] font-semibold text-accent hover:underline"
+              >
+                Compare materials &rarr;
+              </Link>
+            </div>
+
+            {/* Bleeds to the viewport edge so a half-cut tile signals the row
+                scrolls, while the first one still lines up with the heading. */}
+            <ul className="scroll-x -mx-5 mt-5 flex gap-3 px-5">
+              {materialTiles.map((m) => (
+                <li key={m.id} className="w-[150px] shrink-0">
+                  <Link href="/roofing-cost" className="group block">
+                    <MaterialPhoto
+                      src={materialPhoto(m.slug)}
+                      name={m.name}
+                      className="w-full rounded-lg transition-opacity group-hover:opacity-90"
+                    />
+                    <span className="mt-2 block min-h-[2.2rem] text-[12px] font-medium leading-snug text-muted group-hover:text-accent">
                       {m.name}
                     </span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       )}
 
@@ -480,18 +505,23 @@ export default async function HomePage() {
 
             <div className="space-y-4">
               <DataNotice />
-              <Card className="overflow-hidden">
-                {illustration && (
+              {/* The illustration used to sit in a full-width 128px band above
+                  the body. It is a 4:3 line drawing on white, so object-contain
+                  left most of that band empty, and the icon square directly
+                  underneath meant the card carried two graphics for one idea.
+                  Now the drawing IS the graphic, at icon scale. */}
+              <Card className="p-6">
+                {illustration ? (
                   <img
                     src={illustration} alt="" aria-hidden width={800} height={600}
                     loading="lazy" decoding="async"
-                    className="h-32 w-full border-b border-line bg-white object-contain p-4"
+                    className="-ml-1.5 h-14 w-auto object-contain object-left"
                   />
+                ) : (
+                  <span className="grid h-10 w-10 place-items-center rounded-lg bg-accent-soft text-accent">
+                    <IconTrendUp size={20} />
+                  </span>
                 )}
-                <div className="p-6">
-                <span className="grid h-10 w-10 place-items-center rounded-lg bg-accent-soft text-accent">
-                  <IconTrendUp size={20} />
-                </span>
                 <p className="mt-3.5 text-[17px] font-semibold text-ink">Always improving</p>
                 <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
                   We combine public government data, observed market prices and
@@ -503,7 +533,6 @@ export default async function HomePage() {
                 <Link href="/data-sources" className="mt-4 inline-block text-[13.5px] font-semibold text-accent hover:underline">
                   Learn about our data &rarr;
                 </Link>
-                </div>
               </Card>
             </div>
           </div>
