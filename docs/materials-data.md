@@ -51,6 +51,49 @@ record it touches.
 | `trade` | Distributor or contractor-channel price | ×1.00 |
 | `benchmark` | Somebody else's published range | **never ingested** |
 
+## The no-phone-call route
+
+Ringing a distributor gets the best number - a real trade price, `channel:
+trade`, confidence 80. It is also a conversation in English with a stranger,
+which is a real barrier and not one worth pretending away.
+
+Reading a price off a shop website is not. It needs no conversation, it can be
+done in twenty minutes, and it is what `channel: retail` in the ingester was
+built for.
+
+```bash
+# 1. Open data/price-worksheet.csv. Fifteen rows, each naming a product.
+#    For each: search the store, find the product, type in three things -
+#    the price, the address of the page, and today's date. Nothing else.
+
+# 2. Convert the listings into dollars per roofing square:
+npm run collect:prices
+
+# 3. Feed the result to the ingester (dry run first, as always):
+npm run ingest:materials -- --file data/materials.csv --collected YYYY-MM-DD
+```
+
+`collect:prices` does the arithmetic that would otherwise sit with whoever is
+reading the page: a shingle bundle covers 33.33 sq ft, three make a square, a
+metal panel covers 24. It also takes the spread across the products for a
+material as that material's range.
+
+Two things it will refuse to do, because both would put an untraceable number
+in the dataset: accept a price with no URL, and accept a date that is not
+YYYY-MM-DD.
+
+**One listing is a price, not a range.** With a single product for a material
+the band becomes a stated plus or minus 10%, the row says so in its own
+methodology, and the engine's model uncertainty widens it again on top. Two more
+products replace that with a real observed spread. Three per material is the
+target.
+
+**Retail is not what a contractor pays.** The ingester applies the documented
+`material.trade_discount` afterwards, and the resulting rows land `modeled` with
+confidence 70 - better than the sample rows they replace, and honestly below the
+80 a real trade quote earns. If you can get even two or three phone quotes
+later, they will beat all of this.
+
 ## How to do a collection
 
 1. Copy `data/materials-template.csv` to `data/materials.csv`.
