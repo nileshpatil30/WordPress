@@ -88,7 +88,10 @@ function main() {
   const listings: Listing[] = usable.map((r) => {
     const coverage = Number(r.coverage_sqft);
     if (!(coverage > 0)) {
-      console.error(`${r.material_slug}: coverage_sqft must be a positive number, got "${r.coverage_sqft}"`);
+      console.error(
+        `${r.material_slug} (${r.what_to_search_for}): coverage_sqft is "${r.coverage_sqft}".\n`
+        + "  It is how many square feet that one price buys, and the product title on the page\n"
+        + "  usually states it - e.g. \"33.33 sq. ft. per Bundle\". Fill it in and run this again.");
       process.exit(1);
     }
     return {
