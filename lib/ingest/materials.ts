@@ -150,6 +150,12 @@ export function transformMaterialObservations(opts: {
       id: `pr-mat-${o.materialSlug}-${scopeId}`,
       serviceId: opts.serviceId,
       component: "material",
+      // Without this the record is unreachable. The engine indexes prices by
+      // `metricKey::materialId` (lib/engine/geo.ts), so a material row with no
+      // materialId answers a lookup nobody makes: the sample row keeps winning
+      // and the site goes on showing modelled prices while the dataset holds
+      // observed ones. Silent, and the worst failure this product has.
+      materialId: `mat-${o.materialSlug}`,
       metricKey: o.metricKey,
       geoScopeType: scopeType,
       geoScopeId: scopeId,

@@ -24,6 +24,19 @@ const run = (observations: MaterialObservation[]) =>
   });
 
 describe("material price ingestion", () => {
+  it("tags each record with the material the engine looks it up by", () => {
+    // lib/engine/geo.ts indexes prices as `metricKey::materialId`. A material
+    // record without materialId answers a query nobody makes, so the sample
+    // row keeps winning and the site shows modelled prices while the dataset
+    // holds observed ones - with nothing anywhere saying so.
+    const { records } = run([
+      obs({ materialSlug: "asphalt-3tab", channel: "retail_bulk" }),
+      obs({ materialSlug: "asphalt-architectural", channel: "retail_bulk" }),
+    ]);
+    expect(records.map((r) => r.materialId))
+      .toEqual(["mat-asphalt-3tab", "mat-asphalt-architectural"]);
+  });
+
   it("converts a retail price to what a contractor would pay", () => {
     // The whole reason this transform exists. A shelf price fed straight into
     // the model produces estimates that are too high - the mirror of the error

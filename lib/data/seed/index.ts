@@ -9,6 +9,7 @@ import type { Dataset } from "@/lib/types";
  * worst possible failure mode.
  */
 import { blsLaborRecords } from "./bls-labor";
+import { observedMaterialRecords } from "./materials";
 import { countries, metros, states } from "./geo";
 import { cities } from "./cities";
 import { zipCodes } from "./zips";
@@ -32,14 +33,41 @@ const labourRecords = blsLaborRecords.length
   ]
   : pricingRecords;
 
+/**
+ * Observed material prices replace the sample row for the same material, they
+ * do not sit alongside it.
+ *
+ * Both are country-scoped, so the geographic chain cannot separate them and
+ * whichever the index happened to return first would win. Two rows for one
+ * material is not a richer dataset, it is a coin toss over which price the
+ * site publishes.
+ *
+ * Only the materials actually collected are replaced. The other twelve keep
+ * their sample rows and go on saying so.
+ */
+const supersededByObservation = new Set(
+  observedMaterialRecords.map((r) => `${r.metricKey}::${r.materialId ?? ""}`));
+
+const allRecords = observedMaterialRecords.length
+  ? [
+    ...labourRecords.filter(
+      (r) => !supersededByObservation.has(`${r.metricKey}::${r.materialId ?? ""}`)),
+    ...observedMaterialRecords,
+  ]
+  : labourRecords;
+
 export const seedDataset: Dataset = {
   countries, states, metros, cities, zipCodes,
   services, projectTypes, materials,
-  pricingSources, pricingRecords: labourRecords, pricingFactors,
+  pricingSources, pricingRecords: allRecords, pricingFactors,
   priceIndexSeries, priceIndexPoints,
 };
 
 /** True when real wage data is in play rather than sample rates. */
 export const hasRealLabourData = blsLaborRecords.length > 0;
+
+/** Material slugs whose price is observed rather than modelled from nothing. */
+export const observedMaterialSlugs = new Set(
+  observedMaterialRecords.map((r) => (r.materialId ?? "").replace(/^mat-/, "")));
 
 export { SEED_COLLECTED_DATE, SEED_EFFECTIVE_DATE } from "./pricing";

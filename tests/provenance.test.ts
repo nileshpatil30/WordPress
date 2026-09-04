@@ -88,19 +88,29 @@ describe("estimate provenance", () => {
     expect(bls.shareOfCost).toBeGreaterThan(0.15);
   });
 
-  it("reports an uncovered ZIP as wholly sample data at country scope", async () => {
+  it("resolves an uncovered ZIP entirely at country scope", async () => {
     // Deliberately far outside any metro we cover. If coverage ever reaches
     // Montana this test will fail loudly rather than quietly asserting nothing
     // - which is exactly what happened when Boston moved from uncovered to
     // covered and this case was still pointing at 02116.
+    //
+    // It used to assert one source and wholly sample data. That stopped being
+    // true when observed material prices arrived: they are national, so they
+    // reach Montana like everywhere else, and the estimate is now a mix. The
+    // claim worth guarding was never "all sample" - it is that an uncovered
+    // ZIP gets nothing finer than country scope, whatever the data quality.
     const ctx = (await buildEngineContext(store, "roofing", "59718"))!;
     expect(ctx.geo.isFallback, "59718 was expected to be uncovered").toBe(true);
 
     const r = await estimate("59718");
-    expect(r.provenance).toHaveLength(1);
-    expect(r.provenance[0].dataStatus).toBe("sample");
-    expect(r.provenance[0].scope).toBe("country");
-    expect(r.provenance[0].shareOfCost).toBeCloseTo(1, 9);
+    expect(r.provenance.every((p) => p.scope === "country")).toBe(true);
+    expect(r.provenance.map((p) => p.shareOfCost).reduce((a, b) => a + b, 0))
+      .toBeCloseTo(1, 9);
+    // Nothing here may claim to be verified: no local data exists for it.
+    expect(r.provenance.some((p) => p.dataStatus === "verified")).toBe(false);
+    // And the sample rows have not silently vanished - twelve materials plus
+    // most component rows are still modelled from nothing.
+    expect(r.provenance.some((p) => p.dataStatus === "sample")).toBe(true);
   });
 
   it("keeps the oldest date and the finest scope when a source answers several rows", async () => {
