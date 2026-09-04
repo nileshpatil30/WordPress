@@ -24,8 +24,11 @@
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+const require = createRequire(import.meta.url);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const STAGE = path.join(ROOT, ".static-build");
@@ -74,11 +77,13 @@ console.log("==> Linking node_modules");
 fs.symlinkSync(path.join(ROOT, "node_modules"), path.join(STAGE, "node_modules"), "junction");
 
 console.log("==> Building");
-const build = spawnSync("npx", ["next", "build"], {
+// Next's own entry script run on this Node, rather than shelling out to npx.
+// On Windows npx resolves to npx.cmd, which Node will only execute through a
+// shell, and passing arguments through a shell is both a deprecation warning
+// and a quoting hazard. Calling the script directly sidesteps all of it.
+const build = spawnSync(process.execPath, [require.resolve("next/dist/bin/next"), "build"], {
   cwd: STAGE,
   stdio: "inherit",
-  // Windows resolves npx through npx.cmd, which needs a shell to be found.
-  shell: process.platform === "win32",
   env: { ...process.env, STATIC_EXPORT: "1", NEXT_PUBLIC_STATIC_BUILD: "1" },
 });
 if (build.status !== 0) {
@@ -137,6 +142,30 @@ ErrorDocument 404 /404.html
 
 rm(STAGE);
 
+/**
+ * Package it, because the manual version has a silent failure mode.
+ *
+ * Everything inside out/ must land at the top of the archive. Right-clicking
+ * the out folder in Explorer or Finder instead produces a zip with an out/
+ * wrapper inside it, which extracts to public_html/out/ and serves nothing.
+ * The wrapper is invisible until the site is already broken, so the build
+ * makes the archive itself.
+ *
+ * Never fatal: a missing zip tool should not lose a successful build.
+ */
+const ZIP = path.join(ROOT, "homecostdoctor-static.zip");
+fs.rmSync(ZIP, { force: true });
+
+const packaged = process.platform === "win32"
+  // -Force on Get-ChildItem so .htaccess is included. It carries no hidden
+  // attribute on Windows, but a leading dot is close enough to a trap.
+  ? spawnSync("powershell", ["-NoProfile", "-NonInteractive", "-Command",
+      `Compress-Archive -Path (Get-ChildItem -Force -LiteralPath '${OUT}' | ForEach-Object FullName) -DestinationPath '${ZIP}' -Force`],
+      { stdio: "inherit" })
+  : spawnSync("zip", ["-qr", ZIP, "."], { cwd: OUT, stdio: "inherit" });
+
+const zipped = packaged.status === 0 && fs.existsSync(ZIP);
+
 let pages = 0;
 let bytes = 0;
 for (const entry of fs.readdirSync(OUT, { recursive: true, withFileTypes: true })) {
@@ -146,4 +175,12 @@ for (const entry of fs.readdirSync(OUT, { recursive: true, withFileTypes: true }
   bytes += fs.statSync(full).size;
 }
 console.log(`\n==> Done: ${pages} pages, ${(bytes / 1024 / 1024).toFixed(1)}M, in out/`);
-console.log("    Upload everything INSIDE out/ (including .htaccess) to public_html.");
+if (zipped) {
+  const mb = (fs.statSync(ZIP).size / 1024 / 1024).toFixed(1);
+  console.log(`    Packaged: homecostdoctor-static.zip (${mb}M)`);
+  console.log("    Upload that to Hostinger and extract it into public_html.");
+} else {
+  console.log("    Could not build the zip, so package out/ by hand: go INSIDE");
+  console.log("    out/, select everything including .htaccess, and compress that.");
+  console.log("    Compressing the out folder itself adds a wrapper and serves nothing.");
+}
