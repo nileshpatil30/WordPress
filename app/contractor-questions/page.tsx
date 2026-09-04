@@ -89,6 +89,7 @@ const STAGES: { slug: string; title: string; body: string }[] = [
   { slug: "decking-rot", title: "Deck condition", body: "Nobody knows what is under the old roof until it is off. This is what an allowance and a per-sheet price protect you from." },
   { slug: "underlayment", title: "Underlayment", body: "Goes down over the bare deck before the covering. Synthetic or felt is a line item worth naming in the contract." },
   { slug: "ridge-vent", title: "Ventilation", body: "A ridge vent runs the length of the peak under the cap shingles. Often quoted vaguely, and it affects how long the roof lasts." },
+  { slug: "ice-and-water", title: "Eave protection", body: "A self-adhering membrane along the eaves, under everything else. In snow country it is what stops an ice dam pushing water back into the house." },
 ];
 
 export default function ContractorQuestionsPage() {
@@ -111,7 +112,7 @@ export default function ContractorQuestionsPage() {
 
       <section className="mt-10">
         <h2 className="text-[15px] font-semibold text-ink">What the scope questions are about</h2>
-        <ul className="scroll-x mt-4 flex gap-3 md:grid md:grid-cols-4">
+        <ul className="scroll-x mt-4 flex gap-3 md:grid md:grid-cols-5">
           {STAGES.filter((st) => processPhoto(st.slug)).map((st) => (
             <li key={st.slug} className="w-[240px] shrink-0 md:w-auto">
               <figure className="h-full overflow-hidden rounded-xl border border-line bg-surface">
