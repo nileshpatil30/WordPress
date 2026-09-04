@@ -132,6 +132,18 @@ function main() {
       + `$${m.high.toFixed(2).padStart(8)}   ${m.sampleSize} listing${m.sampleSize === 1 ? "" : "s"}`
       + (m.channel === "retail_bulk" ? ", volume priced (no discount applied)" : ", shelf priced (discount applies)")
       + (m.bandIsAssumed ? "   [band assumed]" : ""));
+
+    // Volume prices are used only when the whole group has them, so a partly
+    // collected group falls back to shelf pricing and prints exactly what it
+    // printed before anyone did the work. Say so, and say which product is
+    // holding it back.
+    if (m.unusedBulkFrom.length > 0) {
+      const n = m.unusedBulkFrom.length;
+      console.log(
+        `${" ".repeat(29)}${n} of ${m.sampleSize} have a volume price, so none were used - `
+        + `mixing shelf and volume prices averages two channels.`);
+      console.log(`${" ".repeat(29)}Still needs one: ${m.missingBulkFrom.join("; ")}`);
+    }
   }
 
   writeFileSync(out, lines.join("\n") + "\n", "utf8");

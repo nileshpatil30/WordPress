@@ -72,6 +72,37 @@ describe("summarising several listings into a range", () => {
     expect(m.median).toBeCloseTo(perSquare((42.97 + 40.97) / 2, 33.33), 1);
   });
 
+  it("names what a partly collected group is still missing", () => {
+    // The shape that turned up in real collection: four of five architectural
+    // listings had a pallet price, so the rule discarded all four and the
+    // output was byte-identical to the run before anyone did the work. The
+    // rule is right; saying nothing about it is not.
+    const [m] = summariseListings([
+      listing({ product: "Timberline HDZ", price: 42.97, bulkPrice: 38.67, bulkQty: 39 }),
+      listing({ product: "Oakridge", price: 40.97, bulkPrice: 36.87, bulkQty: 39 }),
+      listing({ product: "Timberline HDZ (Lowe's)", store: "Lowe's", price: 51.98 }),
+    ]);
+    expect(m.channel).toBe("retail");
+    expect(m.unusedBulkFrom).toEqual(["Timberline HDZ", "Oakridge"]);
+    expect(m.missingBulkFrom).toEqual(["Timberline HDZ (Lowe's)"]);
+  });
+
+  it("says nothing about volume pricing when the group is all or nothing", () => {
+    // Both settled states are silent: a fully collected group uses the volume
+    // prices, and a group with none was never going to. Reporting on either
+    // would be noise on every run.
+    const [none] = summariseListings([listing({ price: 42.97 }), listing({ price: 40.97 })]);
+    expect(none.unusedBulkFrom).toEqual([]);
+    expect(none.missingBulkFrom).toEqual([]);
+
+    const [all] = summariseListings([
+      listing({ price: 42.97, bulkPrice: 38.67, bulkQty: 39 }),
+      listing({ price: 40.97, bulkPrice: 36.87, bulkQty: 39 }),
+    ]);
+    expect(all.channel).toBe("retail_bulk");
+    expect(all.unusedBulkFrom).toEqual([]);
+  });
+
   it("refuses to call identical listings a range", () => {
     // Three colours of one product line at one store are three listings and one
     // price. The observed spread is zero, and publishing low = median = high

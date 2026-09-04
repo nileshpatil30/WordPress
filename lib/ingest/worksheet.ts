@@ -49,6 +49,18 @@ export interface MaterialRange {
    * average two different channels together.
    */
   channel: "retail" | "retail_bulk";
+  /**
+   * Products in this group that carry a volume price which was NOT used,
+   * because at least one other listing in the group has none.
+   *
+   * Empty in the two states that need no explanation: every listing has a
+   * volume price, or none does. It is only populated in the state that
+   * otherwise looks like the tool ignoring you - somebody collected volume
+   * prices for most of a group, and the output came back identical to before.
+   */
+  unusedBulkFrom: string[];
+  /** Products holding the group on shelf pricing. Empty unless unusedBulkFrom is. */
+  missingBulkFrom: string[];
 }
 
 /** A roofing square is 100 sq ft, whatever the packaging happens to be. */
@@ -92,6 +104,11 @@ export function summariseListings(listings: Listing[]): MaterialRange[] {
     // shelf price with a bulk one is not a range, it is two channels averaged.
     const allBulk = group.every((l) => (l.bulkPrice ?? 0) > 0);
     const priceOf = (l: Listing) => (allBulk ? l.bulkPrice! : l.price);
+    // Partial volume pricing is discarded by the rule above, and silently
+    // discarding collected data reads as the tool being broken. Name both
+    // sides so the next collection run is one product long instead of seven.
+    const withBulk = group.filter((l) => (l.bulkPrice ?? 0) > 0);
+    const partial = !allBulk && withBulk.length > 0;
     const vals = group.map((l) => perSquare(priceOf(l), l.coverageSqft));
     const mid = median(vals);
     const stores = [...new Set(group.map((l) => l.store))];
@@ -146,6 +163,10 @@ export function summariseListings(listings: Listing[]): MaterialRange[] {
       date: group.map((l) => l.date).sort()[0],
       bandIsAssumed: spreadTooNarrow,
       channel: allBulk ? "retail_bulk" : "retail",
+      unusedBulkFrom: partial ? withBulk.map((l) => l.product) : [],
+      missingBulkFrom: partial
+        ? group.filter((l) => !((l.bulkPrice ?? 0) > 0)).map((l) => l.product)
+        : [],
       notes: source + bandNote,
     };
   });
