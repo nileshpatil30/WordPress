@@ -1,16 +1,17 @@
-material_slug,what_to_search_for,store,price,bulk_price,bulk_qty,price_unit,coverage_sqft,url,date
-asphalt-architectural,GAF Timberline HDZ Weathered Wood,Home Depot,42.97,,,bundle,33.33,https://www.homedepot.com/p/GAF-Timberline-HDZ-Weathered-Wood-Algae-Resistant-Laminated-High-Definition-Shingles-33-33-sq-ft-per-Bundle-0487900/309755323,2026-09-04
-asphalt-architectural,GAF Timberline HDZ Slate,Home Depot,42.97,,,bundle,33.33,https://www.homedepot.com/p/GAF-Timberline-HDZ-Slate-Algae-Resistant-Laminated-High-Definition-Shingles-33-33-sq-ft-per-Bundle-0487750/309755283,2026-09-04
-asphalt-architectural,Owens Corning Oakridge Onyx Black,Home Depot,40.97,,,bundle,32.8,https://www.homedepot.com/p/Owens-Corning-Oakridge-Onyx-Black-Laminate-Architectural-Roofing-Shingles-32-8-sq-ft-Per-Bundle-HK01/205655927,2026-09-04
-asphalt-architectural,Owens Corning Oakridge Estate Gray,Home Depot,40.97,,,bundle,32.8,https://www.homedepot.com/p/Owens-Corning-Oakridge-Estate-Gray-Algae-Resistant-Laminate-Architectural-Roofing-Shingles-32-8-sq-ft-Per-Bundle-786355/206830644,2026-09-04
-asphalt-3tab,GAF Royal Sovereign Charcoal,Home Depot,38.97,,,bundle,33.33,https://www.homedepot.com/p/GAF-Royal-Sovereign-Charcoal-Algae-Resistant-3-Tab-Roofing-Shingles-33-33-sq-ft-per-Bundle-26-Pieces-0201180/100040028,2026-09-04
-asphalt-3tab,GAF Royal Sovereign Slate,Home Depot,38.97,,,bundle,33.33,https://www.homedepot.com/p/GAF-Royal-Sovereign-Slate-Algae-Resistant-3-Tab-Roofing-Shingles-33-33-sq-ft-per-Bundle-26-Pieces-0202750/100044823,2026-09-04
-asphalt-3tab,GAF Royal Sovereign Weathered Gray,Home Depot,38.97,,,bundle,33.33,https://www.homedepot.com/p/GAF-Royal-Sovereign-Weathered-Gray-Algae-Resistant-3-Tab-Roofing-Shingles-33-33-sq-ft-per-Bundle-26-Pieces-0202880/100046024,2026-09-04
-impact-resistant-shingle,GAF Timberline Armorshield II Weathered Wood,Builders Warehouse,74.44,,,bundle,33.33,https://builderswarehouse.com/gaf-timberline-0448900-armorshield-ii-roof-shingles-3333-sq-ft-weathered-wood.html,2026-09-04
-impact-resistant-shingle,SEARCH then paste the product page url,Home Depot,,,,bundle,,https://www.homedepot.com/s/class%204%20impact%20shingles,
-impact-resistant-shingle,SEARCH then paste the product page url,Home Depot,,,,bundle,,https://www.homedepot.com/s/Duration%20Storm%20shingles,
-asphalt-premium,SEARCH then paste the product page url,Home Depot,,,,bundle,,https://www.homedepot.com/s/designer%20roofing%20shingles,
-asphalt-premium,SEARCH then paste the product page url,Home Depot,,,,bundle,,https://www.homedepot.com/s/GAF%20Grand%20Sequoia,
-asphalt-premium,SEARCH then paste the product page url,Home Depot,,,,bundle,,https://www.homedepot.com/s/Owens%20Corning%20Berkshire%20shingles,
-metal-exposed-fastener,Gibraltar 12 ft Corrugated Galvanized Steel 29-Gauge Roof Panel,Home Depot,42.98,,,panel,,https://www.homedepot.com/b/Building-Materials-Roofing-Roof-Panels-Metal-Roofing/Gibraltar-Building-Products/Galvanized-Steel/N-5yc1vZapwhZ1z0ugnqZ1z23xb3,2026-09-04
-metal-exposed-fastener,Gibraltar 8 ft Corrugated Galvanized Steel 31-Gauge Roof Panel,Home Depot,19.98,,,panel,,https://www.homedepot.com/b/Building-Materials-Roofing-Roof-Panels-Metal-Roofing/Gibraltar-Building-Products/Galvanized-Steel/N-5yc1vZapwhZ1z0ugnqZ1z23xb3,2026-09-04
+material_slug,what_to_search_for,store,price,price_unit,coverage_sqft,url,date
+asphalt-architectural,GAF Timberline HDZ Weathered Wood,Home Depot,42.97,bundle,33.33,https://www.homedepot.com/p/GAF-Timberline-HDZ-Weathered-Wood-Algae-Resistant-Laminated-High-Definition-Shingles-33-33-sq-ft-per-Bundle-0487900/309755323,2026-09-04
+asphalt-architectural,GAF Timberline HDZ Slate,Home Depot,42.97,bundle,33.33,https://www.homedepot.com/p/GAF-Timberline-HDZ-Slate-Algae-Resistant-Laminated-High-Definition-Shingles-33-33-sq-ft-per-Bundle-0487750/309755283,2026-09-04
+asphalt-architectural,Owens Corning Oakridge Onyx Black,Home Depot,40.97,bundle,32.8,https://www.homedepot.com/p/Owens-Corning-Oakridge-Onyx-Black-Laminate-Architectural-Roofing-Shingles-32-8-sq-ft-Per-Bundle-HK01/205655927,2026-09-04
+asphalt-architectural,Owens Corning Oakridge Estate Gray,Home Depot,40.97,bundle,32.8,https://www.homedepot.com/p/Owens-Corning-Oakridge-Estate-Gray-Algae-Resistant-Laminate-Architectural-Roofing-Shingles-32-8-sq-ft-Per-Bundle-786355/206830644,2026-09-04
+asphalt-architectural,GAF Timberline HDZ Weathered Wood (Lowe's),Lowe's,51.98,bundle,33.33,https://www.lowes.com/pd/GAF-Timberline-HDZ-33-33-Sq-Ft-Weathered-Wood-Laminated-Architectural-Roof-Shingles/1001327156,2026-09-04
+asphalt-3tab,GAF Royal Sovereign Charcoal,Home Depot,38.97,bundle,33.33,https://www.homedepot.com/p/GAF-Royal-Sovereign-Charcoal-Algae-Resistant-3-Tab-Roofing-Shingles-33-33-sq-ft-per-Bundle-26-Pieces-0201180/100040028,2026-09-04
+asphalt-3tab,GAF Royal Sovereign Slate,Home Depot,38.97,bundle,33.33,https://www.homedepot.com/p/GAF-Royal-Sovereign-Slate-Algae-Resistant-3-Tab-Roofing-Shingles-33-33-sq-ft-per-Bundle-26-Pieces-0202750/100044823,2026-09-04
+asphalt-3tab,GAF Royal Sovereign Weathered Gray,Home Depot,38.97,bundle,33.33,https://www.homedepot.com/p/GAF-Royal-Sovereign-Weathered-Gray-Algae-Resistant-3-Tab-Roofing-Shingles-33-33-sq-ft-per-Bundle-26-Pieces-0202880/100046024,2026-09-04
+impact-resistant-shingle,SEARCH then paste the product page url,Home Depot,,bundle,,https://www.homedepot.com/s/impact%20resistant%20roofing%20shingles,
+impact-resistant-shingle,SEARCH then paste the product page url,Home Depot,,bundle,,https://www.homedepot.com/s/class%204%20impact%20shingles,
+impact-resistant-shingle,SEARCH then paste the product page url,Home Depot,,bundle,,https://www.homedepot.com/s/Duration%20Storm%20shingles,
+asphalt-premium,SEARCH then paste the product page url,Home Depot,,bundle,,https://www.homedepot.com/s/designer%20roofing%20shingles,
+asphalt-premium,SEARCH then paste the product page url,Home Depot,,bundle,,https://www.homedepot.com/s/GAF%20Grand%20Sequoia,
+asphalt-premium,SEARCH then paste the product page url,Home Depot,,bundle,,https://www.homedepot.com/s/Owens%20Corning%20Berkshire%20shingles,
+metal-exposed-fastener,SEARCH then paste the product page url,Home Depot,,panel,,https://www.homedepot.com/s/corrugated%20metal%20roof%20panel,
+metal-exposed-fastener,SEARCH then paste the product page url,Home Depot,,panel,,https://www.homedepot.com/s/ribbed%20metal%20roofing%20panel,

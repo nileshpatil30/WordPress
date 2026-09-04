@@ -104,20 +104,36 @@ export function summariseListings(listings: Listing[]): MaterialRange[] {
     const floorHigh = mid * (1 + MIN_BAND);
     const low = Math.min(...vals, floorLow);
     const high = Math.max(...vals, floorHigh);
-    const bandIsAssumed = low === floorLow || high === floorHigh;
+    // "Assumed" means the data was too narrow to describe a market - not
+    // merely that the floor touched one side of an otherwise real spread.
 
     const spreadPct = Math.round((Math.max(...vals) / Math.min(...vals) - 1) * 1000) / 10;
+    // The floor can extend one side of a perfectly good spread - a median
+    // sitting near the bottom of the observed range does that. Saying the
+    // listings were "too narrow to describe a market" in that case would be
+    // false, so distinguish the two.
+    const spreadTooNarrow = spreadPct < MIN_BAND * 200;
+    const extended = [
+      low === floorLow ? "low" : null, high === floorHigh ? "high" : null,
+    ].filter(Boolean);
+
     const kind = allBulk ? "volume-priced listing" : "retail listing";
     const source = group.length === 1
       ? `Converted from a single ${kind}: ${describe(group[0])}.`
       : `Converted from ${group.length} ${kind}s: ${group.map(describe).join("; ")}.`;
-    const bandNote = bandIsAssumed
+
+    const bandNote = spreadTooNarrow
       ? ` Those listings span ${spreadPct}%, which is too narrow to describe a market`
         + `${stores.length === 1 ? " and they are all from one retailer" : ""}, so the published band is a `
         + `stated plus or minus ${MIN_BAND * 100}% instead of the observed spread. More products, and `
         + `ideally a second retailer or a distributor quote, would replace it with a real one.`
-      : ` Range is the observed spread across those listings`
-        + `${stores.length === 1 ? ", all from one retailer" : ""}.`;
+      : extended.length
+        ? ` The listings span ${spreadPct}% across ${stores.length} retailer${stores.length === 1 ? "" : "s"}, `
+          + `which is a real spread; the band is extended on the ${extended.join(" and ")} side`
+          + `${extended.length > 1 ? "s" : ""} to a stated minimum of plus or minus ${MIN_BAND * 100}% `
+          + `around the median, because the median does not sit in the middle of the observed prices.`
+        : ` Range is the observed spread across those listings`
+          + `${stores.length === 1 ? ", all from one retailer" : ""}.`;
 
     return {
       materialSlug: slug,
@@ -128,7 +144,7 @@ export function summariseListings(listings: Listing[]): MaterialRange[] {
       stores: stores.join(", "),
       urls: [...new Set(group.map((l) => l.url))].join(" | "),
       date: group.map((l) => l.date).sort()[0],
-      bandIsAssumed,
+      bandIsAssumed: spreadTooNarrow,
       channel: allBulk ? "retail_bulk" : "retail",
       notes: source + bandNote,
     };

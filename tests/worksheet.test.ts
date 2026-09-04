@@ -87,6 +87,24 @@ describe("summarising several listings into a range", () => {
     expect(m.notes).toMatch(/too narrow to describe a market/i);
   });
 
+  it("does not call a real spread too narrow just because the floor touched it", () => {
+    // Five listings spanning 25% across two retailers describe a market. The
+    // median sits near the bottom of them, so the floor still extends the low
+    // side - but the note must say that, not claim the data was inadequate.
+    // This is the real collected shape: four Home Depot listings around $125
+    // and one Lowe's at $156.
+    const [m] = summariseListings([
+      listing({ price: 42.97 }), listing({ price: 42.97 }),
+      listing({ price: 40.97 }), listing({ price: 40.97 }),
+      listing({ price: 51.98, store: "Lowe's" }),
+    ]);
+    expect(m.bandIsAssumed).toBe(false);
+    expect(m.notes).toMatch(/which is a real spread/i);
+    expect(m.notes).toMatch(/extended on the low side/i);
+    expect(m.notes).not.toMatch(/too narrow/i);
+    expect(m.high).toBeCloseTo(perSquare(51.98, 33.33), 1);
+  });
+
   it("keeps the floor when the observed spread is narrower than it", () => {
     // A 3% spread is real and still narrower than any material market.
     const [m] = summariseListings([
