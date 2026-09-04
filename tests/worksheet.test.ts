@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { median, perSquare, summariseListings, type Listing } from "@/lib/ingest/worksheet";
+import { MIN_BAND, median, perSquare, summariseListings, type Listing } from "@/lib/ingest/worksheet";
 
 const listing = (over: Partial<Listing> = {}): Listing => ({
   materialSlug: "asphalt-architectural",
@@ -31,16 +31,64 @@ describe("converting a shop listing to dollars per square", () => {
 });
 
 describe("summarising several listings into a range", () => {
-  it("uses the observed spread when there is one", () => {
+  it("takes the median from the listings even when the floor sets the band", () => {
+    // These three span 7.6%, which is real and still narrower than the floor,
+    // so the band widens while the centre stays exactly where the listings put
+    // it. This test used to assert the observed spread won; it did not, and
+    // that was the assumption worth correcting rather than the assertion.
     const out = summariseListings([
       listing({ price: 42.97 }), listing({ price: 46.25 }), listing({ price: 44.5 }),
     ]);
     expect(out).toHaveLength(1);
-    expect(out[0].low).toBeCloseTo(perSquare(42.97, 33.33), 1);
-    expect(out[0].high).toBeCloseTo(perSquare(46.25, 33.33), 1);
     expect(out[0].median).toBeCloseTo(perSquare(44.5, 33.33), 1);
     expect(out[0].sampleSize).toBe(3);
-    expect(out[0].bandIsAssumed).toBe(false);
+    expect(out[0].bandIsAssumed).toBe(true);
+    expect(out[0].low).toBeLessThan(perSquare(42.97, 33.33));
+    expect(out[0].high).toBeGreaterThan(perSquare(46.25, 33.33));
+  });
+
+  it("refuses to call identical listings a range", () => {
+    // Three colours of one product line at one store are three listings and one
+    // price. The observed spread is zero, and publishing low = median = high
+    // would read as certainty. This is the case that actually turned up in real
+    // collected data - GAF Royal Sovereign in three colours, all $38.97.
+    const [m] = summariseListings([
+      listing({ price: 38.97 }), listing({ price: 38.97 }), listing({ price: 38.97 }),
+    ]);
+    expect(m.sampleSize).toBe(3);
+    expect(m.bandIsAssumed).toBe(true);
+    expect(m.low).toBeLessThan(m.median);
+    expect(m.high).toBeGreaterThan(m.median);
+    expect(m.notes).toMatch(/too narrow to describe a market/i);
+  });
+
+  it("keeps the floor when the observed spread is narrower than it", () => {
+    // A 3% spread is real and still narrower than any material market.
+    const [m] = summariseListings([
+      listing({ price: 40 }), listing({ price: 41.2 }),
+    ]);
+    expect(m.bandIsAssumed).toBe(true);
+    expect(m.low).toBeCloseTo(m.median * (1 - MIN_BAND), 2);
+    expect(m.high).toBeCloseTo(m.median * (1 + MIN_BAND), 2);
+  });
+
+  it("uses the observed spread once it is wider than the floor", () => {
+    const [m] = summariseListings([
+      listing({ price: 30 }), listing({ price: 60 }), listing({ price: 45 }),
+    ]);
+    expect(m.bandIsAssumed).toBe(false);
+    expect(m.low).toBeCloseTo(perSquare(30, 33.33), 1);
+    expect(m.high).toBeCloseTo(perSquare(60, 33.33), 1);
+    expect(m.notes).toMatch(/observed spread/i);
+  });
+
+  it("says when everything came from one retailer", () => {
+    const [one] = summariseListings([listing({ price: 30 }), listing({ price: 60 })]);
+    expect(one.notes).toMatch(/one retailer/i);
+    const [two] = summariseListings([
+      listing({ price: 30, store: "Home Depot" }), listing({ price: 60, store: "Lowes" }),
+    ]);
+    expect(two.notes).not.toMatch(/one retailer/i);
   });
 
   it("says so when the band is assumed rather than observed", () => {
@@ -51,7 +99,7 @@ describe("summarising several listings into a range", () => {
     expect(only.low).toBeLessThan(only.median);
     expect(only.high).toBeGreaterThan(only.median);
     expect(only.notes).toMatch(/stated plus or minus/i);
-    expect(only.notes).toMatch(/collect two more/i);
+    expect(only.notes).toMatch(/single retail listing/i);
   });
 
   it("keeps every source, so any figure can be traced back", () => {

@@ -85,20 +85,33 @@ function main() {
     process.exit(1);
   }
 
-  const listings: Listing[] = usable.map((r) => {
-    const coverage = Number(r.coverage_sqft);
-    if (!(coverage > 0)) {
-      console.error(
-        `${r.material_slug} (${r.what_to_search_for}): coverage_sqft is "${r.coverage_sqft}".\n`
-        + "  It is how many square feet that one price buys, and the product title on the page\n"
-        + "  usually states it - e.g. \"33.33 sq. ft. per Bundle\". Fill it in and run this again.");
-      process.exit(1);
+  // A price with no coverage cannot be converted, but it must not block the
+  // rows that can be. Report it and carry on - partial progress is the normal
+  // case here, not an error.
+  const noCoverage = usable.filter((r) => !(Number(r.coverage_sqft) > 0));
+  if (noCoverage.length) {
+    console.log(`Priced but not convertible (${noCoverage.length}):`);
+    for (const r of noCoverage) {
+      console.log(`  ${r.material_slug} - ${r.what_to_search_for}: coverage_sqft is empty.`);
     }
-    return {
-      materialSlug: r.material_slug, price: Number(r.price), coverageSqft: coverage,
+    console.log(
+      "  Coverage is how many square feet that one price buys. A shingle bundle states it in\n"
+      + "  the product title; a metal panel needs its net covering width, which is less than the\n"
+      + "  panel width because the panels overlap. Fill it in to include these.\n");
+  }
+
+  const listings: Listing[] = usable
+    .filter((r) => Number(r.coverage_sqft) > 0)
+    .map((r) => ({
+      materialSlug: r.material_slug, price: Number(r.price),
+      coverageSqft: Number(r.coverage_sqft),
       store: r.store, product: r.what_to_search_for, url: r.url.trim(), date: r.date.trim(),
-    };
-  });
+    }));
+
+  if (!listings.length) {
+    console.error("No row has both a price and a coverage figure. Nothing to convert.");
+    process.exit(1);
+  }
 
   const summaries = summariseListings(listings);
   const lines = ["material_slug,metric_key,unit,channel,low,median,high,source_name,source_ref,observed_date,geo_scope_type,geo_scope_id,sample_size,notes"];
