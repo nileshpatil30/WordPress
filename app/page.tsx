@@ -167,7 +167,7 @@ export default async function HomePage() {
                 <div className="border-b border-line px-6 py-4">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-faint">
-                      Estimated range
+                      Example estimate
                     </p>
                     <Badge tone="neutral">Phoenix, AZ 85018</Badge>
                   </div>
@@ -206,6 +206,23 @@ export default async function HomePage() {
                       {sample.confidence.band} &mdash; labour is government wage data,
                       materials are still modelled.
                     </p>
+                  </div>
+
+                  {/* The card looks like a calculator, so people try to type in
+                      it. It is not interactive - it is a real estimate for an
+                      example house, rendered by the same engine the calculator
+                      runs. Say both things, and give the click somewhere to go.
+                      The label deliberately differs from the hero button two
+                      inches to the left; the same words twice in one viewport
+                      reads as a stutter, not as emphasis. */}
+                  <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+                    <p className="max-w-[15rem] text-[12px] leading-snug text-muted">
+                      A 2,000&nbsp;sq&nbsp;ft roof in Phoenix, produced by the
+                      calculator &mdash; not a mockup.
+                    </p>
+                    <ButtonLink href="/roof-cost-calculator" size="sm" className="gap-1.5 whitespace-nowrap">
+                      Calculate for my roof <span aria-hidden>&rarr;</span>
+                    </ButtonLink>
                   </div>
                 </div>
               </Card>
