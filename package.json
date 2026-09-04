@@ -16,7 +16,7 @@
     "ingest:bls": "tsx scripts/ingest-bls-oews.ts",
     "admin:create": "tsx scripts/create-admin.ts",
     "test:extract": "tsx scripts/check-extraction.ts",
-    "build:static": "bash scripts/build-static.sh",
+    "build:static": "node scripts/build-static.mjs",
     "ingest:materials": "tsx scripts/ingest-materials.ts",
     "ingest:ppi": "tsx scripts/ingest-ppi.ts",
     "collect:prices": "tsx scripts/collect-prices.ts"
