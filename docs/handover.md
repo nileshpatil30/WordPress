@@ -129,12 +129,24 @@ wages for - fell to the national figure because nobody had written the page.
 A ZIP now carries its own metro, so it prices at metro scope with or without an
 article about it.
 
-    npm run expand:geo -- --oews <MSA csv> --crosswalk <ZIP_CBSA csv>
+    npm run expand:geo -- --fetch --hud-token <token>
 
-Dry run by default. The OEWS metro file is at bls.gov/oes/tables.htm and the
-ZIP-to-CBSA crosswalk at huduser.gov; both are public domain. Add --emit-seed,
-then run `npm run ingest:bls` so the new metros get real wages rather than the
-national fallback. Roughly 380 metros and 40,000 ZIPs are reachable this way.
+Dry run by default; add --emit-seed once the numbers look right, then run
+`npm run ingest:bls` so the new metros get real wages rather than the national
+fallback. Roughly 380 metros and 40,000 ZIPs are reachable this way.
+
+`--fetch` downloads both files itself. The only thing it cannot do for you is
+HUD's free API token - register at huduser.gov/portal/dataset/uspszip-api.html,
+no cost and no approval wait - so pass --hud-token or set HUD_API_TOKEN. Both
+files stay in the gitignored .geo-downloads/ and are reused on the next run.
+
+Point it at local files instead with --oews and --crosswalk, in any
+combination: `--fetch --oews ./local.csv` downloads only the half it lacks. The
+crosswalk reader takes HUD's JSON or a hand-downloaded CSV.
+
+BLS ships OEWS as a zip, and whether it holds CSV or XLSX varies by release. On
+XLSX the script stops and tells you to save it as CSV rather than guessing at a
+binary format.
 
 **4. More countries** (UK, Australia, Netherlands, Poland have been asked
 about). Larger than it looks. The engine is geography-generic, but the data

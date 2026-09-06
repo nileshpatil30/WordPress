@@ -24,3 +24,6 @@ coverage/
 /.overflow.mjs
 /.smoke*.mjs
 
+
+# Downloaded federal source files, re-fetchable and large.
+.geo-downloads/
