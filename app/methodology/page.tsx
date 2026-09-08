@@ -3,6 +3,7 @@ import { getStore } from "@/lib/data/store";
 import { Badge, Card, DataNotice, SectionHeading } from "@/components/ui";
 import { buildMetadata } from "@/lib/seo";
 import { usd } from "@/lib/format";
+import { getCountryPacks, packLevelLabel } from "@/lib/country-packs";
 
 export const metadata = buildMetadata({
   title: "How we estimate roofing costs",
@@ -16,6 +17,32 @@ export default async function MethodologyPage() {
   const service = await store.getServiceBySlug("roofing");
   const factors = await store.listPricingFactors(service!.id);
   const records = await store.listPricingRecords(service!.id);
+
+  // The worked example used to quote a hardcoded $158 per square. That was the
+  // modelled figure, and the moment observed pallet prices landed at $116 the
+  // methodology page was contradicting every estimate on the site - on the one
+  // page whose entire job is being checkable. Read it from the same row the
+  // engine reads.
+  const architectural = records.find(
+    (r) => r.metricKey === "material.per_square" && r.materialId === "mat-asphalt-architectural");
+  const perSquare = architectural?.medianPrice ?? 0;
+  const SQUARES = 22;
+  const covering = Math.round(perSquare * SQUARES);
+
+  // One row per country, taking its strongest service.
+  const packs = Object.values(getCountryPacks().reduce<
+    Record<string, ReturnType<typeof getCountryPacks>[number]>>((acc, p) => {
+      const best = acc[p.countryId];
+      acc[p.countryId] = !best || (p.publishable && !best.publishable) ? p : best;
+      return acc;
+    }, {}));
+
+  const countryGrades: [string, string, string][] = [
+    ["Established", "Almost none of the job rests on figures we generated, and the evidence behind it is direct.", "Yes"],
+    ["Developing", "Some of it does. The United States is here.", "Yes, flagged"],
+    ["Limited sample", "More than half of it does.", "Yes, flagged"],
+    ["Insufficient", "A component the estimate needs has no priced figure at all.", "No"],
+  ];
 
   const grouped = new Map<string, typeof factors>();
   for (const f of factors) {
@@ -281,7 +308,8 @@ material qty   = squares x waste factor    (7% to 20% by complexity)`}
             "It does not model code upgrades triggered by your specific permit. Those are jurisdiction-specific and sometimes property-specific.",
             "It assumes a competent, insured contractor doing the job properly. It is not modelling the cheapest possible way to get shingles onto a roof.",
             "Its permit figures are allowances, not schedules. Published fee schedules are exact, and replacing our allowance with them is one of the highest-value improvements available.",
-            "Its labour rates are real - Bureau of Labor Statistics wage data for each metro - but materials, disposal, equipment and permits are still our own sample figures, and they are the larger share of the bill. That is the single largest limitation, and no amount of good modelling fixes it.",
+            "Its labour rates are real - Bureau of Labor Statistics wage data for each metro - and the two asphalt shingle prices are now observed rather than modelled. The other twelve materials, plus disposal, equipment and permits, are still our own figures. That remains the single largest limitation, and no amount of good modelling fixes it.",
+            "The observed shingle prices are publicly listed pallet prices at big-box retailers - what somebody buying a full pallet pays. A contractor on distributor terms may pay less, and we do not claim otherwise.",
           ].map((t) => (
             <li key={t} className="flex gap-3">
               <span aria-hidden className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-caution" />
@@ -300,13 +328,77 @@ material qty   = squares x waste factor    (7% to 20% by complexity)`}
         </p>
       </section>
 
+      {/* ------------------------ Country readiness ------------------------ */}
+      {/* The homepage links here for "how readiness is graded", so this has to
+          answer that question rather than being a place the link lands. */}
+      {/* scroll-mt clears the sticky header. Without it the anchor lands with
+          the heading hidden behind the nav, which reads as the wrong section. */}
+      <section id="country-readiness" className="mt-16 max-w-3xl scroll-mt-28">
+        <SectionHeading
+          eyebrow="Beyond the United States"
+          title="When a country is allowed to show a price"
+          description="A roof in Auckland is not a roof in Austin at a different exchange rate. Materials, labour, taxes, disposal and building standards all differ, so each country needs its own data rather than a converted copy of ours."
+        />
+        <p className="mt-6 text-[15px] leading-relaxed text-ink-soft">
+          Which countries are ready is read from the data, not decided by
+          someone. Every country and service pair is graded on how much of a
+          typical job rests on observed prices against figures we generated,
+          with overhead set aside because it is a markup on everything else and
+          has no quality of its own.
+        </p>
+        <div className="mt-6 overflow-x-auto">
+          <table className="w-full min-w-[34rem] border-collapse text-left">
+            <thead>
+              <tr className="border-b border-line">
+                <th className="pb-2 pr-4 text-[12px] font-semibold uppercase tracking-[0.08em] text-faint">Grade</th>
+                <th className="pb-2 pr-4 text-[12px] font-semibold uppercase tracking-[0.08em] text-faint">Means</th>
+                <th className="pb-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-faint">Shows a price</th>
+              </tr>
+            </thead>
+            <tbody>
+              {countryGrades.map(([grade, means, shows]) => (
+                <tr key={grade} className="border-b border-line align-top">
+                  <td className="py-3 pr-4 text-[14px] font-semibold text-ink">{grade}</td>
+                  <td className="py-3 pr-4 text-[13.5px] leading-relaxed text-muted">{means}</td>
+                  <td className={`py-3 text-[13.5px] font-semibold ${
+                    shows === "No" ? "text-danger" : "text-accent"}`}>{shows}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-6 text-[14.5px] leading-relaxed text-muted">
+          Insufficient never shows a price. An estimate with no labour or
+          material figure behind it is not an uncertain price &mdash; it is not
+          a price. And a country cannot be switched on ahead of its data by
+          changing a setting: the build fails if that happens, because a picker
+          full of flags returning one country&rsquo;s numbers in several
+          currencies is the failure this whole scheme exists to prevent.
+        </p>
+        <ul className="mt-6 grid gap-2 sm:grid-cols-3">
+          {packs.map((p) => (
+            <li
+              key={p.countryId}
+              className={`flex items-center justify-between gap-3 rounded-lg border px-3.5 py-2.5 ${
+                p.publishable ? "border-accent-line bg-accent-soft/50" : "border-line bg-surface"}`}
+            >
+              <span className="text-[13.5px] font-semibold text-ink">{p.countryName}</span>
+              <span className={`text-[11px] font-semibold uppercase tracking-[0.08em] ${
+                p.publishable ? "text-accent" : "text-faint"}`}>
+                {p.publishable ? packLevelLabel(p.level) : "Not started"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <section className="mt-14 max-w-3xl">
         <Card className="p-6">
           <h2 className="text-[16px] font-semibold text-ink">A worked example</h2>
           <p className="mt-2 text-[14px] leading-relaxed text-muted">
             A 2,000 sq ft roof is 20 squares. At a moderate 10% waste factor that
             is 22 squares of material. Architectural shingle at roughly{" "}
-            {usd(158)} per square is about {usd(3476)} of covering, before
+            {usd(perSquare)} per square is about {usd(covering)} of covering, before
             underlayment, accessories, flashing and ventilation. Labour is roughly
             1.6 crew hours per square to install, plus tear-off scaled by the
             weight coming off, plus detail hours &mdash; then multiplied by pitch,

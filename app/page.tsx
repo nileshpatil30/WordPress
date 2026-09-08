@@ -625,7 +625,7 @@ export default async function HomePage() {
           <div className="mt-10 rounded-xl border border-line bg-sunken/50 p-5 sm:p-6">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <p className="text-[15px] font-semibold text-ink">Countries</p>
-              <Link href="/methodology" className="text-[13px] font-semibold text-accent hover:underline">
+              <Link href="/methodology#country-readiness" className="text-[13px] font-semibold text-accent hover:underline">
                 How readiness is graded &rarr;
               </Link>
             </div>
