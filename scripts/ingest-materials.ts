@@ -19,6 +19,7 @@ import {
   transformMaterialObservations, type MaterialObservation, type PriceChannel,
 } from "../lib/ingest/materials";
 import { seedDataset } from "../lib/data/seed";
+import { observedMaterialRecords } from "../lib/data/seed/materials";
 
 const arg = (name: string) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -32,13 +33,15 @@ function main() {
   const file = arg("file");
   const collected = arg("collected");
   const emitSeed = arg("emit-seed");
+  const flag = (n: string) => process.argv.includes(`--${n}`);
 
   if (!file || !collected) {
     console.error(
       "Usage: npm run ingest:materials -- --file <csv> --collected YYYY-MM-DD [--emit-seed <path>]\n\n" +
       "  --file       CSV of observations. See data/materials-template.csv.\n" +
       "  --collected  The date you ran the collection, not the date a price was observed.\n" +
-      "  --emit-seed  Write a committed TypeScript seed module. Without it, nothing is written.\n");
+      "  --emit-seed  Write a committed TypeScript seed module. Without it, nothing is written.\n" +
+      "  --replace    Allow the emit to drop materials already priced from observation.\n");
     process.exit(2);
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(collected)) {
@@ -137,6 +140,29 @@ function main() {
       `  per ${r.unit}`);
   }
   console.log();
+
+  // Emitting replaces the whole seed module, so a CSV that has lost a material
+  // silently deletes prices somebody collected by hand. That is the one way
+  // this tool can destroy work, and it does not announce itself: the run looks
+  // exactly like a normal one, and the site goes back to modelled numbers.
+  //
+  // Refuse unless the loss is stated. --replace exists for the case where
+  // dropping a material is the point.
+  const dropped = observedMaterialRecords
+    .map((r) => (r.materialId ?? "").replace(/^mat-/, ""))
+    .filter((slug) => slug && !result.records.some((r) => r.materialId === `mat-${slug}`));
+
+  if (emitSeed && dropped.length && !flag("replace")) {
+    console.error(
+      `This would remove ${dropped.length} material${dropped.length === 1 ? "" : "s"} `
+      + `already priced from observation:\n`
+      + dropped.map((d) => `  ${d}`).join("\n")
+      + "\n\nThat is usually a worksheet that has lost rows rather than an intention.\n"
+      + "`npm run collect:prices` reads every data/price-worksheet*.csv, so run that\n"
+      + "first and ingest the materials.csv it writes. Pass --replace if the removal\n"
+      + "is deliberate.");
+    process.exit(1);
+  }
 
   if (!emitSeed) {
     console.log("DRY RUN. Nothing written. Re-run with --emit-seed <path> to commit them.");

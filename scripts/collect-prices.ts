@@ -19,7 +19,8 @@
  * observed, and the ingester still applies the documented retail-to-trade
  * discount afterwards, because a shelf price is not what a contractor pays.
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { summariseListings, type Listing } from "../lib/ingest/worksheet";
 
 interface Row {
@@ -58,14 +59,50 @@ function splitLine(line: string): string[] {
 
 const csvCell = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
 
+/**
+ * Every worksheet in data/, not just the first one.
+ *
+ * Collection happens in rounds - asphalt first, then the twelve materials that
+ * are still modelled - and each round arrives as its own file. Reading one
+ * file and writing the whole of materials.csv from it meant the obvious next
+ * command, `collect:prices --file data/price-worksheet-round2.csv`, would
+ * quietly produce a materials.csv holding only round two. Ingesting that
+ * regenerates the seed, and the asphalt prices somebody spent an hour
+ * collecting are gone, with nothing on screen having looked wrong.
+ *
+ * So the default is all of them. Rounds are additive by construction, and
+ * --file still narrows it when you want to look at one in isolation.
+ */
+function worksheets(): string[] {
+  const explicit = process.argv.reduce<string[]>((acc, a, i) => (
+    a === "--file" && process.argv[i + 1] ? [...acc, process.argv[i + 1]] : acc), []);
+  if (explicit.length) return explicit;
+
+  const found = readdirSync("data")
+    .filter((f) => /^price-worksheet.*\.csv$/.test(f))
+    .sort()
+    .map((f) => path.join("data", f));
+  return found.length ? found : ["data/price-worksheet.csv"];
+}
+
 function main() {
-  const file = arg("file") ?? "data/price-worksheet.csv";
+  const files = worksheets();
   const out = arg("out") ?? "data/materials.csv";
-  const rows = parseCsv(readFileSync(file, "utf8"));
+
+  const rows = files.flatMap((f) => {
+    if (!existsSync(f)) {
+      console.error(`No such worksheet: ${f}`);
+      process.exit(1);
+    }
+    return parseCsv(readFileSync(f, "utf8"));
+  });
 
   const usable = rows.filter((r) => r.price && Number.isFinite(Number(r.price)) && Number(r.price) > 0);
   const skipped = rows.length - usable.length;
-  console.log(`Read ${rows.length} rows from ${file}; ${usable.length} have a price.`);
+  console.log(
+    `Read ${rows.length} rows from ${files.length === 1 ? files[0] : `${files.length} worksheets`}`
+    + `; ${usable.length} have a price.`);
+  if (files.length > 1) for (const f of files) console.log(`  ${f}`);
   if (skipped) console.log(`${skipped} row${skipped === 1 ? "" : "s"} left blank and ignored.\n`);
   if (!usable.length) {
     console.error("Nothing to convert. Fill in the price column and run this again.");

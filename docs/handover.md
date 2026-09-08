@@ -211,10 +211,11 @@ does not. Merging publishes.
 ```bash
 npm test                  # 213 tests
 npm run build:static      # out/, ready to upload
-npm run collect:prices    # price worksheet -> materials.csv
+npm run collect:prices    # every data/price-worksheet*.csv -> materials.csv
 npm run ingest:materials  # materials.csv -> seed (dry run without --emit-seed)
 npm run ingest:ppi        # BLS PPI -> seed
 npm run ingest:bls        # BLS OEWS wages -> seed
+npm run expand:geo        # OEWS + HUD crosswalk -> metros, states, ZIPs
 ```
 
 `.github/workflows/monthly-data-refresh.yml` runs the PPI ingest on a schedule
