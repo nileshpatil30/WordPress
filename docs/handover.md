@@ -148,12 +148,33 @@ BLS ships OEWS as a zip, and whether it holds CSV or XLSX varies by release. On
 XLSX the script stops and tells you to save it as CSV rather than guessing at a
 binary format.
 
-**4. More countries** (UK, Australia, Netherlands, Poland have been asked
-about). Larger than it looks. The engine is geography-generic, but the data
-pipeline is not: BLS wages, BLS PPI and US permit structures are all
-US-specific, and each country needs its own statistical-agency equivalent, its
-own currency, square metres instead of roofing squares, and VAT - which the
-model currently has no concept of. Budget a month per country, not a week.
+**4. More countries.** The architecture is country packs: one engine, a data
+pack per country, activated only when its own data is good enough.
+`lib/country-packs.ts` grades every country and service pair from the dataset
+and decides which are publishable; the homepage table is rendered from it.
+
+The point of deriving that rather than writing it down is one specific failure.
+A country picker looks better with nine flags than with one, and the eight
+extra return a US number with a different currency symbol. So a flag cannot be
+switched on by editing a boolean - `packsContradictingActivation()` fails a test
+if `Country.isActive` gets ahead of the rows, and "insufficient" never
+publishes: an estimate with no labour or material row is not an uncertain price,
+it is not a price.
+
+Grading, on the priced part of a job with overhead set aside (it is a markup on
+everything else, so it has no quality of its own):
+
+| | |
+|---|---|
+| insufficient | a required component has no row. Cannot publish |
+| limited | over half rests on rows we invented |
+| developing | some of it does. **The US is here** |
+| established | almost none, and the evidence is direct |
+
+The work per country is still real: its own statistical-agency equivalent of
+BLS, its own currency and units, and VAT - which the model has no concept of.
+Budget a month, not a week. What has changed is that adding one cannot quietly
+degrade the others, and a half-finished pack shows as half-finished.
 
 **5. More services.** Solar, HVAC, windows, siding, kitchen and bathroom are
 seeded as `planned`. Each needs an engine module and its own dataset, which

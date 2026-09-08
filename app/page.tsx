@@ -14,6 +14,7 @@ import { assessQuote } from "@/lib/engine/quote";
 import { PriceRangeBar } from "@/components/estimate/EstimateView";
 import { usd } from "@/lib/format";
 import { buildMetadata, JsonLd, SITE_NAME, siteUrl } from "@/lib/seo";
+import { getCountryPacks, packLevelLabel } from "@/lib/country-packs";
 import { dataIllustration, heroPhoto } from "@/lib/photos";
 
 export const metadata = buildMetadata({
@@ -44,6 +45,15 @@ export default async function HomePage() {
   });
   const sample = isError(demo) ? null : demo.estimate;
   const planned = services.filter((s) => s.status === "planned");
+  // One row per country, taking its strongest service - the question a reader
+  // has here is "can this site price my country", not "which of seven".
+  const countryPacks = Object.values(
+    getCountryPacks().reduce<Record<string, ReturnType<typeof getCountryPacks>[number]>>(
+      (acc, p) => {
+        const best = acc[p.countryId];
+        acc[p.countryId] = !best || (p.publishable && !best.publishable) ? p : best;
+        return acc;
+      }, {}));
   const hero = heroPhoto();
   const illustration = dataIllustration();
 
@@ -605,6 +615,43 @@ export default async function HomePage() {
                 );
               })}
           </ul>
+
+          {/* Country readiness, derived rather than declared.
+              A country picker showing nine flags when eight of them would
+              return a US number with a different currency symbol is the exact
+              failure this is here to prevent. What ships is the grade the data
+              supports, and a country appears as available only when
+              lib/country-packs.ts says it is publishable. */}
+          <div className="mt-10 rounded-xl border border-line bg-sunken/50 p-5 sm:p-6">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="text-[15px] font-semibold text-ink">Countries</p>
+              <Link href="/methodology" className="text-[13px] font-semibold text-accent hover:underline">
+                How readiness is graded &rarr;
+              </Link>
+            </div>
+            <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-muted">
+              A roof in Auckland is not a roof in Austin with the currency
+              swapped &mdash; different materials, labour rates, taxes, disposal
+              and building standards. So a country opens when its own data is
+              good enough, and this table is read from the data rather than
+              written by hand.
+            </p>
+            <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {countryPacks.map((p) => (
+                <li
+                  key={p.countryId}
+                  className={`flex items-center justify-between gap-3 rounded-lg border px-3.5 py-2.5 ${
+                    p.publishable ? "border-accent-line bg-accent-soft/50" : "border-line bg-surface"}`}
+                >
+                  <span className="text-[13.5px] font-semibold text-ink">{p.countryName}</span>
+                  <span className={`text-[11px] font-semibold uppercase tracking-[0.08em] ${
+                    p.publishable ? "text-accent" : "text-faint"}`}>
+                    {p.publishable ? packLevelLabel(p.level) : "Not started"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
     </>
