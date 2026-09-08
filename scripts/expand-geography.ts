@@ -22,9 +22,9 @@
  * one, download the file by hand and pass --crosswalk; --fetch will say so
  * rather than failing obscurely.
  *
- * BLS ships OEWS as a zip. If the archive turns out to hold .xlsx rather than
- * .csv - which varies by release - this stops and tells you to save it as CSV,
- * because a wrong guess at a binary format is worse than an instruction.
+ * BLS ships OEWS as a zip holding either .csv or .xlsx depending on the
+ * release. Both are read directly. Only a legacy .xls stops and asks for a
+ * conversion, being a different binary format entirely.
  *
  * This adds places, not prices. Wage data for the new metros still comes from
  * `npm run ingest:bls`, which is the step that gives them a real number instead
@@ -34,6 +34,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { parseCsvRecords } from "../lib/ingest/csv";
+import { readXlsxRecords } from "../lib/ingest/xlsx";
 import { crosswalkZips, expandGeography, type AreaRow, type CrosswalkRow } from "../lib/ingest/geo-expand";
 import { seedDataset } from "../lib/data/seed";
 
@@ -99,14 +100,26 @@ function unzipAndFindTable(zipPath: string): string | null {
     ?? files.find((f) => /\.csv$/i.test(f));
   if (csv) return csv;
 
-  const xlsx = files.find((f) => /\.xlsx?$/i.test(f));
-  if (xlsx) {
+  // BLS ships OEWS as a spreadsheet more often than as a CSV, so this is the
+  // normal path rather than the exception. lib/ingest/xlsx.ts reads it.
+  const xlsx = files.find((f) => /\.xlsx$/i.test(f));
+  if (xlsx) return xlsx;
+
+  const xls = files.find((f) => /\.xls$/i.test(f));
+  if (xls) {
     console.error(
-      `\n  The archive holds a spreadsheet, not a CSV:\n    ${xlsx}\n`
-      + "  Open it, File -> Save As -> CSV, then re-run with --oews <that csv>.\n"
-      + "  Guessing at a binary format is how a wrong number gets published.");
+      `\n  The archive holds a legacy .xls workbook:\n    ${xls}\n`
+      + "  That is a different binary format from .xlsx and this reads only .xlsx.\n"
+      + "  Open it, File -> Save As -> CSV, then re-run with --oews <that csv>.");
   }
   return null;
+}
+
+/** Read the OEWS table from whichever of the two shapes BLS shipped. */
+function readTable(file: string): Record<string, string>[] {
+  return /\.xlsx$/i.test(file)
+    ? readXlsxRecords(readFileSync(file))
+    : parseCsvRecords(readFileSync(file, "utf8"));
 }
 
 /**
@@ -196,7 +209,7 @@ function main() {
     process.exit(1);
   }
 
-  const oewsRows = parseCsvRecords(readFileSync(oewsPath, "utf8"));
+  const oewsRows = readTable(oewsPath);
   const areas: AreaRow[] = [];
   const seenArea = new Set<string>();
   for (const r of oewsRows) {
@@ -229,7 +242,9 @@ function main() {
 
   if (!flag("emit-seed")) {
     console.log("\nDRY RUN. Nothing written. Re-run with --emit-seed to commit it.");
-    console.log("Then run `npm run ingest:bls` so the new metros get real wages.");
+    console.log(`Then: npm run ingest:bls -- --file ${oewsPath} --effective <YYYY-MM-01> \\`);
+    console.log("        --emit-seed lib/data/seed/bls-labor.ts --retire-superseded");
+    console.log("      so the new metros get real wages instead of the national fallback.");
     return;
   }
 
@@ -252,7 +267,8 @@ export const expandedMetros: Metro[] = ${JSON.stringify(metros, null, 2)};
 export const expandedZipCodes: ZipCode[] = ${JSON.stringify(zipCodes, null, 2)};
 `, "utf8");
   console.log(`\nWrote ${out}.`);
-  console.log("Next: npm run ingest:bls -- --file <MSA csv> --effective <date> --emit-seed lib/data/seed/bls-labor.ts");
+  console.log(`Next: npm run ingest:bls -- --file ${oewsPath} --effective <YYYY-MM-01> \\`);
+  console.log("        --emit-seed lib/data/seed/bls-labor.ts --retire-superseded");
 }
 
 main();

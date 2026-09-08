@@ -144,9 +144,15 @@ Point it at local files instead with --oews and --crosswalk, in any
 combination: `--fetch --oews ./local.csv` downloads only the half it lacks. The
 crosswalk reader takes HUD's JSON or a hand-downloaded CSV.
 
-BLS ships OEWS as a zip, and whether it holds CSV or XLSX varies by release. On
-XLSX the script stops and tells you to save it as CSV rather than guessing at a
-binary format.
+BLS ships OEWS as a zip holding either CSV or XLSX depending on the release.
+Both are read directly - `lib/ingest/xlsx.ts` is a small reader for the one
+thing needed here, a rectangle of values out of the first worksheet. Only a
+legacy `.xls` asks for a conversion, being a different format entirely.
+
+`npm run ingest:bls` reads the same two shapes, so the file `--fetch`
+downloaded goes straight into the wage ingest without a conversion between two
+steps of one workflow. The expander prints that command with the real path
+filled in.
 
 **4. More countries.** The architecture is country packs: one engine, a data
 pack per country, activated only when its own data is good enough.

@@ -29,6 +29,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseCsvRecords } from "../lib/ingest/csv";
+import { readXlsxRecords } from "../lib/ingest/xlsx";
 import { transformOewsRows, OEWS_SOC_CODES } from "../lib/ingest/bls-oews";
 import { getStore } from "../lib/data/store";
 
@@ -77,7 +78,12 @@ async function main() {
   if (!source) { console.error('Missing pricing source "src-bls-oes". Seed it first.'); process.exit(1); }
 
   console.log(`Reading ${path.resolve(file)}`);
-  const rows = parseCsvRecords(fs.readFileSync(file, "utf8"));
+  // The same file expand:geo downloads, in whichever shape BLS shipped it.
+  // Requiring a CSV here after that script happily read the xlsx would mean
+  // converting a file by hand between two steps of one workflow.
+  const rows = /\.xlsx$/i.test(file)
+    ? readXlsxRecords(fs.readFileSync(file))
+    : parseCsvRecords(fs.readFileSync(file, "utf8"));
   console.log(`Parsed ${rows.length.toLocaleString()} rows.\n`);
 
   const result = transformOewsRows(rows, {
