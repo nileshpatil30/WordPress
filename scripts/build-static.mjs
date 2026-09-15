@@ -103,6 +103,21 @@ DirectoryIndex index.html
 
 ErrorDocument 404 /404.html
 
+# Belt and braces. Submissions are written to hcd-data/ BESIDE public_html, so
+# the web cannot reach them at all - but if anyone ever moves that directory
+# inside, or a stray .jsonl lands here, it must not be downloadable. A data
+# file served over HTTP is a data leak, and the intake form promises otherwise.
+<FilesMatch "\\.(jsonl|sqlite|db|env)$">
+  Require all denied
+</FilesMatch>
+<IfModule !mod_authz_core.c>
+  <FilesMatch "\\.(jsonl|sqlite|db|env)$">
+    Order allow,deny
+    Deny from all
+  </FilesMatch>
+</IfModule>
+RedirectMatch 404 ^/hcd-data/
+
 # Serve /foo for /foo/index.html without a redirect loop.
 <IfModule mod_rewrite.c>
   RewriteEngine On

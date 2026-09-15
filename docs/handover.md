@@ -209,6 +209,21 @@ shadows renamed seed rows and will silently serve stale content.
 needs a server to hold an API key, which would otherwise ship to the browser.
 Enabling it means deploying somewhere with a server, not a code change.
 
+**Homeowner submissions DO work on the static build**, via PHP. `/contribute`
+used to say contributions were paused, which meant the one part of the product
+that improves with traffic could not improve at all. `public/intake/submit.php`
+takes the same JSON as the Node route under the same constraints - no PII, month
+only, pending, consent versioned - and appends JSON Lines to `hcd-data/`, which
+sits BESIDE `public_html` so the web cannot reach it.
+
+To bring them back in: download `hcd-data/submissions.jsonl` from the host, then
+
+    npm run import:submissions -- --file ./submissions.jsonl
+
+Dry run by default. Rows land `pending` and no estimate reads them until a human
+approves them in the admin console. The file on the host is append-only, so
+every import re-reads old rows; they are skipped by id.
+
 **`master` is well behind this branch.** Vercel builds from `master`, Hostinger
 does not. Merging publishes.
 
@@ -222,6 +237,7 @@ npm run ingest:materials  # materials.csv -> seed (dry run without --emit-seed)
 npm run ingest:ppi        # BLS PPI -> seed
 npm run ingest:bls        # BLS OEWS wages -> seed
 npm run expand:geo        # OEWS + HUD crosswalk -> metros, states, ZIPs
+npm run import:submissions # homeowner figures off the host -> pending rows
 ```
 
 `.github/workflows/monthly-data-refresh.yml` runs the PPI ingest on a schedule
