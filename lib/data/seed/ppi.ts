@@ -18,7 +18,7 @@ import type { PriceIndexPoint, PriceIndexSeries } from "@/lib/types";
  * forward; it is not itself a price.
  */
 export const PPI_SERIES_KEY = "WPU1361";
-export const PPI_LATEST_PERIOD = "2026-07-01";
+export const PPI_LATEST_PERIOD = "2026-09-01";
 
 export const ppiSeries: PriceIndexSeries = {
   "id": "pis-wpu1361",
@@ -32,7 +32,7 @@ export const ppiSeries: PriceIndexSeries = {
   "appliesTo": [
     "material"
   ],
-  "methodology": "PPI: prepared asphalt and tar roofing and siding products, series WPU1361, as published. 31 monthly readings from 2024-01-01 to 2026-07-01. Values are transcribed unchanged; the index measures producer price movement, not a retail or installed price."
+  "methodology": "PPI: prepared asphalt and tar roofing and siding products, series WPU1361, as published. 33 monthly readings from 2024-01-01 to 2026-09-01. Values are transcribed unchanged; the index measures producer price movement, not a retail or installed price."
 };
 
 export const ppiPoints: PriceIndexPoint[] = [
@@ -238,7 +238,21 @@ export const ppiPoints: PriceIndexPoint[] = [
     "id": "pip-wpu1361-2026-07",
     "seriesId": "pis-wpu1361",
     "periodStart": "2026-07-01",
-    "value": 372.301,
+    "value": 372.165,
     "pctChangeYoy": 3.6
+  },
+  {
+    "id": "pip-wpu1361-2026-08",
+    "seriesId": "pis-wpu1361",
+    "periodStart": "2026-08-01",
+    "value": 373.881,
+    "pctChangeYoy": 3.8
+  },
+  {
+    "id": "pip-wpu1361-2026-09",
+    "seriesId": "pis-wpu1361",
+    "periodStart": "2026-09-01",
+    "value": 366.372,
+    "pctChangeYoy": 2.7
   }
 ];
